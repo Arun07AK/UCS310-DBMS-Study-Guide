@@ -1,0 +1,669 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch4 — The Relational Data Model</title>
+<style>
+:root{
+  --primary:#8e44ad;--secondary:#9b59b6;--accent:#27ae60;
+  --blue:#2980b9;--orange:#e67e22;--red:#e74c3c;--teal:#16a085;
+  --dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;
+  --text:#e8e8e8;--muted:#999;
+  --border:rgba(142,68,173,.25);--glow:0 0 30px rgba(142,68,173,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.6rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}
+.logo{color:var(--primary);font-size:.95rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;padding:.28rem .6rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(142,68,173,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--blue));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}
+h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}
+.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(142,68,173,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(142,68,173,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(41,128,185,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(142,68,173,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}
+.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:1rem;margin-top:1.2rem;}
+.ib{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem;}
+.ipurple{background:rgba(142,68,173,.2);}
+.iblue{background:rgba(41,128,185,.2);}
+.igreen{background:rgba(39,174,96,.2);}
+.iorange{background:rgba(230,126,34,.2);}
+.ired{background:rgba(231,76,60,.2);}
+.hbox{background:rgba(142,68,173,.08);border:1px solid rgba(142,68,173,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.red{background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.3);}
+.hbox p{color:#d0d0e0;}
+.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}
+.hbox.blue strong{color:#5dade2;}
+.hbox.orange strong{color:var(--orange);}
+.hbox.red strong{color:#ec7063;}
+
+/* TERMINOLOGY VISUAL */
+.term-table{width:100%;border-collapse:collapse;font-size:.88rem;margin-top:1rem;}
+.term-table th{padding:.7rem 1rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;color:var(--primary);background:rgba(142,68,173,.12);border-bottom:2px solid var(--border);}
+.term-table td{padding:.65rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);color:#c0c0d0;}
+.term-table tr:hover td{background:rgba(142,68,173,.04);}
+.highlight-term{color:var(--primary);font-weight:700;}
+
+/* ANNOTATED TABLE */
+.ann-wrap{position:relative;margin:1.5rem 0;overflow-x:auto;}
+.ann-table{border-collapse:collapse;font-size:.82rem;min-width:560px;}
+.ann-table th{background:rgba(142,68,173,.2);color:#c39bd3;padding:.55rem .8rem;text-align:left;border:1px solid rgba(142,68,173,.3);}
+.ann-table td{padding:.5rem .8rem;border:1px solid rgba(255,255,255,.06);color:#c0c0d0;font-family:monospace;font-size:.8rem;}
+.ann-table td.null{color:#f1948a;font-style:italic;}
+.ann-table tr:hover td{background:rgba(142,68,173,.05);}
+.ann-table .rn{color:#a29bfe;font-size:.7rem;font-style:italic;padding:.3rem .8rem;background:rgba(142,68,173,.06);}
+
+/* RELATION DIAGRAM SVG */
+.rel-diagram{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin:1rem 0;overflow-x:auto;}
+
+/* DOMAIN CARDS */
+.domain-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:.9rem;margin-top:1.2rem;}
+.domain-card{background:var(--card2);border:1px solid rgba(142,68,173,.2);border-radius:10px;padding:.9rem;}
+.dc-name{font-size:.78rem;font-weight:700;color:var(--primary);margin-bottom:.2rem;}
+.dc-desc{font-size:.75rem;color:#c0b8d0;line-height:1.55;}
+.dc-type{font-size:.7rem;color:var(--muted);margin-top:.2rem;font-family:monospace;}
+
+/* CHARACTERISTICS */
+.char-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:1rem;margin-top:1.2rem;}
+.char-card{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:1rem;border-left:3px solid var(--primary);}
+.char-num{font-size:.65rem;color:var(--primary);font-weight:700;margin-bottom:.3rem;text-transform:uppercase;}
+.char-title{font-size:.88rem;font-weight:700;color:#e0e0e0;margin-bottom:.3rem;}
+.char-desc{font-size:.78rem;color:var(--muted);line-height:1.55;}
+
+/* FLIP CARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:800px;cursor:pointer;}
+.fc-in{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s;position:relative;}
+.fc:hover .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;border:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card);}
+.fc-bk{background:linear-gradient(135deg,var(--card),var(--card2));transform:rotateY(180deg);}
+.fc-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-bottom:.5rem;}
+.fc-term{font-size:.86rem;font-weight:700;line-height:1.35;}
+.fc-hint{font-size:.65rem;color:var(--muted);margin-top:.4rem;}
+.fc-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.3rem;}
+.fc-def{font-size:.77rem;line-height:1.5;color:#c8c8e8;}
+
+/* QUIZ */
+.q-dots{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:.3s;}
+.q-dot.done{background:var(--accent);}
+.q-dot.cur{background:var(--primary);transform:scale(1.3);}
+.q-dot.bad{background:var(--orange);}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:700px;}
+.qnum{font-size:.68rem;color:var(--primary);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;}
+.qtext{font-size:.98rem;font-weight:600;margin-bottom:1.2rem;line-height:1.55;}
+.opts{display:flex;flex-direction:column;gap:.6rem;}
+.opt{padding:.75rem 1rem;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.86rem;transition:.2s;display:flex;align-items:center;gap:.7rem;text-align:left;width:100%;color:var(--text);}
+.opt:hover{background:rgba(142,68,173,.1);border-color:var(--primary);}
+.opt.ok{background:rgba(39,174,96,.12);border-color:var(--accent);color:#a0e0b0;}
+.opt.bad{background:rgba(231,76,60,.12);border-color:var(--red);color:#f0a0a0;}
+.oletter{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.qfb{margin-top:.8rem;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;display:none;line-height:1.6;}
+.qfb.show{display:block;animation:fs .3s;}
+.qfb.ok{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);color:#90d8a0;}
+.qfb.bad{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);color:#f0a0a0;}
+.qnav{display:flex;gap:.75rem;margin-top:1.2rem;align-items:center;}
+.score-wrap{display:none;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;}
+.score-wrap.show{display:block;animation:fs .4s;}
+.score-ring{width:110px;height:110px;margin:0 auto 1.2rem;border-radius:50%;border:6px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:var(--accent);}
+@keyframes fs{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.9rem;margin-top:1.5rem;}
+.cheat-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.ck{color:var(--primary);font-weight:700;font-size:.76rem;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+.cv{font-size:.8rem;color:#c0c0d8;line-height:1.55;}
+@media(max-width:640px){section{padding:80px 1rem 60px;}nav{gap:.3rem;padding:0 .8rem;}.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="pb"></div>
+<nav>
+  <span class="logo">Ch4 · Relational Model</span>
+  <a href="#hero">Home</a>
+  <a href="#terminology">Terminology</a>
+  <a href="#domain">Domain</a>
+  <a href="#schema">Relation Schema</a>
+  <a href="#state">Relation State</a>
+  <a href="#ordering">Tuple Ordering</a>
+  <a href="#characteristics">Characteristics</a>
+  <a href="#flashcards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">🗄️ Chapter 4 · UCS310 DBMS</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.1;" class="fi">The Relational <span style="color:var(--primary)">Data Model</span></h1>
+  <p class="fi" style="margin-top:.8rem;max-width:560px;font-size:1rem;">Relation, Tuple, Attribute, Domain — master the formal terminology and properties of the Relational Model. This is the foundation for Keys, Constraints, SQL, and Normalization.</p>
+  <div class="btns fi">
+    <a href="#terminology" class="btn">Start Learning →</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+  <div class="hero-stats fi">
+    <div class="hs"><div class="n">4</div><div class="l">Core Concepts</div></div>
+    <div class="hs"><div class="n">6</div><div class="l">Characteristics</div></div>
+    <div class="hs"><div class="n">8</div><div class="l">Domain Examples</div></div>
+    <div class="hs"><div class="n">12</div><div class="l">Quiz Questions</div></div>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="sec-label">Section 01</div>
+  <h2 class="fi">Relational Model — Overview</h2>
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib ipurple">📊</div>
+      <h3>What is the Relational Model?</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>Represents the database as a <strong style="color:#e0e0e0">collection of relations</strong></li>
+        <li>Informally, each relation resembles a <strong style="color:var(--primary)">table of values</strong> (or a flat file of records)</li>
+        <li>Each row in the table represents a <strong style="color:#e0e0e0">collection of related data values</strong></li>
+        <li>Rows represent real-world <strong style="color:#e0e0e0">entities or relationships</strong></li>
+        <li>Table name and column names = help interpret meaning of values</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ib iblue">📝</div>
+      <h3 style="color:#5dade2;">Why it's Different from a File</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">A <strong style="color:#5dade2">relation</strong> is NOT just a table or file. It has specific characteristics that make it mathematically rigorous:</p>
+      <ul style="margin-top:.6rem;font-size:.82rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>No duplicate tuples allowed</li>
+        <li>No inherent ordering of rows</li>
+        <li>All attribute values are <strong style="color:#e0e0e0">atomic (single-valued)</strong></li>
+        <li>NULLs allowed for unknown/missing values</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- TERMINOLOGY -->
+<section id="terminology">
+  <div class="sec-label">Section 02</div>
+  <h2 class="fi">Formal Terminology — The 4 Key Terms</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">In the formal relational model, common terms have precise names. <strong style="color:#e0e0e0">Every exam asks this!</strong></p>
+
+  <div class="fi" style="overflow-x:auto;margin-top:1rem;">
+    <table class="term-table">
+      <thead><tr><th>Informal Term</th><th>Formal Relational Term</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td>Table</td><td class="highlight-term">Relation</td><td>The entire table with all its rows and columns</td></tr>
+        <tr><td>Row / Record</td><td class="highlight-term">Tuple</td><td>A single row — represents one real-world entity or fact</td></tr>
+        <tr><td>Column Header</td><td class="highlight-term">Attribute</td><td>The name given to each column (e.g., Name, Age, GPA)</td></tr>
+        <tr><td>Data Type / Column Values</td><td class="highlight-term">Domain</td><td>The set of allowed values for an attribute</td></tr>
+        <tr><td>Number of columns</td><td class="highlight-term">Degree</td><td>Number of attributes n in the relation schema</td></tr>
+        <tr><td>Number of rows</td><td class="highlight-term">Cardinality</td><td>Number of tuples in a relation state</td></tr>
+        <tr><td>Table structure / design</td><td class="highlight-term">Relation Schema (Intension)</td><td>R(A1, A2, ..., An) — the structure, rarely changes</td></tr>
+        <tr><td>Actual data in table</td><td class="highlight-term">Relation State / Instance (Extension)</td><td>r(R) — actual data at a given moment, changes often</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="hbox fi" style="margin-top:1rem;">
+    <p><strong>Memory trick:</strong> Table → Relation | Row → Tuple | Column → Attribute | Column's data type → Domain</p>
+  </div>
+
+  <!-- Annotated STUDENT table -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:2rem;">Annotated Example: STUDENT Relation</h3>
+  <div class="rel-diagram fi">
+    <div style="overflow-x:auto;">
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.5rem;font-size:.72rem;color:var(--muted);">
+        <span style="color:var(--primary);font-weight:700;">← Relation Name: STUDENT</span>
+        <span style="margin-left:auto;color:#5dade2;">Degree = 7 (7 attributes) →</span>
+      </div>
+      <table class="ann-table" style="width:100%;">
+        <thead>
+          <tr>
+            <th>Name</th><th>SSN</th><th>HomePhone</th><th>Address</th><th>OfficePhone</th><th>Age</th><th>GPA</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Benjamin Bayer</td><td>305-61-2435</td><td>373-1616</td><td>2918 Bluebonnet Lane</td><td class="null">null</td><td>19</td><td>3.21</td></tr>
+          <tr><td>Katherine Ashly</td><td>381-62-1245</td><td>375-4409</td><td>125 Kirby Road</td><td class="null">null</td><td>18</td><td>2.89</td></tr>
+          <tr><td>Dick Davidson</td><td>422-11-2320</td><td class="null">null</td><td>3452 Elgin Road</td><td>749-1253</td><td>25</td><td>3.53</td></tr>
+          <tr><td>Charles Cooper</td><td>489-22-1100</td><td>376-9821</td><td>265 Lark Lane</td><td>749-6492</td><td>28</td><td>3.93</td></tr>
+          <tr><td>Barbara Benson</td><td>533-69-1238</td><td>839-8461</td><td>7384 Fontana Lane</td><td class="null">null</td><td>19</td><td>3.25</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;margin-top:.8rem;font-size:.75rem;color:var(--muted);">
+      <span>↑ Each row = <strong style="color:var(--primary)">Tuple</strong></span>
+      <span>↑ Each column header = <strong style="color:#5dade2">Attribute</strong></span>
+      <span style="color:#f1948a;">Italic = <strong>NULL</strong> (unknown/missing)</span>
+      <span>Cardinality = <strong style="color:#e0e0e0">5 tuples</strong></span>
+    </div>
+  </div>
+</section>
+
+<!-- DOMAIN -->
+<section id="domain">
+  <div class="sec-label">Section 03</div>
+  <h2 class="fi">Domain — Set of Atomic Values</h2>
+
+  <div class="hbox fi">
+    <p><strong>Definition:</strong> A domain D is a <strong>set of atomic values</strong>. By atomic we mean each value in the domain is <strong>indivisible</strong> as far as the relational model is concerned.</p>
+  </div>
+  <div class="hbox blue fi">
+    <p>A common method: specify a <strong>data type or format</strong> from which the domain values are drawn. A domain is given a <strong>name, data type, and format</strong>.</p>
+  </div>
+
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Domain Examples from the PPT</h3>
+  <div class="domain-grid fi">
+    <div class="domain-card">
+      <div class="dc-name">USA_phone_numbers</div>
+      <div class="dc-desc">The set of 10-digit phone numbers valid in the United States.</div>
+      <div class="dc-type">Format: (ddd)ddd-dddd</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Local_phone_numbers</div>
+      <div class="dc-desc">The set of 7-digit phone numbers valid within a particular area code.</div>
+      <div class="dc-type">Format: ddd-dddd</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Social_security_numbers</div>
+      <div class="dc-desc">The set of valid 9-digit social security numbers.</div>
+      <div class="dc-type">Format: ddd-dd-dddd</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Names</div>
+      <div class="dc-desc">The set of names of persons.</div>
+      <div class="dc-type">Type: character string</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Grade_point_averages</div>
+      <div class="dc-desc">Possible values of computed GPA; each must be a real (floating point) number between 0 and 4.</div>
+      <div class="dc-type">Type: real, range 0.0–4.0</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Employee_ages</div>
+      <div class="dc-desc">Possible ages of employees; each must be a value between 15 and 80 years old.</div>
+      <div class="dc-type">Type: integer, range 15–80</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Academic_department_names</div>
+      <div class="dc-desc">The set of academic department names in a university (Computer Science, Economics, Physics).</div>
+      <div class="dc-type">Type: character string enumeration</div>
+    </div>
+    <div class="domain-card">
+      <div class="dc-name">Academic_department_codes</div>
+      <div class="dc-desc">The set of academic department codes in a university (CS, ECON, PHYS).</div>
+      <div class="dc-type">Type: short character string</div>
+    </div>
+  </div>
+
+  <div class="hbox green fi" style="margin-top:1.2rem;">
+    <p><strong>Key note:</strong> Multiple attributes can share the same domain! In STUDENT, both HomePhone and OfficePhone use the domain Local_phone_numbers — but they play different ROLES. The domain plays the role of HomePhone for one attribute and OfficePhone for another.</p>
+  </div>
+
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Domain for Each STUDENT Attribute</h3>
+  <div style="overflow-x:auto;" class="fi">
+    <table style="border-collapse:collapse;font-size:.82rem;width:100%;">
+      <tr style="background:rgba(142,68,173,.15);">
+        <th style="text-align:left;padding:.5rem .8rem;color:var(--primary);">Attribute</th>
+        <th style="text-align:left;padding:.5rem .8rem;color:var(--primary);">dom(Attribute)</th>
+      </tr>
+      <tr><td style="padding:.4rem .8rem;color:#c0c0d0;">Name</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Names</td></tr>
+      <tr style="background:rgba(255,255,255,.03);"><td style="padding:.4rem .8rem;color:#c0c0d0;">SSN</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Social_security_numbers</td></tr>
+      <tr><td style="padding:.4rem .8rem;color:#c0c0d0;">HomePhone</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Local_phone_numbers</td></tr>
+      <tr style="background:rgba(255,255,255,.03);"><td style="padding:.4rem .8rem;color:#c0c0d0;">Address</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">USA_addresses</td></tr>
+      <tr><td style="padding:.4rem .8rem;color:#c0c0d0;">OfficePhone</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Local_phone_numbers</td></tr>
+      <tr style="background:rgba(255,255,255,.03);"><td style="padding:.4rem .8rem;color:#c0c0d0;">Age</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Student_ages (18–30)</td></tr>
+      <tr><td style="padding:.4rem .8rem;color:#c0c0d0;">GPA</td><td style="padding:.4rem .8rem;color:#b8a8d0;font-family:monospace;">Grade_point_averages (0.0–4.0)</td></tr>
+    </table>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:.4rem;">Note: HomePhone and OfficePhone SHARE the same domain (Local_phone_numbers) but play different roles.</p>
+  </div>
+</section>
+
+<!-- RELATION SCHEMA -->
+<section id="schema">
+  <div class="sec-label">Section 04</div>
+  <h2 class="fi">Relation Schema — The Structure</h2>
+
+  <div class="hbox fi">
+    <p><strong>Relation Schema R(A₁, A₂, ..., Aₙ)</strong> is made up of:<br>
+    • A <strong>relation name R</strong><br>
+    • A <strong>list of attributes</strong> A₁, A₂, ..., Aₙ<br>
+    • Each attribute Aᵢ has a domain dom(Aᵢ)<br>
+    • The <strong>degree</strong> of a relation = number of attributes n</p>
+  </div>
+
+  <div class="g2 fi">
+    <div class="card">
+      <h3>Formal Definition</h3>
+      <p style="margin-top:.6rem;font-size:.84rem;">A relation (or relation state) r of schema R(A₁,...,Aₙ), denoted <strong style="color:var(--primary)">r(R)</strong>, is a set of n-tuples:</p>
+      <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-family:monospace;font-size:.8rem;color:#c39bd3;">
+        r = {t₁, t₂, ..., tₘ}<br>
+        Each n-tuple: t = &lt;v₁, v₂, ..., vₙ&gt;<br>
+        Each vᵢ ∈ dom(Aᵢ) or NULL<br>
+        tᵢ[Aᵢ] = value of attribute Aᵢ in tuple tᵢ
+      </div>
+      <p style="font-size:.82rem;">The <strong style="color:var(--primary)">schema R</strong> = relation intension (the design)<br>
+      The <strong style="color:var(--orange)">state r(R)</strong> = relation extension (the data)</p>
+    </div>
+    <div class="card">
+      <h3>Degree 7 Example</h3>
+      <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-family:monospace;font-size:.8rem;color:#c39bd3;">
+        STUDENT(Name, SSN, HomePhone,<br>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Address, OfficePhone, Age, GPA)
+      </div>
+      <ul style="font-size:.82rem;color:#b8b8b8;padding-left:1.2rem;line-height:2;">
+        <li>Relation name: <strong style="color:#e0e0e0">STUDENT</strong></li>
+        <li>Degree: <strong style="color:var(--primary)">7</strong> (seven attributes)</li>
+        <li>dom(Name) = Names</li>
+        <li>dom(SSN) = Social_security_numbers</li>
+        <li>dom(HomePhone) = dom(OfficePhone) = Local_phone_numbers</li>
+        <li>dom(GPA) = Grade_point_averages</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- RELATION STATE -->
+<section id="state">
+  <div class="sec-label">Section 05</div>
+  <h2 class="fi">Relation State — Dynamic Data</h2>
+
+  <div class="g2 fi">
+    <div class="card" style="border-left:3px solid var(--primary);">
+      <h3>Relation State r(R)</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>The <strong style="color:var(--primary)">current relation state</strong> reflects only valid tuples that represent a particular state of the real world</li>
+        <li>As the real world changes → relation is updated → new state</li>
+        <li><strong style="color:#e0e0e0">Schema R</strong> is relatively static (rarely changes)</li>
+        <li>Changes only when e.g. adding a new attribute</li>
+        <li>r(R) changes constantly with INSERT, UPDATE, DELETE</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--orange);">
+      <h3 style="color:var(--orange);">Schema vs State Comparison</h3>
+      <table style="width:100%;border-collapse:collapse;font-size:.8rem;margin-top:.6rem;">
+        <tr><th style="text-align:left;color:var(--primary);padding:.3rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">Schema (R)</th><th style="text-align:left;color:var(--orange);padding:.3rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">State r(R)</th></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Structure/design</td><td style="padding:.3rem .5rem;color:#c0c0d0;">Actual data</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Intension</td><td style="padding:.3rem .5rem;color:#c0c0d0;">Extension</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Static (rarely changes)</td><td style="padding:.3rem .5rem;color:#c0c0d0;">Dynamic (changes constantly)</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">E.g. STUDENT(Name, SSN, GPA)</td><td style="padding:.3rem .5rem;color:#c0c0d0;">E.g. the 5 rows of student data</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- TUPLE ORDERING -->
+<section id="ordering">
+  <div class="sec-label">Section 06</div>
+  <h2 class="fi">Ordering of Tuples — No Order in a Set</h2>
+
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib ipurple">📐</div>
+      <h3>Tuple Ordering in a Relation</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>A relation is defined as a <strong style="color:#e0e0e0">SET of tuples</strong></li>
+        <li>Mathematically, elements of a set have <strong style="color:var(--primary)">no order</strong> — hence tuples have no particular order</li>
+        <li>Tuple ordering is <strong style="color:var(--primary)">NOT part of a relation definition</strong></li>
+        <li>A relation represents facts at a <strong style="color:#e0e0e0">logical/abstract level</strong></li>
+        <li>The same tuples in different order = <strong style="color:#e0e0e0">logically the same relation</strong></li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ib iblue">🔢</div>
+      <h3 style="color:#5dade2;">Ordering of Values Within a Tuple</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">The tuple itself is an <strong style="color:#5dade2">ordered list of n values</strong>, so the ordering of values and attributes in the schema IS important (technically).</p>
+      <div class="hbox" style="margin-top:.8rem;">
+        <p style="font-size:.82rem;">However, at the <strong>logical level</strong>, order of attributes doesn't really matter as long as the <strong>correspondence between attributes and values is maintained</strong>.</p>
+      </div>
+      <p style="margin-top:.6rem;font-size:.82rem;">Alternative definition: relation r(R) is a finite set of mappings from R to D (union of all domains). In this view, ordering is completely unnecessary.</p>
+    </div>
+  </div>
+
+  <div class="hbox green fi" style="margin-top:1rem;">
+    <p><strong>Exam Point:</strong> "Tuples in a relation have no particular order" — this is one of the key characteristics that distinguishes a relation from a file (where records have physical order on disk).</p>
+  </div>
+
+  <!-- Visual showing same relation in two orders -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Proof: Same Relation, Different Tuple Order = No Logical Difference</h3>
+  <div class="fi" style="display:flex;flex-wrap:wrap;gap:1.2rem;margin-top:.8rem;align-items:flex-start;">
+    <div style="flex:1;min-width:240px;">
+      <div style="font-size:.7rem;color:var(--primary);margin-bottom:.3rem;font-weight:700;text-transform:uppercase;">Order 1</div>
+      <table style="border-collapse:collapse;font-size:.78rem;width:100%;">
+        <tr style="background:rgba(142,68,173,.15);"><th style="text-align:left;padding:.3rem .5rem;color:var(--primary);">Name</th><th style="padding:.3rem .5rem;color:var(--primary);">Age</th><th style="padding:.3rem .5rem;color:var(--primary);">GPA</th></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Benjamin Bayer</td><td style="padding:.3rem .5rem;color:#c0c0d0;">19</td><td style="padding:.3rem .5rem;color:#c0c0d0;">3.21</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">Katherine Ashly</td><td style="padding:.3rem .5rem;color:#c0c0d0;">18</td><td style="padding:.3rem .5rem;color:#c0c0d0;">2.89</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Dick Davidson</td><td style="padding:.3rem .5rem;color:#c0c0d0;">25</td><td style="padding:.3rem .5rem;color:#c0c0d0;">3.53</td></tr>
+      </table>
+    </div>
+    <div style="display:flex;align-items:center;font-size:1.5rem;color:var(--accent);padding-top:1.5rem;">=</div>
+    <div style="flex:1;min-width:240px;">
+      <div style="font-size:.7rem;color:var(--accent);margin-bottom:.3rem;font-weight:700;text-transform:uppercase;">Order 2 (Same Relation!)</div>
+      <table style="border-collapse:collapse;font-size:.78rem;width:100%;">
+        <tr style="background:rgba(39,174,96,.12);"><th style="text-align:left;padding:.3rem .5rem;color:var(--accent);">Name</th><th style="padding:.3rem .5rem;color:var(--accent);">Age</th><th style="padding:.3rem .5rem;color:var(--accent);">GPA</th></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Dick Davidson</td><td style="padding:.3rem .5rem;color:#c0c0d0;">25</td><td style="padding:.3rem .5rem;color:#c0c0d0;">3.53</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">Katherine Ashly</td><td style="padding:.3rem .5rem;color:#c0c0d0;">18</td><td style="padding:.3rem .5rem;color:#c0c0d0;">2.89</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Benjamin Bayer</td><td style="padding:.3rem .5rem;color:#c0c0d0;">19</td><td style="padding:.3rem .5rem;color:#c0c0d0;">3.21</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- CHARACTERISTICS -->
+<section id="characteristics">
+  <div class="sec-label">Section 07</div>
+  <h2 class="fi">Characteristics of Relations</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">These characteristics make a relation different from a regular file or table.</p>
+
+  <div class="char-grid fi">
+    <div class="char-card">
+      <div class="char-num">Characteristic 01</div>
+      <div class="char-title">No Duplicate Tuples</div>
+      <div class="char-desc">All tuples in a relation are distinct. No two rows can be identical. This is enforced by the Primary Key constraint.</div>
+    </div>
+    <div class="char-card">
+      <div class="char-num">Characteristic 02</div>
+      <div class="char-title">No Ordering of Tuples</div>
+      <div class="char-desc">A relation is a SET of tuples — sets have no order. Tuples do not have a "first" or "last" position in the logical definition.</div>
+    </div>
+    <div class="char-card">
+      <div class="char-num">Characteristic 03</div>
+      <div class="char-title">No Ordering of Attributes</div>
+      <div class="char-desc">At the logical level, attribute order doesn't matter as long as attribute-value correspondence is maintained. Technically an n-tuple is ordered, but logically it's a mapping.</div>
+    </div>
+    <div class="char-card">
+      <div class="char-num">Characteristic 04</div>
+      <div class="char-title">All Values are Atomic</div>
+      <div class="char-desc">Each value in a tuple must be an atomic (indivisible) value from its domain. Multi-valued attributes are NOT allowed — this is 1NF (First Normal Form).</div>
+    </div>
+    <div class="char-card">
+      <div class="char-num">Characteristic 05</div>
+      <div class="char-title">NULL Values Allowed</div>
+      <div class="char-desc">NULL is a special value meaning "unknown" or "not applicable." E.g., Dick Davidson has null for HomePhone — his number is unknown. NULL ≠ 0 or empty string.</div>
+    </div>
+    <div class="char-card">
+      <div class="char-num">Characteristic 06</div>
+      <div class="char-title">Fixed Degree</div>
+      <div class="char-desc">The degree (number of attributes) of a relation is fixed for a given schema. All tuples in a relation must have exactly n values corresponding to the n attributes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="flashcards">
+  <div class="sec-label">Section 08</div>
+  <h2 class="fi">Flashcards</h2>
+  <div class="fc-grid fi">
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Relation</div><div class="fc-hint">Informal = Table</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Formal Term</div><div class="fc-def">A relation is the formal name for a TABLE. It is a collection of related tuples (rows) sharing the same attributes.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#5dade2"></div><div class="fc-term">Tuple</div><div class="fc-hint">Informal = Row</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Formal Term</div><div class="fc-def">A TUPLE is a single row in a relation. An n-tuple is an ordered list of n values t = &lt;v₁, v₂, ..., vₙ&gt; where each vᵢ ∈ dom(Aᵢ) or is NULL.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">Attribute</div><div class="fc-hint">Informal = Column header</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Formal Term</div><div class="fc-def">An ATTRIBUTE is the name of a column. Each attribute Aᵢ plays a role (interpretation) for its domain dom(Aᵢ). Multiple attributes can share the same domain with different roles.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">Domain</div><div class="fc-hint">Informal = Column data type</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Formal Term</div><div class="fc-def">Domain D = set of ATOMIC values. Specifies what values are valid for an attribute. Given a name, data type, and format. E.g., Employee_ages = integer 15–80.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#ec7063"></div><div class="fc-term">Degree of Relation</div><div class="fc-hint">How many?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">The number of attributes n in the relation schema. STUDENT(Name, SSN, HomePhone, Address, OfficePhone, Age, GPA) has degree 7.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Relation Schema vs State</div><div class="fc-hint">Intension vs Extension</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Distinction</div><div class="fc-def">Schema R = Intension (structure/design, static). State r(R) = Extension (actual data, changes constantly). Schema changes only when adding attributes; state changes with every INSERT/UPDATE/DELETE.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#f1948a"></div><div class="fc-term">NULL Value</div><div class="fc-hint">What does it mean?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">NULL means "unknown" or "not applicable." E.g., Dick Davidson's HomePhone is null (unknown). NULL ≠ 0, not empty string. A special value allowed in any domain.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">Atomic Value</div><div class="fc-hint">Why important in relational model?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Atomic = indivisible. Each value in a tuple must be a single atomic value from its domain. Multi-valued attributes NOT allowed. This is the definition of 1NF (First Normal Form).</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-label">Section 09</div>
+  <h2 class="fi">Quiz</h2>
+  <div style="margin-top:1.5rem;">
+    <div class="q-dots" id="dots"></div>
+    <div class="qcard fi" id="qcard">
+      <div class="qnum" id="qnum"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+      <div class="qfb" id="qfb"></div>
+      <div class="qnav">
+        <button class="btn btn-o" style="padding:.4rem 1.2rem;font-size:.82rem;" onclick="nextQ()">Next →</button>
+        <span id="qscore" style="font-size:.8rem;color:var(--muted);"></span>
+      </div>
+    </div>
+    <div class="score-wrap" id="scoreWrap">
+      <div class="score-ring" id="scoreRing"></div>
+      <h3 id="scoreMsg" style="margin-bottom:.6rem;"></h3>
+      <p id="scoreSub" style="font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;"></p>
+      <button class="btn" onclick="resetQuiz()">Retry Quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheatsheet">
+  <div class="sec-label">Section 10</div>
+  <h2 class="fi">Cheat Sheet</h2>
+  <div class="cheat-grid fi">
+    <div class="cheat-item"><div class="ck">4 Key Terms</div><div class="cv">Table=Relation, Row=Tuple, Column Header=Attribute, Column Data Type=Domain</div></div>
+    <div class="cheat-item"><div class="ck">Domain</div><div class="cv">Set of atomic values. Given name + data type + format. Multiple attributes can share same domain.</div></div>
+    <div class="cheat-item"><div class="ck">Relation Schema</div><div class="cv">R(A₁,...,Aₙ) = Intension. Static. Degree = n (number of attributes).</div></div>
+    <div class="cheat-item"><div class="ck">Relation State</div><div class="cv">r(R) = Extension. Dynamic. Set of n-tuples. Changes with INSERT/UPDATE/DELETE.</div></div>
+    <div class="cheat-item"><div class="ck">n-tuple</div><div class="cv">t = &lt;v₁, v₂, ..., vₙ&gt;. Each vᵢ ∈ dom(Aᵢ) or NULL. t[Aᵢ] = value of attribute Aᵢ.</div></div>
+    <div class="cheat-item"><div class="ck">Tuple Ordering</div><div class="cv">NO order in a relation (it's a SET). Same tuples different order = same relation logically.</div></div>
+    <div class="cheat-item"><div class="ck">NULL</div><div class="cv">Unknown or not applicable. ≠ 0 or empty string. Allowed in any domain.</div></div>
+    <div class="cheat-item"><div class="ck">Atomic</div><div class="cv">Each value must be indivisible (atomic). Multi-valued NOT allowed. This is 1NF.</div></div>
+    <div class="cheat-item"><div class="ck">Degree 7 Example</div><div class="cv">STUDENT(Name, SSN, HomePhone, Address, OfficePhone, Age, GPA). HomePhone &amp; OfficePhone share same domain.</div></div>
+  </div>
+</section>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('pb').style.width=((h.scrollTop/(h.scrollHeight-h.clientHeight))*100)+'%';
+});
+const obs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting)el.target.classList.add('v');});},{threshold:.08});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+const qs=[
+  {q:"In formal relational model terminology, a ROW is called a:",opts:["Attribute","Domain","Tuple","Relation"],ans:2,exp:"Row = TUPLE. Column header = Attribute. Table = Relation. Column data type = Domain. These 4 formal terms are essential."},
+  {q:"A domain D is defined as:",opts:["A table of related records","A set of atomic (indivisible) values","A physical storage structure","A type of primary key"],ans:1,exp:"Domain D = set of atomic values. Atomic means each value is INDIVISIBLE in the relational model. Domains are given a name, data type, and format."},
+  {q:"The DEGREE of a relation is:",opts:["Number of rows (tuples)","Number of tables in the DB","Number of attributes (columns) n","Number of constraints"],ans:2,exp:"Degree = number of attributes n in the relation schema. STUDENT(Name, SSN, HomePhone, Address, OfficePhone, Age, GPA) has degree 7."},
+  {q:"STUDENT(Name, SSN, HomePhone, Address, OfficePhone, Age, GPA) — what is the degree?",opts:["5","7","6","8"],ans:1,exp:"Count the attributes: Name, SSN, HomePhone, Address, OfficePhone, Age, GPA = 7 attributes. So degree = 7."},
+  {q:"Which statement about tuple ordering in a relation is CORRECT?",opts:["Tuples must be ordered alphabetically","Tuples have a specific fixed order","Tuple ordering is NOT part of relation definition","Tuples are always in insertion order"],ans:2,exp:"Tuple ordering is NOT part of relation definition. A relation is a SET of tuples. Mathematically, set elements have no order. This is unlike files where records have physical order."},
+  {q:"In the STUDENT relation, both HomePhone and OfficePhone attributes share which domain?",opts:["USA_phone_numbers","Social_security_numbers","Local_phone_numbers","Grade_point_averages"],ans:2,exp:"Both HomePhone and OfficePhone use the domain 'Local_phone_numbers'. This shows multiple attributes can share a domain but play different roles (interpretations) for that domain."},
+  {q:"The Relation SCHEMA R is also called the:",opts:["Relation extension","Relation state","Relation intension","Relation instance"],ans:2,exp:"Schema R = Relation INTENSION (the design/structure). The actual data state r(R) = Relation EXTENSION or state. Schema rarely changes; state changes constantly."},
+  {q:"What does NULL mean in the relational model?",opts:["Zero or empty value","The value 'false'","Unknown or not applicable value","A deleted record"],ans:2,exp:"NULL means 'unknown' or 'not applicable'. It is NOT zero or empty string. It's a special value allowed in any domain for missing or unknown data."},
+  {q:"The condition for values in a tuple is:",opts:["Each value must be a set of multiple values","Each value vᵢ must be in dom(Aᵢ) OR NULL","Each value must be greater than zero","Values must be sorted alphabetically"],ans:1,exp:"Each value vᵢ in tuple t = <v₁,...,vₙ> must be an element of dom(Aᵢ) OR a special null value. This ensures data validity."},
+  {q:"Which characteristic distinguishes a RELATION from a FILE?",opts:["Relations store more data","Relations have no inherent ordering of tuples","Relations use physical pointers","Relations are always sorted"],ans:1,exp:"Key distinction: Relation has NO inherent ordering of tuples (it's a set). A file always has a physical order (first, second, etc. records). This makes relations logically different."},
+  {q:"What is the domain for 'Grade_point_averages'?",opts:["Integer between 0 and 10","Character string","Real (floating point) number between 0 and 4","Integer between 1 and 100"],ans:2,exp:"Grade_point_averages domain: possible values of computed GPA, each must be a real (floating point) number between 0 and 4."},
+  {q:"The relation state r(R) is also called:",opts:["The relation intension","The relation schema","The relation extension or state","The relation degree"],ans:2,exp:"The relation state r(R) = relation EXTENSION or STATE. It contains the actual data (set of tuples) at a given moment. It changes with every INSERT/UPDATE/DELETE operation."}
+];
+let cur=0,score=0,answered=false;
+function initQuiz(){
+  document.getElementById('dots').innerHTML=qs.map((q,i)=>`<div class="q-dot" id="dot${i}"></div>`).join('');
+  showQ();
+}
+function showQ(){
+  if(cur>=qs.length){showScore();return;}
+  answered=false;
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qfb').textContent='';
+  qs.forEach((q,i)=>{const d=document.getElementById('dot'+i);d.className='q-dot'+(i<cur?' done':i===cur?' cur':'');});
+  const q=qs[cur];
+  document.getElementById('qnum').textContent=`Question ${cur+1} of ${qs.length}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur}`;
+  document.getElementById('opts').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})"><span class="oletter">${['A','B','C','D'][i]}</span>${o}</button>`).join('');
+}
+function answer(idx){
+  if(answered)return;
+  answered=true;
+  const q=qs[cur];
+  const opts=document.querySelectorAll('.opt');
+  opts[q.ans].classList.add('ok');
+  if(idx===q.ans)score++;
+  else opts[idx].classList.add('bad');
+  const fb=document.getElementById('qfb');
+  fb.textContent=(idx===q.ans?'✓ Correct! ':'✗ Wrong! ')+q.exp;
+  fb.className='qfb show '+(idx===q.ans?'ok':'bad');
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur+1}`;
+}
+function nextQ(){cur++;showQ();}
+function showScore(){
+  document.getElementById('qcard').style.display='none';
+  const sw=document.getElementById('scoreWrap');sw.classList.add('show');
+  const pct=Math.round((score/qs.length)*100);
+  document.getElementById('scoreRing').textContent=pct+'%';
+  document.getElementById('scoreMsg').textContent=pct===100?'Perfect! 🏆':pct>=80?'Excellent! 🎉':pct>=60?'Good! 👍':'Keep Going 📚';
+  document.getElementById('scoreSub').textContent=`You got ${score} out of ${qs.length} correct.`;
+}
+function resetQuiz(){
+  cur=0;score=0;answered=false;
+  document.getElementById('qcard').style.display='block';
+  document.getElementById('scoreWrap').classList.remove('show');
+  initQuiz();
+}
+initQuiz();
+</script>
+</body>
+</html>

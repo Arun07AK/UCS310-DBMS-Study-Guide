@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UCS310 — DBMS Study Guide</title>
+<style>
+:root{
+  --primary:#e74c3c;--accent:#27ae60;
+  --blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;
+  --dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;
+  --text:#e8e8e8;--muted:#999;
+  --border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;min-height:100vh;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;}
+.logo{color:var(--primary);font-size:.95rem;font-weight:800;white-space:nowrap;letter-spacing:.02em;}
+.logo span{color:var(--text);font-weight:400;margin-left:.5rem;font-size:.8rem;}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:500px;height:500px;background:rgba(231,76,60,.08);top:-120px;right:-100px;animation:float 8s ease-in-out infinite;}
+.b2{width:350px;height:350px;background:rgba(39,174,96,.06);bottom:60px;left:-100px;animation:float 10s ease-in-out infinite reverse;}
+.b3{width:250px;height:250px;background:rgba(41,128,185,.05);top:40%;left:50%;animation:float 12s ease-in-out infinite;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+h1{font-size:clamp(2rem,5vw,3.2rem);font-weight:800;line-height:1.1;margin-bottom:.5rem;}
+h1 span{background:linear-gradient(135deg,var(--primary),var(--orange));-webkit-background-clip:text;-webkit-text-fill-color:transparent;}
+.subtitle{font-size:1.05rem;color:#b8b8b8;line-height:1.7;max-width:600px;margin-bottom:1rem;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:1.5rem;margin-bottom:1rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}
+.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+
+/* CHAPTER GRID */
+#chapters{padding:0 2rem 100px;max-width:1100px;margin:0 auto;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:1.3rem;}
+
+.ch-card{
+  background:var(--card);border:1px solid var(--border);border-radius:16px;
+  padding:1.5rem;text-decoration:none;color:inherit;
+  transition:transform .25s,box-shadow .25s,border-color .3s;
+  display:flex;flex-direction:column;gap:.6rem;position:relative;overflow:hidden;
+}
+.ch-card:hover{transform:translateY(-4px);box-shadow:var(--glow);border-color:rgba(231,76,60,.45);}
+.ch-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--primary),var(--orange));
+  opacity:0;transition:opacity .3s;
+}
+.ch-card:hover::before{opacity:1;}
+
+.ch-num{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:38px;height:38px;border-radius:10px;font-size:.85rem;font-weight:800;
+  flex-shrink:0;
+}
+.ch-head{display:flex;align-items:center;gap:.8rem;}
+.ch-title{font-size:1.05rem;font-weight:700;color:#f0f0f0;line-height:1.3;}
+.ch-desc{font-size:.8rem;color:var(--muted);line-height:1.6;}
+.ch-tags{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto;padding-top:.4rem;}
+.tag{font-size:.62rem;padding:.2rem .55rem;border-radius:6px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;}
+
+/* Color modifiers for chapter numbers */
+.c-red{background:rgba(231,76,60,.18);color:var(--primary);}
+.c-green{background:rgba(39,174,96,.18);color:var(--accent);}
+.c-blue{background:rgba(41,128,185,.18);color:var(--blue);}
+.c-orange{background:rgba(230,126,34,.18);color:var(--orange);}
+.c-purple{background:rgba(142,68,173,.18);color:var(--purple);}
+.c-teal{background:rgba(22,160,133,.18);color:var(--teal);}
+
+/* FADE IN */
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}
+.fi.v{opacity:1;transform:translateY(0);}
+
+/* AUTHOR */
+.author{display:flex;align-items:center;gap:1rem;margin-top:2rem;padding-top:1.5rem;border-top:1px solid rgba(255,255,255,.06);}
+.author-name{font-size:.95rem;font-weight:700;color:#f0f0f0;}
+.author-label{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.15rem;}
+.socials{display:flex;gap:.6rem;margin-top:.3rem;}
+.socials a{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:9px;
+  background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);
+  color:var(--muted);text-decoration:none;font-size:.85rem;
+  transition:all .25s;
+}
+.socials a:hover{background:rgba(231,76,60,.15);border-color:var(--primary);color:var(--primary);transform:translateY(-2px);}
+.socials svg{width:16px;height:16px;fill:currentColor;}
+
+/* FOOTER */
+footer{text-align:center;padding:2rem;color:var(--muted);font-size:.75rem;border-top:1px solid var(--border);}
+
+@media(max-width:600px){
+  .grid{grid-template-columns:1fr;}
+  #hero{padding:80px 1.2rem 40px;}
+  #chapters{padding:0 1.2rem 60px;}
+  .hero-stats{gap:1.2rem;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">UCS310<span>Database Management System</span></div>
+</nav>
+
+<section id="hero">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="badge">UCS310 — Complete Study Guide</div>
+  <h1>Master <span>DBMS</span><br>Chapter by Chapter</h1>
+  <p class="subtitle">Interactive study guides with flip-card flashcards, MCQ quizzes, syntax-highlighted examples, and every concept from the slides — all in one place.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">12</div><div class="l">Chapters</div></div>
+    <div class="hs"><div class="n">280+</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">180</div><div class="l">Quiz MCQs</div></div>
+    <div class="hs"><div class="n">100%</div><div class="l">Slide Coverage</div></div>
+  </div>
+  <div class="author">
+    <div>
+      <div class="author-label">Built by</div>
+      <div class="author-name">ARUN AK</div>
+      <div class="socials">
+        <a href="https://www.instagram.com/__arun_a_k/" target="_blank" rel="noopener" title="Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        </a>
+        <a href="https://www.linkedin.com/in/arun-ak-a1ab59205/" target="_blank" rel="noopener" title="LinkedIn">
+          <svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="chapters">
+  <div class="grid">
+
+    <a href="Ch1_Basics_of_DBMS.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-red">01</div>
+        <div class="ch-title">Basics of DBMS</div>
+      </div>
+      <div class="ch-desc">Data vs Information, File System vs DBMS, architecture, advantages, users &amp; roles, data abstraction levels.</div>
+      <div class="ch-tags">
+        <span class="tag c-red">Fundamentals</span>
+        <span class="tag c-blue">Architecture</span>
+      </div>
+    </a>
+
+    <a href="Ch2_Three_Level_Architecture.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-green">02</div>
+        <div class="ch-title">Three-Level Architecture</div>
+      </div>
+      <div class="ch-desc">External, conceptual &amp; internal schemas, data independence (logical &amp; physical), schema mappings.</div>
+      <div class="ch-tags">
+        <span class="tag c-green">Schemas</span>
+        <span class="tag c-purple">Data Independence</span>
+      </div>
+    </a>
+
+    <a href="Ch3_Database_Models.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-blue">03</div>
+        <div class="ch-title">Database Models</div>
+      </div>
+      <div class="ch-desc">Hierarchical, Network, Relational, Object-Oriented &amp; Object-Relational models compared.</div>
+      <div class="ch-tags">
+        <span class="tag c-blue">Models</span>
+        <span class="tag c-orange">Comparison</span>
+      </div>
+    </a>
+
+    <a href="Ch4_Relational_Model.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-orange">04</div>
+        <div class="ch-title">Relational Model</div>
+      </div>
+      <div class="ch-desc">Relations, tuples, attributes, domains, degree &amp; cardinality, Codd's 12 rules, relational algebra operators.</div>
+      <div class="ch-tags">
+        <span class="tag c-orange">Relational Algebra</span>
+        <span class="tag c-red">Codd's Rules</span>
+      </div>
+    </a>
+
+    <a href="Ch5_Keys.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-purple">05</div>
+        <div class="ch-title">Keys</div>
+      </div>
+      <div class="ch-desc">Super, Candidate, Primary, Alternate, Foreign, Composite &amp; Surrogate keys — identification &amp; examples.</div>
+      <div class="ch-tags">
+        <span class="tag c-purple">Key Types</span>
+        <span class="tag c-green">Identification</span>
+      </div>
+    </a>
+
+    <a href="Ch6_Constraints.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-teal">06</div>
+        <div class="ch-title">Constraints</div>
+      </div>
+      <div class="ch-desc">Domain, entity integrity, referential integrity, key constraints, NOT NULL, UNIQUE, CHECK, DEFAULT.</div>
+      <div class="ch-tags">
+        <span class="tag c-teal">Integrity</span>
+        <span class="tag c-red">Referential</span>
+      </div>
+    </a>
+
+    <a href="Ch7_SQL_Basics.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-red">07</div>
+        <div class="ch-title">SQL Basics</div>
+      </div>
+      <div class="ch-desc">DDL, DML, DCL, TCL — CREATE, ALTER, DROP, INSERT, UPDATE, DELETE, SELECT, aggregate functions, GROUP BY, HAVING.</div>
+      <div class="ch-tags">
+        <span class="tag c-red">DDL / DML</span>
+        <span class="tag c-blue">Queries</span>
+      </div>
+    </a>
+
+    <a href="Ch8_Joins_in_SQL.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-green">08</div>
+        <div class="ch-title">Joins in SQL</div>
+      </div>
+      <div class="ch-desc">INNER, LEFT, RIGHT, FULL OUTER, CROSS, NATURAL, SELF joins — Venn diagrams, syntax &amp; result tables.</div>
+      <div class="ch-tags">
+        <span class="tag c-green">Join Types</span>
+        <span class="tag c-orange">Result Tables</span>
+      </div>
+    </a>
+
+    <a href="Ch9_Subqueries.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-blue">09</div>
+        <div class="ch-title">Subqueries</div>
+      </div>
+      <div class="ch-desc">Single-row, multi-row, correlated subqueries, EXISTS, IN, ANY, ALL, nested SELECTs in WHERE, FROM, SELECT.</div>
+      <div class="ch-tags">
+        <span class="tag c-blue">Nested Queries</span>
+        <span class="tag c-purple">Correlated</span>
+      </div>
+    </a>
+
+    <a href="Ch10_ER_Data_Model.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-orange">10</div>
+        <div class="ch-title">ER Data Model</div>
+      </div>
+      <div class="ch-desc">Entities, attributes, relationships, cardinality ratios, participation constraints, weak entities, ER diagram notation.</div>
+      <div class="ch-tags">
+        <span class="tag c-orange">ER Diagrams</span>
+        <span class="tag c-teal">Cardinality</span>
+      </div>
+    </a>
+
+    <a href="Ch11_ER_to_Table.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-purple">11</div>
+        <div class="ch-title">ER to Table</div>
+      </div>
+      <div class="ch-desc">Mapping strong &amp; weak entities, 1:1 / 1:N / M:N relationships, multi-valued attributes, generalization &amp; aggregation.</div>
+      <div class="ch-tags">
+        <span class="tag c-purple">Mapping Rules</span>
+        <span class="tag c-green">Table Design</span>
+      </div>
+    </a>
+
+    <a href="Ch12_Normalization.html" class="ch-card fi">
+      <div class="ch-head">
+        <div class="ch-num c-teal">12</div>
+        <div class="ch-title">Normalization</div>
+      </div>
+      <div class="ch-desc">FDs, Armstrong's Axioms, closures, canonical cover, anomalies, 1NF–5NF, BCNF, MVDs, join dependencies, denormalization.</div>
+      <div class="ch-tags">
+        <span class="tag c-teal">Normal Forms</span>
+        <span class="tag c-red">FDs &amp; Closures</span>
+      </div>
+    </a>
+
+  </div>
+</section>
+
+<footer>Built by <strong style="color:var(--primary)">ARUN AK</strong> — UCS310 Database Management System Study Guide</footer>
+
+<script>
+const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('v')})},{threshold:.15});
+document.querySelectorAll('.fi').forEach((el,i)=>{el.style.transitionDelay=i*.07+'s';obs.observe(el)});
+</script>
+</body>
+</html>

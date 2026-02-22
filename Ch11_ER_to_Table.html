@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch11 — ER-to-Table Mapping</title>
+<style>
+:root{--primary:#e74c3c;--accent:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;--dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;--text:#e8e8e8;--muted:#999;--border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.45rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}.logo{color:var(--primary);font-size:.9rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;padding:.25rem .5rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.2rem;}
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.purple{background:rgba(142,68,173,.08);border-color:rgba(142,68,173,.3);}
+.hbox.teal{background:rgba(22,160,133,.08);border-color:rgba(22,160,133,.3);}
+.hbox.yellow{background:rgba(241,196,15,.06);border-color:rgba(241,196,15,.3);}
+.hbox p,.hbox li{color:#d0d0e0;}.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}.hbox.blue strong{color:#5dade2;}.hbox.orange strong{color:var(--orange);}
+.hbox.purple strong{color:#c39bd3;}.hbox.teal strong{color:#48c9b0;}.hbox.yellow strong{color:#f9e04b;}
+.code-block{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem 1.2rem;font-family:'Courier New',monospace;font-size:.78rem;color:#87ceeb;margin:.6rem 0;overflow-x:auto;line-height:1.8;white-space:pre;}
+.kw{color:#e74c3c;font-weight:700;}.fn{color:#3498db;}.val{color:#82e0aa;}.cm{color:#555;font-style:italic;}.hl{background:rgba(241,196,15,.15);color:#f9e04b;border-radius:3px;padding:0 2px;}
+.tb{color:#f39c12;font-style:italic;}.cl{color:#3498db;}
+.demo-table{border-collapse:collapse;font-size:.8rem;margin:.7rem 0;width:100%;}
+.demo-table th{padding:.5rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid rgba(255,255,255,.1);background:rgba(231,76,60,.1);color:var(--primary);}
+.demo-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;font-family:monospace;font-size:.78rem;}
+.demo-table tr:hover td{background:rgba(255,255,255,.02);}
+.diff-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.diff-table th{padding:.5rem .8rem;text-align:left;background:rgba(231,76,60,.1);color:var(--primary);font-size:.7rem;text-transform:uppercase;}
+.diff-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;}
+.diff-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.tbl-wrap{overflow-x:auto;margin:.5rem 0;}
+.a-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0 .5rem;}
+.a-tab{padding:.35rem .85rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;}
+.a-tab.on,.a-tab:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.a-panel{display:none;}.a-panel.on{display:block;}
+.eg{background:var(--card2);border-radius:12px;padding:1.2rem 1.4rem;margin:.8rem 0;border:1px solid rgba(255,255,255,.06);}
+.eg-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);font-weight:700;margin-bottom:.3rem;}
+.eg-desc{font-size:.82rem;color:#b8b8b8;margin-bottom:.6rem;line-height:1.5;}
+.note{background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-left:3px solid #f9e04b;border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f9e04b;margin:.6rem 0;line-height:1.5;}
+.gotcha{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-left:3px solid var(--primary);border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f5b7b1;margin:.6rem 0;line-height:1.5;}
+.gotcha strong{color:var(--primary);}
+.pto{background:var(--card);border:2px dashed rgba(231,76,60,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;position:relative;}
+.pto-badge{display:inline-block;background:rgba(231,76,60,.2);color:var(--primary);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.pto-q{font-size:.92rem;font-weight:600;margin-bottom:.6rem;color:var(--text);}
+.pto-hint{font-size:.72rem;color:var(--muted);margin:.5rem 0;font-style:italic;}
+.pto-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.3);border-radius:10px;}
+.pto-reveal.show{display:block;}
+.pto-btn{background:var(--accent);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.pto-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(39,174,96,.4);}
+.pto-btn.revealed{background:var(--muted);cursor:default;}
+.wtq{background:var(--card);border:2px dashed rgba(41,128,185,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;}
+.wtq-badge{display:inline-block;background:rgba(41,128,185,.2);color:#5dade2;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.wtq-q{font-size:.92rem;font-weight:600;margin-bottom:.4rem;color:var(--text);}
+.wtq-hint{font-size:.72rem;color:var(--muted);margin:.3rem 0 .5rem;font-style:italic;}
+.wtq-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.3);border-radius:10px;}
+.wtq-reveal.show{display:block;}
+.wtq-btn{background:var(--blue);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.wtq-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(41,128,185,.4);}
+.step-box{background:var(--card2);border-radius:12px;padding:1rem;margin:.5rem 0;border-left:3px solid var(--teal);}
+.step-num{display:inline-block;background:var(--teal);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:.68rem;font-weight:800;margin-right:.5rem;}
+.step-box p{font-size:.82rem;margin-top:.3rem;}
+/* Schema notation */
+.schema{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 1rem;font-family:'Courier New',monospace;font-size:.8rem;color:#87ceeb;margin:.5rem 0;line-height:2;}
+.schema .tn{color:#f39c12;font-weight:700;}.schema .pk{text-decoration:underline;color:#e74c3c;font-weight:700;}.schema .fk{color:#3498db;font-style:italic;}.schema .attr{color:#ddd;}
+.rule-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:.75rem;margin-right:.6rem;flex-shrink:0;}
+.pyq-badge{display:inline-block;background:rgba(241,196,15,.15);color:#f9e04b;font-size:.55rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:.15rem .6rem;border-radius:999px;margin-left:.5rem;vertical-align:middle;}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:900px;cursor:pointer;}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.fc.flipped .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card2);border:1px solid var(--border);}
+.fc-bk{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);transform:rotateY(180deg);}
+.fc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:.4rem;}
+.fc-q{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;}
+.fc-hint{font-size:.6rem;color:var(--muted);margin-top:.5rem;}
+.fc-a{font-size:.77rem;color:#e8e8e8;line-height:1.5;}
+.quiz-wrap{max-width:720px;margin:0 auto;}
+#q-prog{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.3s;}
+.q-dot.done{background:var(--accent);}.q-dot.cur{background:var(--primary);transform:scale(1.3);}.q-dot.bad{background:#c0392b;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;}
+.q-num{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.5;}
+.q-opts{display:flex;flex-direction:column;gap:.6rem;}
+.q-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;font-size:.88rem;cursor:pointer;transition:.2s;text-align:left;}
+.q-opt:hover:not([disabled]){background:rgba(231,76,60,.1);border-color:var(--primary);}
+.q-opt.ok{background:rgba(39,174,96,.15);border-color:var(--accent);color:#82e0aa;}
+.q-opt.no{background:rgba(231,76,60,.15);border-color:var(--primary);color:#f1948a;}
+.q-exp{margin-top:1rem;padding:.8rem 1rem;border-radius:10px;font-size:.82rem;line-height:1.6;display:none;}
+.q-exp.show{display:block;}
+.q-exp.ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#a9dfbf;}
+.q-exp.no{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#f5b7b1;}
+.q-nav{display:flex;justify-content:flex-end;margin-top:1rem;}
+#q-score{text-align:center;padding:2.5rem;display:none;}
+#q-score .sc-n{font-size:4rem;font-weight:900;color:var(--primary);}
+#q-score .sc-l{font-size:.8rem;color:var(--muted);margin-bottom:.8rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Ch11 · ER-to-Table</span>
+  <a href="#intro">Intro</a>
+  <a href="#overview">Overview</a>
+  <a href="#entity">Entity</a>
+  <a href="#weak">Weak</a>
+  <a href="#mn">M:N</a>
+  <a href="#onemany">1:M / M:1</a>
+  <a href="#oneone">1:1</a>
+  <a href="#summary">Summary</a>
+  <a href="#practice">Practice</a>
+  <a href="#convert">Convert</a>
+  <a href="#design">Design</a>
+  <a href="#cards">Cards</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+<div id="pb"></div>
+
+<!-- HERO -->
+<section id="intro" style="position:relative;padding-top:110px;min-height:90vh;display:flex;flex-direction:column;justify-content:center;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">UCS310 · Chapter 11</div>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:.6rem;">ER-to-Table <span style="color:var(--primary);">Mapping</span></h2>
+  <p style="font-size:1rem;color:#999;max-width:600px;margin:.4rem 0 1rem;">No DBMS directly supports ER models — so we must convert ER diagrams into <strong style="color:var(--text);">relational tables</strong>. This chapter teaches the systematic rules for transforming every ER construct (entities, attributes, relationships) into a relational schema.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">7</div><div class="l">Mapping Rules</div></div>
+    <div class="hs"><div class="n">10+</div><div class="l">Worked Examples</div></div>
+    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">15</div><div class="l">Quiz MCQs</div></div>
+  </div>
+  <div class="btns">
+    <a href="#overview" class="btn">Start Learning</a>
+    <a href="#cards" class="btn btn-o">Flashcards</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+</section>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <div class="fi">
+    <div class="sec-label">Foundation</div>
+    <h2>Why Convert ER to Tables?</h2>
+    <div class="hbox" style="margin-top:.8rem;">
+      <p>Conceptual ER models represent the subject area accurately, but <strong>no DBMS supports ER models directly</strong>. We must convert ER diagrams into an implementation schema — tables in the <strong>Relational Data Model (RDM)</strong>.</p>
+    </div>
+    <p style="margin-top:.6rem;">The mapping depends on three factors:</p>
+    <div class="g3" style="margin-top:.8rem;">
+      <div class="card"><h3 style="color:var(--accent);">Atomic vs Multivalued</h3><p style="font-size:.8rem;margin-top:.3rem;">Whether attributes are single-valued or multivalued determines extra tables.</p></div>
+      <div class="card"><h3 style="color:var(--orange);">Cardinality</h3><p style="font-size:.8rem;margin-top:.3rem;">1:1, 1:M, M:1, or M:N determines how many tables and where FKs go.</p></div>
+      <div class="card"><h3 style="color:var(--blue);">Obligation</h3><p style="font-size:.8rem;margin-top:.3rem;">Total vs partial participation (min = optional/mandatory) affects NOT NULL constraints.</p></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Quick Rules at a Glance</h3>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>ER Construct</th><th>Tables Needed</th><th>Key Rule</th></tr>
+        <tr><td>Strong entity (simple attrs only)</td><td><strong style="color:var(--accent);">1</strong></td><td>Derived attrs removed</td></tr>
+        <tr><td>Strong entity + composite attrs</td><td><strong style="color:var(--accent);">1</strong></td><td>Flatten composite to sub-parts</td></tr>
+        <tr><td>Strong entity + N multivalued attrs</td><td><strong style="color:var(--accent);">1 + N</strong></td><td>Separate table per multivalued attr</td></tr>
+        <tr><td>Weak entity (binary)</td><td><strong style="color:var(--blue);">2</strong></td><td>Weak table gets strong PK as FK</td></tr>
+        <tr><td>Relationship: no cardinality / M:N</td><td><strong style="color:var(--primary);">3</strong></td><td>Separate relationship table</td></tr>
+        <tr><td>Relationship: 1:M or M:1</td><td><strong style="color:var(--orange);">2</strong></td><td>FK on many side</td></tr>
+        <tr><td>Relationship: 1:1 (partial both)</td><td><strong style="color:var(--purple);">2</strong></td><td>FK as UNIQUE in either entity</td></tr>
+        <tr><td>Relationship: 1:1 (total both)</td><td><strong style="color:var(--teal);">1</strong></td><td>Merge everything into one table</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ENTITY MAPPING -->
+<section id="entity">
+  <div class="fi">
+    <div class="sec-label">Rule 1–3</div>
+    <h2>Mapping Strong Entities</h2>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">1</span>Simple Attributes Only → 1 Table</h3>
+    <div class="hbox green">
+      <p>A strong entity set with only <strong>simple attributes</strong> requires <strong>1 table</strong>. The PK of the table = key attribute of the entity set. <strong>Derived attributes are removed</strong>.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Student Entity</div>
+      <div class="eg-desc">Student has: <u>sid</u> (key), gpa, date_of_birth, <em>age</em> (derived from DOB)</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">gpa</span>, <span class="attr">date_of_birth</span>)</div>
+      <p style="font-size:.75rem;color:var(--muted);">age is derived → removed from the table</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Location Entity</div>
+      <div class="schema"><span class="tn">location</span>(<span class="pk">latitude</span>, <span class="pk">longitude</span>, <span class="attr">description</span>, <span class="attr">last_visited</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">2</span>Composite Attributes → 1 Table (Flatten)</h3>
+    <div class="hbox blue">
+      <p>A strong entity with <strong>composite attributes</strong> still requires only <strong>1 table</strong>. The composite attribute itself is <strong>NOT</strong> a column — its <strong>simple sub-parts</strong> become the columns.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Student with Name &amp; Address</div>
+      <div class="eg-desc">Student: <u>Roll_no</u>, Name(First_name, Last_name), Address(House_no, Street, City)</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">Roll_no</span>, <span class="attr">First_name</span>, <span class="attr">Last_name</span>, <span class="attr">House_no</span>, <span class="attr">Street</span>, <span class="attr">City</span>)</div>
+      <p style="font-size:.75rem;color:var(--muted);">"Name" and "Address" themselves don't appear — only their sub-parts do</p>
+    </div>
+    <div class="gotcha"><strong>Gotcha:</strong> Don't include the composite attribute name as a column. Only the leaf-level simple sub-attributes become columns. Name → First_name + Last_name, NOT "Name" column.</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">3</span>Multivalued Attributes → 1 + N Tables</h3>
+    <div class="hbox orange">
+      <p>Each <strong>multivalued attribute</strong> requires its own <strong>separate table</strong>. The main table has all simple attributes. Each extra table has: <strong>PK of entity (as FK) + the multivalued attribute</strong>. Together they form a composite PK.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Student with Mobile_No (multivalued)</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">Roll_no</span>, <span class="attr">City</span>)
+<span class="tn">Students_Mobile</span>(<span class="pk fk">Roll_No</span>, <span class="pk">Mobile_No</span>)</div>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Employee with skillset (multivalued)</div>
+      <div class="schema"><span class="tn">Employee</span>(<span class="pk">ssn</span>, <span class="attr">name</span>, <span class="attr">dob</span>)
+<span class="tn">Skill</span>(<span class="pk">skillset</span>, <span class="pk fk">ssn</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Comprehensive Example — Student (all attribute types)</div>
+      <div class="eg-desc">Student: <u>sid</u>(key), dob(stored), age(derived), address(composite: zipcode, street, unit), name(composite: first, middle, last), nickname(multi), email(multi), gpa</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">zipcodeAddr</span>, <span class="attr">streetAddr</span>, <span class="attr">unitAddr</span>, <span class="attr">firstName</span>, <span class="attr">middleName</span>, <span class="attr">lastName</span>, <span class="attr">gpa</span>, <span class="attr">dob</span>)
+<span class="tn">Nickname</span>(<span class="pk fk">sid</span>, <span class="pk">nickname</span>)
+<span class="tn">Email</span>(<span class="pk fk">sid</span>, <span class="pk">email</span>)</div>
+      <p style="font-size:.75rem;color:var(--muted);">3 tables total: age removed (derived), composites flattened, 2 multivalued → 2 extra tables</p>
+    </div>
+    <div class="note"><strong>Formula:</strong> Tables = 1 (main entity) + number of multivalued attributes. Composite and derived attributes don't add tables.</div>
+  </div>
+</section>
+
+<!-- WEAK ENTITY -->
+<section id="weak">
+  <div class="fi">
+    <div class="sec-label">Rule 4</div>
+    <h2>Mapping Weak Entity Sets</h2>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">4</span>Weak Entity → 2 Tables</h3>
+    <div class="hbox purple">
+      <p>A weak entity set always appears with an identifying relationship and total participation. It produces <strong>2 tables</strong>: one for the strong entity, one for the weak entity. The weak entity table includes the <strong>strong entity's PK as a foreign key</strong>.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Generic Pattern</div>
+      <div class="eg-desc">A(<u>a1</u>, a2) ——◇ R ══ B(b1[discriminator], b2) [weak]</div>
+      <div class="schema"><span class="tn">A</span>(<span class="pk">a1</span>, <span class="attr">a2</span>)
+<span class="tn">BR</span>(<span class="pk fk">a1</span>, <span class="pk">b1</span>, <span class="attr">b2</span>)</div>
+      <p style="font-size:.75rem;color:var(--muted);">PK of weak table = strong PK (a1) + discriminator (b1)</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example — Employee &amp; Dependent</div>
+      <div class="eg-desc">Employee(<u>ssn</u>, salary, dob) ——◇ has ══ Dependent(<u style="text-decoration:underline dashed;">did</u>, name, address)</div>
+      <div class="schema"><span class="tn">Employee</span>(<span class="pk">ssn</span>, <span class="attr">salary</span>, <span class="attr">dob</span>)
+<span class="tn">Dependent</span>(<span class="pk">did</span>, <span class="pk fk">employeeId</span>, <span class="attr">name</span>, <span class="attr">address</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example — Account &amp; Check</div>
+      <div class="eg-desc">account(<u>account_number</u>, balance) ← check_txn → check(check_number[discriminator], check_date, recipient, amount, memo)</div>
+      <div class="schema"><span class="tn">account</span>(<span class="pk">account_number</span>, <span class="attr">balance</span>)
+<span class="tn">check</span>(<span class="pk fk">account_number</span>, <span class="pk">check_number</span>, <span class="attr">check_date</span>, <span class="attr">recipient</span>, <span class="attr">amount</span>, <span class="attr">memo</span>)</div>
+      <p style="font-size:.75rem;color:var(--muted);">PK of check = (account_number, check_number). check_number alone is the discriminator.</p>
+    </div>
+    <div class="gotcha"><strong>Gotcha:</strong> The identifying relationship does NOT produce a separate table — it's absorbed into the weak entity's table. So 2 tables, not 3.</div>
+  </div>
+</section>
+
+<!-- M:N RELATIONSHIP -->
+<section id="mn">
+  <div class="fi">
+    <div class="sec-label">Rule 5</div>
+    <h2>Mapping M:N &amp; No-Cardinality Relationships</h2>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">5</span>M:N or No Cardinality → 3 Tables</h3>
+    <div class="hbox">
+      <p>A <strong>many-to-many</strong> relationship (or one with no cardinality specified — treated as M:N) requires <strong>3 tables</strong>: one for each entity set + one for the relationship.</p>
+      <p style="font-size:.82rem;margin-top:.4rem;">The relationship table contains: <strong>PKs of both entities</strong> (forming a composite PK) + any <strong>relationship attributes</strong>.</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Generic Pattern</div>
+      <div class="schema"><span class="tn">A</span>(<span class="pk">a1</span>, <span class="attr">a2</span>)
+<span class="tn">R</span>(<span class="pk fk">a1</span>, <span class="pk fk">b1</span>)    <span class="cm">-- composite PK from both entity PKs</span>
+<span class="tn">B</span>(<span class="pk">b1</span>, <span class="attr">b2</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example — Student enrolls Course (M:N)</div>
+      <div class="eg-desc">Multiple students can enroll in multiple courses. Enroll has descriptive attribute Date_of_Enroll.</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">Rollno</span>, <span class="attr">Student_Name</span>, <span class="attr">Class</span>)
+<span class="tn">Enroll</span>(<span class="pk fk">Rollno</span>, <span class="pk fk">Course_Code</span>, <span class="attr">Date_of_Enroll</span>)
+<span class="tn">Course</span>(<span class="pk">Course_Code</span>, <span class="attr">Course_Name</span>, <span class="attr">Duration</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example — Student enrolls Course (M:N with different attr names)</div>
+      <div class="schema"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">gpa</span>)
+<span class="tn">Enrolls</span>(<span class="pk fk">sid</span>, <span class="pk fk">cid</span>, <span class="attr">enrollmentDate</span>)
+<span class="tn">Course</span>(<span class="pk">cid</span>, <span class="attr">name</span>, <span class="attr">credit</span>)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example — No Cardinality: Employee WorksIn Department</div>
+      <div class="eg-desc">When no cardinality is specified, treat it as M:N → 3 tables.</div>
+      <div class="schema"><span class="tn">Employee</span>(<span class="pk">Emp_no</span>, <span class="attr">Emp_name</span>, <span class="attr">Salary</span>)
+<span class="tn">WorksIn</span>(<span class="pk fk">Emp_no</span>, <span class="pk fk">Dept_id</span>, <span class="attr">since</span>)
+<span class="tn">Department</span>(<span class="pk">Dept_id</span>, <span class="attr">Dept_name</span>)</div>
+    </div>
+    <div class="note"><strong>Key insight:</strong> In the relationship table, the PKs of both participating entities become FKs AND together form the <strong>composite primary key</strong>. Relationship attributes (like "since") are added as regular columns.</div>
+  </div>
+</section>
+
+<!-- 1:M / M:1 RELATIONSHIP -->
+<section id="onemany">
+  <div class="fi">
+    <div class="sec-label">Rule 6</div>
+    <h2>Mapping 1:M and M:1 Relationships</h2>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">6</span>1:M or M:1 → 2 Tables</h3>
+    <div class="hbox green">
+      <p>The golden rule: <strong>"Many side consumes the relationship."</strong> A combined table is drawn for the <strong>many-side entity + relationship</strong>. The PK of the "one" side becomes a <strong>FK on the many side</strong>. Relationship attributes also go to the many side.</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="a-tabs" data-group="om">
+      <button class="a-tab on" onclick="tabSwitch(this,'om')">1:M</button>
+      <button class="a-tab" onclick="tabSwitch(this,'om')">M:1</button>
+      <button class="a-tab" onclick="tabSwitch(this,'om')">Total Participation</button>
+    </div>
+
+    <!-- 1:M -->
+    <div class="a-panel on" data-group="om">
+      <div class="eg">
+        <div class="eg-lbl">1:M — Student(1) → Enroll → Course(M)</div>
+        <div class="eg-desc">One student can enroll in multiple courses. FK of Student (one side) goes into Course (many side).</div>
+        <div class="schema"><span class="tn">Student</span>(<span class="pk">RollNo</span>, <span class="attr">Student_Name</span>, <span class="attr">Class</span>)
+<span class="tn">Course</span>(<span class="pk">Course_Code</span>, <span class="attr">Course_Name</span>, <span class="attr">Duration</span>, <span class="fk">RollNo</span>, <span class="attr">Date_of_Enrollment</span>)</div>
+        <p style="font-size:.75rem;color:var(--muted);">RollNo is FK in Course. Date_of_Enrollment (relationship attr) also goes to Course.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">1:M — Teacher(1) teaches Subject(M)</div>
+        <div class="schema"><span class="tn">Teacher</span>(<span class="pk">tid</span>, <span class="attr">name</span>, <span class="attr">salary</span>)
+<span class="tn">Subject</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">credit</span>, <span class="fk">teacherId</span>)</div>
+      </div>
+    </div>
+
+    <!-- M:1 -->
+    <div class="a-panel" data-group="om">
+      <div class="eg">
+        <div class="eg-lbl">M:1 — Student(M) → Enroll → Course(1)</div>
+        <div class="eg-desc">Many students enroll in one course. FK of Course (one side) goes into Student (many side).</div>
+        <div class="schema"><span class="tn">Student</span>(<span class="pk">RollNo</span>, <span class="attr">Student_Name</span>, <span class="attr">Class</span>, <span class="fk">Course_Code</span>, <span class="attr">Date_of_Enrollment</span>)
+<span class="tn">Course</span>(<span class="pk">Course_Code</span>, <span class="attr">Course_Name</span>, <span class="attr">Duration</span>)</div>
+        <p style="font-size:.75rem;color:var(--muted);">Course_Code is FK in Student. Relationship attrs go to many side.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">M:1 — Employees(M) Works_In2 Departments(1)</div>
+        <div class="schema"><span class="tn">Employees</span>(<span class="pk">ssn</span>, <span class="attr">name</span>, <span class="attr">lot</span>, <span class="fk">did</span>, <span class="attr">from_date</span>, <span class="attr">to_date</span>)
+<span class="tn">Departments</span>(<span class="pk">did</span>, <span class="attr">dname</span>, <span class="attr">budget</span>)</div>
+      </div>
+    </div>
+
+    <!-- Total Participation -->
+    <div class="a-panel" data-group="om">
+      <div class="hbox teal">
+        <p>When the many side has <strong>total participation</strong>, the mapping is the same (2 tables), but the FK gets a <strong>NOT NULL</strong> constraint — because every entity on that side MUST participate.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">1:M with Total Participation on Many Side</div>
+        <div class="schema"><span class="tn">A</span>(<span class="pk">a1</span>, <span class="attr">a2</span>)
+<span class="tn">B</span>(<span class="pk">b1</span>, <span class="attr">b2</span>, <span class="fk">a1</span> <span class="kw">NOT NULL</span>)</div>
+        <p style="font-size:.75rem;color:var(--muted);">a1 as FK with NOT NULL — every B must be associated with an A.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="gotcha"><strong>Gotcha:</strong> In 1:M, the FK goes on the <strong>many side</strong>, NOT the one side! Remember: "many side eats the relationship." The one-side PK migrates to become an FK in the many-side table.</div>
+  </div>
+</section>
+
+<!-- 1:1 RELATIONSHIP -->
+<section id="oneone">
+  <div class="fi">
+    <div class="sec-label">Rule 7</div>
+    <h2>Mapping 1:1 Relationships</h2>
+    <p style="margin:.5rem 0;">1:1 has three cases depending on participation constraints.</p>
+  </div>
+
+  <div class="fi">
+    <div class="a-tabs" data-group="oo">
+      <button class="a-tab on" onclick="tabSwitch(this,'oo')">Partial + Partial</button>
+      <button class="a-tab" onclick="tabSwitch(this,'oo')">Total + Total</button>
+      <button class="a-tab" onclick="tabSwitch(this,'oo')">One Total</button>
+    </div>
+
+    <!-- 1:1 partial-partial -->
+    <div class="a-panel on" data-group="oo">
+      <div class="hbox">
+        <p><strong>Case 1: Both sides have partial participation</strong> → <strong>2 tables</strong>. Combine R with either A or B. The FK must be <strong>UNIQUE</strong> (to enforce 1:1).</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example — Male Marry Female (1:1 partial-partial)</div>
+        <div class="eg-desc">A male marries 0 or 1 female, and vice versa. Not everyone is married.</div>
+        <div class="schema"><span class="cm">-- Option 1: FK in Male</span>
+<span class="tn">Male</span>(<span class="pk">M_ID</span>, <span class="attr">Other attrs</span>, <span class="fk">F_ID</span> <span class="kw">UNIQUE</span>)
+<span class="tn">Female</span>(<span class="pk">F_ID</span>, <span class="attr">Other attrs</span>)
+
+<span class="cm">-- Option 2: FK in Female</span>
+<span class="tn">Male</span>(<span class="pk">M_ID</span>, <span class="attr">Other attrs</span>)
+<span class="tn">Female</span>(<span class="pk">F_ID</span>, <span class="attr">Other attrs</span>, <span class="fk">M_ID</span> <span class="kw">UNIQUE</span>)</div>
+      </div>
+    </div>
+
+    <!-- 1:1 total-total -->
+    <div class="a-panel" data-group="oo">
+      <div class="hbox green">
+        <p><strong>Case 2: Both sides have total participation</strong> → <strong>1 table!</strong> Merge both entities and the relationship into a single table with UNIQUE and NOT NULL constraints.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Generic</div>
+        <div class="schema"><span class="tn">ARB</span>(<span class="pk">a1</span>, <span class="attr">a2</span>, <span class="attr">b1</span> <span class="kw">UNIQUE NOT NULL</span>, <span class="attr">b2</span>)</div>
+        <p style="font-size:.75rem;color:var(--muted);">Everything in one table. Only 1 table needed!</p>
+      </div>
+    </div>
+
+    <!-- 1:1 one total -->
+    <div class="a-panel" data-group="oo">
+      <div class="hbox blue">
+        <p><strong>Case 3: One side has total, other has partial</strong> → <strong>2 tables</strong>. Merge R into the entity with <strong>total participation</strong>. FK should be <strong>UNIQUE</strong>.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example — Person Has Passport</div>
+        <div class="eg-desc">A person has 0 or 1 passport (partial). A passport is always owned by exactly 1 person (total from Passport side).</div>
+        <div class="schema"><span class="tn">Person</span>(<span class="pk">Per_ID</span>, <span class="attr">Other Person Attrs</span>, <span class="fk">Pass_No</span> <span class="kw">UNIQUE</span>, <span class="attr">Other Passport Attrs</span>)</div>
+        <p style="font-size:.75rem;color:var(--muted);">Merge R into Person. Since Passport has total participation, its attrs are absorbed. Pass_No must be UNIQUE.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="note"><strong>1:1 Summary:</strong> Partial+Partial = 2 tables (FK UNIQUE in either). Total+Total = 1 table. One Total = 2 tables (merge into total side).</div>
+  </div>
+</section>
+
+<!-- SUMMARY TABLE -->
+<section id="summary">
+  <div class="fi">
+    <div class="sec-label">Reference</div>
+    <h2>Minimum Tables — Master Summary</h2>
+  </div>
+
+  <div class="fi">
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Cardinality</th><th>Min Tables</th><th>Rule</th></tr>
+        <tr><td><strong style="color:var(--primary);">M : N</strong></td><td><strong>3</strong></td><td>Separate table for each entity + one for relationship</td></tr>
+        <tr><td><strong style="color:var(--orange);">1 : M or M : 1</strong></td><td><strong>2</strong></td><td>"Many side consumes the relationship" — FK on many side</td></tr>
+        <tr><td><strong style="color:var(--purple);">1 : 1 (partial)</strong></td><td><strong>2</strong></td><td>Combine R with either entity, FK as UNIQUE</td></tr>
+        <tr><td><strong style="color:var(--teal);">1 : 1 (total both)</strong></td><td><strong>1</strong></td><td>Merge everything into a single table</td></tr>
+        <tr><td><strong style="color:var(--muted);">No cardinality</strong></td><td><strong>3</strong></td><td>Treated as M:N</td></tr>
+        <tr><td><strong style="color:var(--blue);">Weak entity</strong></td><td><strong>2</strong></td><td>Strong table + weak table (with strong PK as part of composite PK)</td></tr>
+      </table>
+    </div>
+    <div class="gotcha"><strong>Remember:</strong> These are <strong>minimum</strong> tables for the relationship part. Multivalued attributes add extra tables on top! If an entity has 2 multivalued attrs + is in an M:N relationship with another entity, total = 3 (M:N) + 2 (multivalued) = 5 tables.</div>
+  </div>
+</section>
+
+<!-- PRACTICE PROBLEMS -->
+<section id="practice">
+  <div class="fi">
+    <div class="sec-label">Worked Problems</div>
+    <h2>Practice Problems from Slides</h2>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Problem 1</div>
+      <div class="eg-desc">M(M1[key], M2, M3) ——◇ R1(M:1) → P(P1[key], P2) ←◇ R2(N:1) —— N(N1[key], N2)<br>Find the minimum number of tables.</div>
+      <div class="step-box"><span class="step-num">1</span><p><strong>R1 is M:1</strong> (M is many, P is one) → 2 tables. M consumes R1. So M gets P's PK as FK.</p></div>
+      <div class="step-box"><span class="step-num">2</span><p><strong>R2 is N:1</strong> (N is many, P is one) → 2 tables. N consumes R2. So N gets P's PK as FK.</p></div>
+      <div class="step-box"><span class="step-num">3</span><p><strong>P appears in both</strong> — but it's the "one" side in both, so it stands alone.</p></div>
+      <div class="schema"><span class="tn">MR1</span>(<span class="pk">M1</span>, <span class="attr">M2</span>, <span class="attr">M3</span>, <span class="fk">P1</span>)
+<span class="tn">P</span>(<span class="pk">P1</span>, <span class="attr">P2</span>)
+<span class="tn">NR2</span>(<span class="fk">P1</span>, <span class="pk">N1</span>, <span class="attr">N2</span>)</div>
+      <p style="font-size:.82rem;color:var(--accent);font-weight:700;">Minimum: 3 tables</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Problem 2 — Banking ER Diagram</div>
+      <div class="eg-desc">Account(<u>Ac_no</u>, Balance) —◇Account_branch(M:1)→ Branch(<u>b_name</u>, b_city, Assets)<br>Customer(<u>C_name</u>, C_street, C_city) —◇Depositor(M:N)— Account<br>Customer —◇Borrower(M:N)— Loan(<u>L_no</u>, Amt)<br>Loan —◇Loan_branch(M:1)→ Branch</div>
+      <div class="step-box"><span class="step-num">1</span><p><strong>Account_branch (M:1):</strong> Account is many → Account gets b_name as FK → merged.</p></div>
+      <div class="step-box"><span class="step-num">2</span><p><strong>Loan_branch (M:1):</strong> Loan is many → Loan gets b_name as FK → merged.</p></div>
+      <div class="step-box"><span class="step-num">3</span><p><strong>Depositor (M:N):</strong> → separate Depositor table with (C_name, Ac_no).</p></div>
+      <div class="step-box"><span class="step-num">4</span><p><strong>Borrower (M:N):</strong> → separate Borrower table with (C_name, L_no).</p></div>
+      <div class="schema"><span class="tn">Account</span>(<span class="pk">Ac_no</span>, <span class="attr">Balance</span>, <span class="fk">b_name</span>)
+<span class="tn">Branch</span>(<span class="pk">b_name</span>, <span class="attr">b_city</span>, <span class="attr">Assets</span>)
+<span class="tn">Loan</span>(<span class="pk">L_no</span>, <span class="attr">Amt</span>, <span class="fk">b_name</span>)
+<span class="tn">Borrower</span>(<span class="pk fk">C_name</span>, <span class="pk fk">L_no</span>)
+<span class="tn">Customer</span>(<span class="pk">C_name</span>, <span class="attr">C_street</span>, <span class="attr">C_city</span>)
+<span class="tn">Depositor</span>(<span class="pk fk">C_name</span>, <span class="pk fk">Ac_no</span>)</div>
+      <p style="font-size:.82rem;color:var(--accent);font-weight:700;">Minimum: 6 tables</p>
+    </div>
+  </div>
+</section>
+
+<!-- CONVERT CHALLENGES -->
+<section id="convert">
+  <div class="fi">
+    <div class="sec-label">Active Learning</div>
+    <h2>Convert the ER</h2>
+    <p style="margin:.4rem 0;">Think through each conversion, then reveal the answer to check.</p>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Entity: Employee(<u>ssn</u>, name, dob, <em>age</em>[derived], phone[multi-valued]). How many tables and what are their schemas?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> age is derived → removed. phone is multivalued → separate table.<br><strong>Employee(</strong><u>ssn</u>, name, dob<strong>)</strong><br><strong>Emp_Phone(</strong><u>ssn[FK]</u>, <u>phone</u><strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Student(<u>sid</u>, name, gpa) —M:N— enrolls(enrollment_date) —M:N— Course(<u>cid</u>, name, credit). How many tables? What's the PK of the relationship table?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>3 tables.</strong> M:N always produces 3.<br><strong>Student(</strong><u>sid</u>, name, gpa<strong>)</strong><br><strong>Enrolls(</strong><u>sid[FK]</u>, <u>cid[FK]</u>, enrollment_date<strong>)</strong> — composite PK (sid, cid)<br><strong>Course(</strong><u>cid</u>, name, credit<strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Teacher(<u>tid</u>, name, salary) —1:M— teaches — Subject(<u>sid</u>, name, credit). Where does the FK go?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> "Many side consumes the relationship." Subject is the many side.<br><strong>Teacher(</strong><u>tid</u>, name, salary<strong>)</strong><br><strong>Subject(</strong><u>sid</u>, name, credit, <em>teacherId[FK]</em><strong>)</strong><br>FK of Teacher (tid) goes INTO Subject as teacherId.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Male(<u>M_ID</u>) —1:1 partial both— Marry — Female(<u>F_ID</u>). How many tables? What constraint on the FK?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> 1:1 with partial-partial → combine R with either entity. FK must be <strong>UNIQUE</strong> to enforce 1:1.<br><strong>Male(</strong><u>M_ID</u>, F_ID UNIQUE<strong>)</strong> + <strong>Female(</strong><u>F_ID</u><strong>)</strong><br>OR: <strong>Male(</strong><u>M_ID</u><strong>)</strong> + <strong>Female(</strong><u>F_ID</u>, M_ID UNIQUE<strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Entity A and Entity B are in a 1:1 relationship with TOTAL participation from both sides. How many tables?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>1 table!</strong> When both sides have total participation in a 1:1 relationship, merge everything into a single table:<br><strong>ARB(</strong><u>a1</u>, a2, b1 UNIQUE NOT NULL, b2<strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Account(<u>account_number</u>, balance) ◇══ check_txn ══◇ Check(check_number[discriminator], check_date, recipient, amount, memo). Check is a WEAK entity. What's the PK of the check table?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> PK of weak entity = strong entity PK + discriminator.<br><strong>account(</strong><u>account_number</u>, balance<strong>)</strong><br><strong>check(</strong><u>account_number[FK]</u>, <u>check_number</u>, check_date, recipient, amount, memo<strong>)</strong><br>PK = <strong>(account_number, check_number)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">1:M relationship with total participation on the many side. How does the schema differ from regular 1:M?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal">Still <strong>2 tables</strong>. Same structure — FK on the many side. The difference: the FK column gets a <strong>NOT NULL</strong> constraint, because total participation means every entity on the many side MUST be associated with an entity on the one side.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">An entity has 3 simple attributes, 1 composite attribute (with 2 sub-parts), 2 multivalued attributes, and 1 derived attribute. How many tables? How many columns in the main table?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>3 tables</strong> (1 main + 2 multivalued).<br>Main table columns: 3 simple + 2 (composite sub-parts) = <strong>5 columns</strong>. Derived is removed. Multivalued attrs go to separate tables.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN CHALLENGES -->
+<section id="design">
+  <div class="fi">
+    <div class="sec-label">Active Learning</div>
+    <h2>Design Challenges</h2>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div><span class="pyq-badge">PYQ — MST</span>
+      <div class="wtq-q">A Banking ER diagram has: Bank, Bank_Branch, Customer, Account, Loan with relationships. Account_branch(M:1) and Loan_branch(M:1) connect to Branch. Depositor(M:N) and Borrower(M:N) connect Customer to Account and Loan respectively. Find: (i) Primary keys (ii) Minimum number of tables.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>PKs:</strong> Bank(Bank_Name), Branch(Branch_No), Customer(Cust_ID), Account(Acc_No), Loan(Loan_No)<br><br><strong>Analysis:</strong> Account_branch M:1 → merge into Account (2 tables). Loan_branch M:1 → merge into Loan (2 tables). Depositor M:N → separate table (3 tables). Borrower M:N → separate table (3 tables).<br><br><strong>Minimum = 6 tables:</strong> Account(Acc_No, Balance, Branch_No[FK]), Branch(Branch_No, Name, City, Assets), Loan(Loan_No, Amount, Branch_No[FK]), Customer(Cust_ID, Name, Phone, Addr), Depositor(Cust_ID, Acc_No), Borrower(Cust_ID, Loan_No)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div><span class="pyq-badge">PYQ — AUX</span>
+      <div class="wtq-q">Production tracking ER: Lot(<u>lot_id</u>, date), Production_Units(<u>unit_serial</u>, weight), Raw_Materials(<u>material_id</u>, name). Lot—Includes(1:N)→Production_Units. Production_Units—CreatedFrom(M:N)→Raw_Materials. Convert to relational schema with PKs, FKs, and referential integrity constraints.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Includes (1:N):</strong> Lot is one, Production_Units is many → FK in Production_Units.<br><strong>CreatedFrom (M:N):</strong> → 3 tables needed (separate relationship table).<br><br><strong>Schema:</strong><br>Lot(<u>lot_id</u>, date)<br>Production_Units(<u>unit_serial</u>, weight, <em>lot_id[FK → Lot, NOT NULL]</em>)<br>Raw_Materials(<u>material_id</u>, name)<br>CreatedFrom(<u>unit_serial[FK]</u>, <u>material_id[FK]</u>, quantity)<br><br><strong>Total: 4 tables.</strong> Referential integrity: lot_id in Production_Units references Lot(lot_id). unit_serial and material_id in CreatedFrom reference their respective entity tables.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div>
+      <div class="wtq-q">A university has: Student(<u>sid</u>, name, gpa, phone[multi], email[multi]) —M:N enrolls(grade)— Course(<u>cid</u>, name, credit) —1:M taught_by— Instructor(<u>iid</u>, name, salary). How many tables total?</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Student entity:</strong> 2 multivalued attrs → 1 main + 2 extra = 3 tables.<br><strong>enrolls (M:N):</strong> → 1 relationship table. But Student and Course entity tables already counted.<br><strong>taught_by (1:M):</strong> Instructor is "one," Course is "many" → FK in Course. 2 tables (Course already counted).<br><br><strong>Tables:</strong><br>Student(<u>sid</u>, name, gpa)<br>Student_Phone(<u>sid[FK]</u>, <u>phone</u>)<br>Student_Email(<u>sid[FK]</u>, <u>email</u>)<br>Enrolls(<u>sid[FK]</u>, <u>cid[FK]</u>, grade)<br>Course(<u>cid</u>, name, credit, <em>iid[FK]</em>)<br>Instructor(<u>iid</u>, name, salary)<br><br><strong>Total: 6 tables.</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="cards">
+  <div class="fi">
+    <div class="sec-label">Review</div>
+    <h2>Flashcards <span style="font-size:.7rem;color:var(--muted);font-weight:400;">(Click to flip)</span></h2>
+  </div>
+  <div class="fc-grid fi">
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Why</div><div class="fc-q">Why convert ER to tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">No DBMS supports ER models directly. We must convert ER diagrams to relational tables (RDM) for implementation.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Strong entity + simple attrs → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 table.</strong> Each simple attribute becomes a column. PK = key attribute of the entity set.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">What happens to derived attributes?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Removed.</strong> Derived attributes (like Age from DOB) are NOT included in the table — they can be computed.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">How are composite attributes mapped?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Flattened.</strong> Only the leaf-level simple sub-parts become columns. Name → First_name, Last_name (NOT a "Name" column). Still 1 table.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Multivalued attribute mapping?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Each multivalued attr → <strong>separate table</strong> containing entity PK (as FK) + multivalued attr. Both form a composite PK. Entity with N multivalued attrs → 1+N tables.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Weak entity → how many tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> Strong entity table + weak entity table. Weak table includes strong PK as FK. PK of weak = strong PK + discriminator.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">PK of weak entity table = ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>PK of strong entity + discriminator (partial key)</strong> of the weak entity. Example: (Loan_No, Payment_No).</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Does the identifying relationship get its own table?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>No.</strong> The identifying relationship is absorbed into the weak entity's table. So weak entity = 2 tables total, not 3.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">No cardinality specified → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Treated as <strong>M:N → 3 tables.</strong> Separate tables for each entity set + one for the relationship.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">M:N → how many tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>3 tables.</strong> Entity A + Entity B + Relationship R. R's PK = composite of both entity PKs + relationship's own attributes.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">M:N relationship table PK = ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Composite PK</strong> formed by combining the primary keys of BOTH participating entity sets. E.g., Enrolls(<u>sid</u>, <u>cid</u>, date).</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:M → how many tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> "Many side consumes the relationship." PK of "one" side → FK on "many" side. Relationship attrs also go to many side.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Key Rule</div><div class="fc-q">In 1:M, where does the FK go?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">FK goes on the <strong>many side</strong>. The "one" side's PK migrates to become a FK in the "many" side's table.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Constraint</div><div class="fc-q">1:M + total participation on many side → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Same 2 tables, but FK gets <strong>NOT NULL</strong> constraint. Every entity on the many side MUST reference an entity on the one side.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">Where do relationship attrs go in 1:M?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">To the <strong>many side entity table</strong> (along with the FK). The many side absorbs both the FK and the relationship's attributes.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:1 partial + partial → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> Combine R with either entity. FK must be <strong>UNIQUE</strong> (to enforce one-to-one). Can go in either table.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:1 total + total → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 table!</strong> Merge both entities and the relationship into a single table. UNIQUE + NOT NULL on the merged key.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:1 one total, one partial → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> Merge R into the entity with <strong>total participation</strong>. FK should be UNIQUE.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Constraint</div><div class="fc-q">UNIQUE constraint on FK is used when?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">In <strong>1:1 relationships</strong>. UNIQUE on FK ensures each value appears at most once → enforces one-to-one mapping.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Constraint</div><div class="fc-q">NOT NULL on FK is used when?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">When there's <strong>total participation</strong> on the side containing the FK. Ensures every entity must participate in the relationship.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Mnemonic</div><div class="fc-q">"Many side consumes the relationship"</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">In 1:M / M:1, the many-side entity table absorbs both the FK (from one side) and any relationship attributes. No separate relationship table needed.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Factors</div><div class="fc-q">Three factors that affect ER-to-RDM mapping?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1.</strong> Atomic vs multivalued attributes. <strong>2.</strong> Cardinality (1:1, 1:M, M:N). <strong>3.</strong> Obligation / participation (total vs partial).</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Quick Count</div><div class="fc-q">M:N → tables? 1:M → tables? 1:1 → tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">M:N → <strong>3</strong>. 1:M / M:1 → <strong>2</strong>. 1:1 (partial) → <strong>2</strong>. 1:1 (total both) → <strong>1</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Multivalued</div><div class="fc-q">Entity with K multivalued attrs → total tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 + K tables.</strong> 1 main entity table (simple + composite sub-parts, derived removed) + K separate tables (one per multivalued attribute).</div></div></div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="fi">
+    <div class="sec-label">Test Yourself</div>
+    <h2>Quiz — 15 MCQs</h2>
+    <p style="margin:.4rem 0;">Select the best answer. Immediate feedback after each question.</p>
+  </div>
+  <div class="quiz-wrap fi">
+    <div id="q-prog"></div>
+    <div id="q-card" class="q-card">
+      <div id="q-num" class="q-num"></div>
+      <div id="q-text" class="q-text"></div>
+      <div id="q-opts" class="q-opts"></div>
+      <div id="q-exp" class="q-exp"></div>
+      <div class="q-nav"><button id="q-next" class="btn" style="display:none;">Next →</button></div>
+    </div>
+    <div id="q-score">
+      <div class="sc-n" id="sc-val"></div>
+      <div class="sc-l">out of 15</div>
+      <p id="sc-msg" style="font-size:1.1rem;font-weight:600;margin:.5rem 0;"></p>
+      <button class="btn" onclick="initQ()" style="margin-top:1rem;">Retake Quiz</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('pb').style.width=(window.scrollY/h*100)+'%';
+});
+
+// FADE IN
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('v')}),{threshold:.15});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// TABS
+function tabSwitch(btn,group){
+  const tabs=btn.parentElement.querySelectorAll('.a-tab');
+  tabs.forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const panels=document.querySelectorAll('.a-panel[data-group="'+group+'"]');
+  const idx=[...tabs].indexOf(btn);
+  panels.forEach((p,i)=>{p.classList.toggle('on',i===idx);});
+}
+
+// REVEAL
+function reveal(btn){
+  if(btn.classList.contains('revealed'))return;
+  const box=btn.nextElementSibling;
+  box.classList.add('show');
+  btn.textContent='Answer Revealed';
+  btn.classList.add('revealed');
+}
+
+// QUIZ
+const QS=[
+  {q:"A strong entity with only simple attributes needs how many tables?",o:["0","1","2","3"],a:1,e:"A strong entity with only simple attributes maps to exactly 1 table. Each simple attribute → column. PK = key attribute. Derived attributes are removed."},
+  {q:"What happens to derived attributes during ER-to-table conversion?",o:["They become computed columns","They are removed from the table","They become foreign keys","They stay as regular columns"],a:1,e:"Derived attributes (like Age from DOB) are removed — they can be calculated at query time and don't need to be stored."},
+  {q:"A strong entity with 2 multivalued attributes needs how many tables?",o:["1","2","3","4"],a:2,e:"1 main table + 1 per multivalued attribute = 1 + 2 = 3 tables. Each multivalued attr gets its own table with (entity PK[FK], multivalued attr) as composite PK."},
+  {q:"A weak entity set produces how many tables?",o:["1","2","3","Depends on cardinality"],a:1,e:"Weak entity → 2 tables: one for the strong entity and one for the weak entity. The identifying relationship is absorbed into the weak entity's table."},
+  {q:"An M:N binary relationship needs how many tables?",o:["1","2","3","4"],a:2,e:"M:N → 3 tables: one for each entity set + one for the relationship. The relationship table has a composite PK from both entity PKs."},
+  {q:"In a 1:M relationship, where does the foreign key go?",o:["One side","Many side","Both sides","Separate relationship table"],a:1,e:"FK goes on the MANY side. 'Many side consumes the relationship.' The one side's PK migrates to become a FK in the many side's table."},
+  {q:"A 1:1 relationship with total participation on BOTH sides needs how many tables?",o:["1","2","3","0"],a:0,e:"1:1 with total participation on both sides → only 1 table! Merge both entities and the relationship into a single table with UNIQUE and NOT NULL constraints."},
+  {q:"A relationship with no cardinality specified is treated as:",o:["1:1","1:M","M:1","M:N"],a:3,e:"When no cardinality is specified, the relationship is treated as M:N — requiring 3 tables (safest assumption)."},
+  {q:"In an M:N relationship table, the primary key is:",o:["PK of entity A only","PK of entity B only","Composite of both entity PKs","A new surrogate key"],a:2,e:"The relationship table's PK is a composite key formed by combining the PKs of BOTH participating entities. E.g., Enrolls(sid, cid)."},
+  {q:"1:M with total participation on the many side adds which constraint to the FK?",o:["UNIQUE","NOT NULL","CHECK","DEFAULT"],a:1,e:"Total participation means every entity on that side MUST participate → FK gets NOT NULL constraint. This prevents any row from having a null FK value."},
+  {q:"Student(sid, name, dob, age[derived], phone[multi], email[multi]) → how many tables?",o:["1","2","3","4"],a:2,e:"1 main table (age removed, derived) + 1 for phone (multivalued) + 1 for email (multivalued) = 3 tables."},
+  {q:"In 1:1 with partial participation on both sides, the FK must be:",o:["NOT NULL","UNIQUE","PRIMARY KEY","INDEX"],a:1,e:"UNIQUE on the FK enforces the one-to-one constraint — each value can appear at most once, preventing multiple entities from referencing the same partner."},
+  {q:"Where do relationship attributes go in a 1:M mapping?",o:["One-side entity table","Many-side entity table","Separate relationship table","They're dropped"],a:1,e:"In 1:M, the many-side entity table absorbs both the FK and the relationship attributes. No separate relationship table is needed."},
+  {q:"Composite attributes in ER-to-table conversion become:",o:["A single JSON column","Individual columns for each sub-part","A separate table","They're removed"],a:1,e:"Composite attributes are flattened — only their simple sub-parts become columns. Name → First_name, Last_name. The composite name itself is NOT a column."},
+  {q:"PK of a weak entity table = ?",o:["Weak entity's discriminator only","Strong entity's PK only","Strong entity PK + discriminator","A new auto-generated key"],a:2,e:"The weak entity has no sufficient PK alone. Its PK = strong entity's PK (as FK) + discriminator (partial key). E.g., check PK = (account_number, check_number)."}
+];
+
+let cur=0,score=0,answered=false;
+
+function initQ(){
+  cur=0;score=0;answered=false;
+  document.getElementById('q-score').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('q-num').textContent='Question '+(cur+1)+' of '+QS.length;
+  document.getElementById('q-text').textContent=q.q;
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=()=>answer(i);
+    opts.appendChild(b);
+  });
+  document.getElementById('q-exp').className='q-exp';
+  document.getElementById('q-exp').textContent='';
+  document.getElementById('q-next').style.display='none';
+  answered=false;
+  const prog=document.getElementById('q-prog');
+  prog.innerHTML='';
+  QS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='q-dot'+(i===cur?' cur':'');
+    prog.appendChild(d);
+  });
+}
+
+function answer(i){
+  if(answered)return;
+  answered=true;
+  const q=QS[cur];
+  const btns=document.querySelectorAll('.q-opt');
+  btns.forEach(b=>b.disabled=true);
+  if(i===q.a){score++;btns[i].classList.add('ok');}
+  else{btns[i].classList.add('no');btns[q.a].classList.add('ok');}
+  const exp=document.getElementById('q-exp');
+  exp.textContent=q.e;
+  exp.className='q-exp show '+(i===q.a?'ok':'no');
+  document.getElementById('q-next').style.display='block';
+  const dots=document.querySelectorAll('.q-dot');
+  dots[cur].classList.add(i===q.a?'done':'bad');
+}
+
+document.getElementById('q-next').onclick=()=>{
+  cur++;
+  if(cur>=QS.length){
+    document.getElementById('q-card').style.display='none';
+    const sc=document.getElementById('q-score');
+    sc.style.display='block';
+    document.getElementById('sc-val').textContent=score;
+    const p=score/QS.length;
+    const msgs=['Keep studying — review the mapping rules!','Getting there — focus on cardinality rules.','Decent! Revisit 1:1 cases and weak entities.','Good work! Almost mastered ER-to-Table.','Great job! Solid understanding.','Excellent! Nearly perfect.','Perfect score! ER mapping master!'];
+    document.getElementById('sc-msg').textContent=msgs[Math.min(Math.floor(p*6),6)];
+  } else {renderQ();}
+};
+
+initQ();
+</script>
+</body>
+</html>

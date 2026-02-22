@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch1 — Basics of DBMS</title>
+<style>
+:root{
+  --primary:#e74c3c;--secondary:#c0392b;--accent:#27ae60;
+  --blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;
+  --dark:#0d0d0d;--card:#1a1a1a;--card2:#222222;
+  --text:#e8e8e8;--muted:#999;
+  --border:rgba(231,76,60,.25);--glow:0 0 30px rgba(231,76,60,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.6rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}
+.logo{color:var(--primary);font-size:.95rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;padding:.28rem .6rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#progress-bar{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+
+/* SECTIONS */
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.1;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}
+h3{font-size:1rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+
+/* FADE IN */
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}
+.fi.v{opacity:1;transform:translateY(0);}
+
+/* HERO */
+#hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.08);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.06);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}
+.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.5rem;}
+
+/* ICON BADGE */
+.ib{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem;}
+.ired{background:rgba(231,76,60,.2);}
+.igreen{background:rgba(39,174,96,.2);}
+.iblue{background:rgba(41,128,185,.2);}
+.iorange{background:rgba(230,126,34,.2);}
+.ipurple{background:rgba(142,68,173,.2);}
+
+/* COMPARISON TABLE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:.86rem;margin-top:1rem;}
+.cmp-table th{background:rgba(231,76,60,.15);color:var(--primary);padding:.7rem 1rem;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--border);}
+.cmp-table td{padding:.65rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);color:#c0c0c0;vertical-align:top;}
+.cmp-table tr:hover td{background:rgba(231,76,60,.04);}
+.cmp-table td:first-child{color:#e0e0e0;font-weight:600;}
+
+/* TIMELINE */
+.timeline{position:relative;margin-top:1.5rem;padding-left:2rem;}
+.timeline::before{content:'';position:absolute;left:.5rem;top:0;bottom:0;width:2px;background:linear-gradient(to bottom,var(--primary),var(--orange));}
+.tl-item{position:relative;margin-bottom:1.5rem;}
+.tl-dot{position:absolute;left:-1.6rem;top:.3rem;width:14px;height:14px;border-radius:50%;background:var(--primary);border:3px solid var(--dark);box-shadow:0 0 0 2px var(--primary);}
+.tl-year{font-size:.7rem;color:var(--primary);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:.2rem;}
+.tl-title{font-size:.92rem;font-weight:700;color:var(--text);margin-bottom:.25rem;}
+.tl-desc{font-size:.82rem;color:var(--muted);line-height:1.6;}
+
+/* LIMITATION CARDS */
+.lim-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:1.2rem;}
+.lim-card{background:var(--card2);border:1px solid rgba(231,76,60,.2);border-radius:12px;padding:1rem;border-left:3px solid var(--primary);}
+.lim-num{font-size:.65rem;color:var(--primary);font-weight:700;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.08em;}
+.lim-title{font-size:.88rem;font-weight:700;color:#e0e0e0;margin-bottom:.35rem;}
+.lim-desc{font-size:.78rem;color:var(--muted);line-height:1.55;}
+
+/* ADVANTAGE CARDS */
+.adv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;margin-top:1.2rem;}
+.adv-card{background:var(--card2);border:1px solid rgba(39,174,96,.2);border-radius:12px;padding:1rem;border-left:3px solid var(--accent);}
+.adv-icon{font-size:1.3rem;margin-bottom:.4rem;}
+.adv-title{font-size:.88rem;font-weight:700;color:#e0e0e0;margin-bottom:.3rem;}
+.adv-desc{font-size:.78rem;color:var(--muted);line-height:1.55;}
+
+/* CODE BLOCK */
+.code-block{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:1rem 1.2rem;font-family:'Courier New',monospace;font-size:.82rem;color:#a8e6cf;margin:.6rem 0;overflow-x:auto;line-height:1.7;}
+.kw{color:#e74c3c;}.fn{color:#3498db;}.str{color:#f39c12;}.cm{color:#555;}
+
+/* TABS */
+.tab-row{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0 0;}
+.tab{padding:.4rem 1rem;border-radius:8px;background:var(--card);border:1px solid var(--border);font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted);}
+.tab:hover{color:var(--text);border-color:var(--primary);}
+.tab.on{background:var(--primary);border-color:var(--primary);color:#fff;}
+.panel{display:none;animation:fadeSlide .3s ease;margin-top:.8rem;}
+.panel.on{display:block;}
+@keyframes fadeSlide{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* FLIP CARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:180px;perspective:800px;cursor:pointer;}
+.fc-in{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);position:relative;}
+.fc:hover .fc-in,.fc.flip .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;border:1px solid var(--border);padding:1.1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card);}
+.fc-bk{background:linear-gradient(135deg,var(--card),#1e1e1e);transform:rotateY(180deg);}
+.fc-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-bottom:.5rem;}
+.fc-term{font-size:.86rem;font-weight:700;line-height:1.35;}
+.fc-hint{font-size:.65rem;color:var(--muted);margin-top:.45rem;}
+.fc-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.3rem;}
+.fc-def{font-size:.78rem;line-height:1.52;color:#c8c8e8;}
+
+/* QUIZ */
+.q-dots{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:.3s;}
+.q-dot.done{background:var(--accent);}
+.q-dot.cur{background:var(--primary);transform:scale(1.3);}
+.q-dot.bad{background:#e67e22;}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:700px;}
+.qnum{font-size:.68rem;color:var(--primary);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;}
+.qtext{font-size:.98rem;font-weight:600;margin-bottom:1.2rem;line-height:1.55;}
+.opts{display:flex;flex-direction:column;gap:.6rem;}
+.opt{padding:.75rem 1rem;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.86rem;transition:.2s;display:flex;align-items:center;gap:.7rem;text-align:left;width:100%;color:var(--text);}
+.opt:hover{background:rgba(231,76,60,.1);border-color:var(--primary);}
+.opt.ok{background:rgba(39,174,96,.12);border-color:var(--accent);color:#a0e0b0;}
+.opt.bad{background:rgba(231,76,60,.12);border-color:var(--primary);color:#f0a0a0;}
+.oletter{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.qfb{margin-top:.8rem;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;display:none;line-height:1.6;}
+.qfb.show{display:block;animation:fadeSlide .3s;}
+.qfb.ok{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);color:#90d8a0;}
+.qfb.bad{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);color:#f0a0a0;}
+.qnav{display:flex;gap:.75rem;margin-top:1.2rem;align-items:center;}
+.score-wrap{display:none;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;}
+.score-wrap.show{display:block;animation:fadeSlide .4s;}
+.score-ring{width:110px;height:110px;margin:0 auto 1.2rem;border-radius:50%;border:6px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:var(--accent);}
+
+/* CHEAT SHEET */
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.9rem;margin-top:1.5rem;}
+.cheat-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.ck{color:var(--primary);font-weight:700;font-size:.76rem;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+.cv{font-size:.8rem;color:#c0c0d8;line-height:1.55;}
+
+/* PYRAMID DIAGRAM */
+.pyramid-wrap{display:flex;flex-direction:column;align-items:center;gap:0;margin:1.5rem 0;}
+.pyr-level{display:flex;align-items:center;justify-content:center;border-radius:6px;color:#fff;font-size:.8rem;font-weight:700;text-align:center;padding:.6rem 1rem;margin:.1rem 0;transition:transform .2s;}
+.pyr-level:hover{transform:scaleX(1.02);}
+.pyr1{width:200px;background:rgba(231,76,60,.7);}
+.pyr2{width:320px;background:rgba(231,76,60,.5);}
+.pyr3{width:440px;background:rgba(231,76,60,.35);}
+.pyr4{width:560px;background:rgba(231,76,60,.2);}
+
+/* PIPELINE */
+.pipeline{display:flex;align-items:center;flex-wrap:wrap;gap:.4rem;margin:1.2rem 0;}
+.pipe-step{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem .9rem;font-size:.8rem;font-weight:600;}
+.pipe-step.hl{background:rgba(231,76,60,.15);border-color:var(--primary);color:var(--primary);}
+.pipe-arr{color:var(--muted);font-size:1rem;}
+
+/* HIGHLIGHT BOX */
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox p{color:#d0d0e0;}
+.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}
+.hbox.blue strong{color:var(--blue);}
+
+@media(max-width:640px){
+  section{padding:80px 1rem 60px;}
+  nav{gap:.3rem;padding:0 .8rem;}
+  .g2,.g3{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<nav>
+  <span class="logo">Ch1 · Basics of DBMS</span>
+  <a href="#hero">Home</a>
+  <a href="#data-info">Data & Info</a>
+  <a href="#database">Database</a>
+  <a href="#dbms">DBMS</a>
+  <a href="#evolution">Evolution</a>
+  <a href="#filebased">File-Based</a>
+  <a href="#limitations">Limitations</a>
+  <a href="#advantages">Advantages</a>
+  <a href="#users">DB Users</a>
+  <a href="#flashcards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- ════════════════════ HERO ════════════════════ -->
+<section id="hero">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="badge">📘 Chapter 1 · UCS310 DBMS</div>
+  <h1 class="fi">Basics of <span style="color:var(--primary)">DBMS</span></h1>
+  <p class="fi" style="margin-top:.8rem;max-width:560px;font-size:1rem;">From raw facts to organised databases — understand Data, Information, File-Based Systems, and why DBMS was invented. Zero gaps, maximum marks.</p>
+  <div class="btns fi">
+    <a href="#data-info" class="btn">Start Learning →</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+  <div class="hero-stats fi">
+    <div class="hs"><div class="n">8</div><div class="l">Core Topics</div></div>
+    <div class="hs"><div class="n">20</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">15</div><div class="l">Quiz Questions</div></div>
+    <div class="hs"><div class="n">7</div><div class="l">File Limitations</div></div>
+  </div>
+</section>
+
+<!-- ════════════════════ DATA & INFORMATION ════════════════════ -->
+<section id="data-info">
+  <div class="sec-label">Section 01</div>
+  <h2 class="fi">Data vs. Information</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px">Understanding the difference between Data and Information is the foundation of DBMS. The term "Database" requires understanding of both.</p>
+
+  <div class="g2 fi" style="margin-top:1.5rem;">
+    <div class="card">
+      <div class="ib ired">📊</div>
+      <h3>What is Data?</h3>
+      <p style="margin-top:.5rem;font-size:.88rem;"><strong style="color:var(--primary)">Data is stored facts.</strong><br><br>
+      Data may be:<br>
+      • <strong style="color:#e0e0e0">Numerical data</strong> — integers or floating point numbers<br>
+      • <strong style="color:#e0e0e0">Non-numerical data</strong> — characters, date, etc.<br><br>
+      <em style="color:var(--muted)">Example: 98, 89, 87, 92 are data (could be distance, marks, rupees — we don't know!)</em>
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib igreen">💡</div>
+      <h3 style="color:var(--accent)">What is Information?</h3>
+      <p style="margin-top:.5rem;font-size:.88rem;"><strong style="color:var(--accent)">Information is RELATED DATA.</strong><br><br>
+      When data is placed in context (related/organized), it becomes information.<br><br>
+      <em style="color:var(--muted)">Example: {Phy→98, Chem→89, Maths→87, Biology→92} — now we KNOW these are marks in each subject!</em>
+      </p>
+    </div>
+  </div>
+
+  <h3 class="fi" style="margin-top:2rem;font-size:1rem;color:#fff;">Data vs Information — Detailed Comparison</h3>
+  <div class="fi" style="overflow-x:auto;margin-top:.8rem;">
+    <table class="cmp-table">
+      <thead><tr><th>DATA</th><th>INFORMATION</th></tr></thead>
+      <tbody>
+        <tr><td>Raw facts and figures</td><td>Processed form of data</td></tr>
+        <tr><td>E.g. "23" is just data</td><td>E.g. "Age = 23" in row-column form is information</td></tr>
+        <tr><td>Not significant to business by itself</td><td>Significant to business (Age 23 matters for a music company)</td></tr>
+        <tr><td>Atomic level pieces</td><td>Collection of data items together</td></tr>
+        <tr><td>Does NOT help in decision making</td><td>Helps in decision making</td></tr>
+        <tr><td>Nurses collect vital signs, weight → that's data</td><td>Trending vital signs over time → guides clinical decisions</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="hbox fi green" style="margin-top:1.5rem;">
+    <p><strong>Key Formula:</strong> Data → (Processing) → Information → (Organisation) → Database</p>
+  </div>
+</section>
+
+<!-- ════════════════════ DATABASE ════════════════════ -->
+<section id="database">
+  <div class="sec-label">Section 02</div>
+  <h2 class="fi">What is a Database?</h2>
+
+  <div class="hbox fi" style="margin-top:1rem;">
+    <p><strong>Definition:</strong> A database is a computer-based record-keeping system whose overall purpose is to record and maintain information.</p>
+  </div>
+
+  <div class="hbox fi blue" style="margin-top:.8rem;">
+    <p><strong>Also defined as:</strong> A collection of information organised in such a way that a computer program can quickly select desired pieces of data.</p>
+  </div>
+
+  <p class="fi" style="margin-top:1rem;"><strong style="color:#e0e0e0">Key insight:</strong> Related information, when placed in an organised form, makes a database. Organisation of data is NECESSARY because <strong style="color:var(--primary)">unorganised information has no meaning.</strong></p>
+
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3 style="margin-bottom:1rem;color:#fff;font-weight:600;">Visual: Data → Information → Database</h3>
+    <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:center;">
+      <!-- Single info table = one student's marks -->
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1rem;min-width:120px;text-align:center;">
+        <div style="font-size:.65rem;color:var(--primary);margin-bottom:.5rem;font-weight:700;">STUDENT 1 MARKS</div>
+        <table style="font-size:.8rem;border-collapse:collapse;margin:0 auto;">
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Phy</td><td style="padding:.2rem .5rem;">98</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Chem</td><td style="padding:.2rem .5rem;">89</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Maths</td><td style="padding:.2rem .5rem;">87</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Bio</td><td style="padding:.2rem .5rem;">92</td></tr>
+        </table>
+      </div>
+      <div style="color:var(--primary);font-size:1.5rem;">+</div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:1rem;min-width:120px;text-align:center;">
+        <div style="font-size:.65rem;color:var(--primary);margin-bottom:.5rem;font-weight:700;">STUDENT 2 MARKS</div>
+        <table style="font-size:.8rem;border-collapse:collapse;margin:0 auto;">
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Phy</td><td style="padding:.2rem .5rem;">76</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Chem</td><td style="padding:.2rem .5rem;">87</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Maths</td><td style="padding:.2rem .5rem;">79</td></tr>
+          <tr><td style="color:#90c0ff;padding:.2rem .5rem;">Bio</td><td style="padding:.2rem .5rem;">88</td></tr>
+        </table>
+      </div>
+      <div style="color:var(--primary);font-size:1.5rem;">+ more...</div>
+      <div style="color:var(--accent);font-size:1.8rem;">→</div>
+      <div style="background:rgba(39,174,96,.12);border:1px solid rgba(39,174,96,.3);border-radius:10px;padding:1rem 1.5rem;text-align:center;">
+        <div style="font-size:.65rem;color:var(--accent);margin-bottom:.4rem;font-weight:700;">DATABASE</div>
+        <div style="font-size:.82rem;color:#a0e8a0;">All students' marks<br>organised and<br>quickly accessible</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="color:#fff;font-weight:600;margin-bottom:1rem;">Operations on a Database</h3>
+    <div class="g3">
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.2rem;margin-bottom:.4rem;">➕</div>
+        <div style="font-size:.85rem;font-weight:700;color:#e0e0e0;">Add new information</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem;">Insert new records</div>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.2rem;margin-bottom:.4rem;">👁️</div>
+        <div style="font-size:.85rem;font-weight:700;color:#e0e0e0;">View / Retrieve</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem;">Query stored information</div>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.2rem;margin-bottom:.4rem;">✏️</div>
+        <div style="font-size:.85rem;font-weight:700;color:#e0e0e0;">Modify / Edit</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem;">Update existing records</div>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.2rem;margin-bottom:.4rem;">🗑️</div>
+        <div style="font-size:.85rem;font-weight:700;color:#e0e0e0;">Remove / Delete</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem;">Remove unwanted records</div>
+      </div>
+      <div class="card" style="padding:1rem;">
+        <div style="font-size:1.2rem;margin-bottom:.4rem;">🔀</div>
+        <div style="font-size:.85rem;font-weight:700;color:#e0e0e0;">Arrange / Sort</div>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:.2rem;">Order information as desired</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ DBMS ════════════════════ -->
+<section id="dbms">
+  <div class="sec-label">Section 03</div>
+  <h2 class="fi">What is DBMS?</h2>
+  <div class="hbox fi" style="margin-top:1rem;">
+    <p><strong>DBMS (DataBase Management System)</strong> — A collection of programs that enables you to <strong style="color:var(--primary)">store, modify, and extract information</strong> from a database.</p>
+  </div>
+  <div class="hbox fi blue" style="margin-top:.6rem;">
+    <p>The general purpose of a DBMS is to provide for the <strong style="color:#90c0ff">definition, storage, and management of data</strong> that can be shared by many users.</p>
+  </div>
+  <div class="hbox fi green" style="margin-top:.6rem;">
+    <p>A DBMS is the software system that allows users to <strong style="color:var(--accent)">define, create and maintain a database</strong> and provides controlled access to the data.</p>
+  </div>
+  <p class="fi" style="margin-top:.8rem;font-size:.85rem;color:var(--muted);">E.g. Oracle's DBMS is patterned on the relational model described by <strong style="color:#e0e0e0">Dr. E. F. Codd</strong>.</p>
+
+  <!-- Role of DBMS -->
+  <h3 class="fi" style="margin-top:2rem;color:#fff;font-weight:600;">Role of DBMS in an Organisation</h3>
+  <p class="fi" style="margin-top:.4rem;font-size:.86rem;">A corporate database serves all levels of the organisation:</p>
+  <div class="pyramid-wrap fi">
+    <div class="pyr-level pyr1">Strategic Data → Policies, Goals & Strategic Planning</div>
+    <div class="pyr-level pyr2">Managerial Data → Management Planning & Control</div>
+    <div class="pyr-level pyr3">Operational Data → Operational Activities & Management</div>
+    <div class="pyr-level pyr4" style="color:#ccc;">🌎 Real World → Corporate Database</div>
+  </div>
+  <p class="fi" style="font-size:.8rem;color:var(--muted);text-align:center;margin-top:.5rem;">The real world feeds into the Corporate Database, which serves all three management levels</p>
+
+  <!-- Two Approaches -->
+  <h3 class="fi" style="margin-top:2rem;color:#fff;font-weight:600;">Two Approaches for Storing Data</h3>
+  <div class="g2 fi" style="margin-top:.8rem;">
+    <div class="card" style="border-color:rgba(231,76,60,.4);">
+      <div class="ib ired">📁</div>
+      <h3>File-Based Approach</h3>
+      <p style="margin-top:.4rem;font-size:.83rem;">Early attempt to computerize manual filing. Programmers use C, C++ to directly access flat files. Maintains physical location of files.</p>
+    </div>
+    <div class="card" style="border-color:rgba(39,174,96,.4);">
+      <div class="ib igreen">🗄️</div>
+      <h3 style="color:var(--accent)">Database Approach</h3>
+      <p style="margin-top:.4rem;font-size:.83rem;">DBMS software allows users to define, create, maintain a database with controlled access. Data is organised, shared, and managed centrally.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ EVOLUTION ════════════════════ -->
+<section id="evolution">
+  <div class="sec-label">Section 04</div>
+  <h2 class="fi">Evolution of DBMS</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:600px;">DBMS evolved to "close the gap" between real-world needs and computer capabilities. Here's the journey:</p>
+
+  <div class="timeline fi">
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="tl-year">1950s</div>
+      <div class="tl-title">File Systems</div>
+      <div class="tl-desc">Sequential records, flat files. ISAM (Indexed Sequential Access Method) and VSAM (Virtual Storage Access Method). Basic operations: Open, Close, Read, Write, Delete. Programmers used C, C++ to access files directly.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--blue);box-shadow:0 0 0 2px var(--blue);"></div>
+      <div class="tl-year">1960s – 1970s</div>
+      <div class="tl-title">Hierarchical & Network DB Systems</div>
+      <div class="tl-desc">Hierarchical model: tree structure (parent-child). Network model: graph structure (many-to-many). Better than flat files but complex and rigid.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--orange);box-shadow:0 0 0 2px var(--orange);"></div>
+      <div class="tl-year">1980s</div>
+      <div class="tl-title">Relational DB Systems</div>
+      <div class="tl-desc">Proposed by Dr. E. F. Codd. Data stored in tables (relations). SQL introduced. Oracle, MySQL, SQL Server emerged. Most widely used today.</div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot" style="background:var(--accent);box-shadow:0 0 0 2px var(--accent);"></div>
+      <div class="tl-year">1980s – Today</div>
+      <div class="tl-title">Object-Oriented DB Systems</div>
+      <div class="tl-desc">Combines OOP concepts with database capabilities. Supports complex data types, inheritance, encapsulation. Used in engineering, multimedia applications.</div>
+    </div>
+  </div>
+
+  <!-- Manual DB Problems -->
+  <h3 class="fi" style="margin-top:2rem;color:#fff;font-weight:600;">Why Manual Databases Failed</h3>
+  <div class="g2 fi" style="margin-top:.8rem;">
+    <div class="card" style="border-left:3px solid var(--primary);">
+      <div style="font-size:1.2rem;margin-bottom:.4rem;">🧠</div>
+      <h3>Wastage of Human Intelligence</h3>
+      <p style="margin-top:.3rem;font-size:.83rem;">Human beings' skills and intelligence are wasted on repetitive calculations that computers can do instantly.</p>
+    </div>
+    <div class="card" style="border-left:3px solid var(--primary);">
+      <div style="font-size:1.2rem;margin-bottom:.4rem;">❌</div>
+      <h3>Error Prone</h3>
+      <p style="margin-top:.3rem;font-size:.83rem;">Manual entry and calculation leads to frequent errors that affect the entire system.</p>
+    </div>
+  </div>
+
+  <!-- Why Computers -->
+  <h3 class="fi" style="margin-top:1.5rem;color:#fff;font-weight:600;">Why Computers for Databases?</h3>
+  <div class="g3 fi">
+    <div class="card" style="padding:1rem;text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:.4rem;">💾</div>
+      <div style="font-size:.85rem;font-weight:700;">Large Storage</div>
+      <div style="font-size:.75rem;color:var(--muted);">Store billions of records</div>
+    </div>
+    <div class="card" style="padding:1rem;text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:.4rem;">⚡</div>
+      <div style="font-size:.85rem;font-weight:700;">High Speed</div>
+      <div style="font-size:.75rem;color:var(--muted);">Lightning-fast retrieval</div>
+    </div>
+    <div class="card" style="padding:1rem;text-align:center;">
+      <div style="font-size:1.5rem;margin-bottom:.4rem;">🎯</div>
+      <div style="font-size:.85rem;font-weight:700;">High Accuracy</div>
+      <div style="font-size:.75rem;color:var(--muted);">No calculation errors</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ FILE-BASED ════════════════════ -->
+<section id="filebased">
+  <div class="sec-label">Section 05</div>
+  <h2 class="fi">File-Based Approach</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px;">File-based systems were an <strong style="color:var(--primary)">early attempt to computerize</strong> the manual filing system. Understanding their problems explains WHY DBMS was invented.</p>
+
+  <div class="g2 fi" style="margin-top:1.5rem;">
+    <div class="card">
+      <div class="ib ired">📁</div>
+      <h3>How File Systems Worked</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2;">
+        <li>Used storage devices like hard disk or CD-ROM</li>
+        <li>Maintained physical location of files</li>
+        <li>Programmers used <strong style="color:#e0e0e0">C, C++</strong> to directly access flat files</li>
+        <li>Application programs performed data management</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ib iblue">🗂️</div>
+      <h3 style="color:var(--blue);">File Systems (1950s)</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2;">
+        <li><strong style="color:#e0e0e0">Basic constructs:</strong> Sequential records, sequential fields</li>
+        <li>Relied on indexes for random access</li>
+        <li><strong style="color:#e0e0e0">ISAM</strong> — Indexed Sequential Access Method</li>
+        <li><strong style="color:#e0e0e0">VSAM</strong> — Virtual Storage Access Method</li>
+        <li>Basic operations: Open, Close, Reset, Read, Write, Delete</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- File records visual -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3 style="color:#fff;font-weight:600;margin-bottom:.8rem;">File Records Example (1950s style)</h3>
+    <div style="display:flex;flex-direction:column;gap:.4rem;max-width:400px;">
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-family:monospace;font-size:.82rem;color:#90a8c8;">'John', 27, Main Street, (234)987-2314</div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-family:monospace;font-size:.82rem;color:#90a8c8;">'Lisa', 26, Peach Street, (345)987-2314</div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-family:monospace;font-size:.82rem;color:#90a8c8;">'Peter', 32, Main Street, (876)234-9734</div>
+      <div style="background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-family:monospace;font-size:.82rem;color:#90a8c8;">'David', 36, Peachtree, (885)349-3418</div>
+      <div style="background:var(--card2);border:1px solid rgba(255,255,255,.05);border-radius:8px;padding:.5rem 1rem;font-family:monospace;font-size:.78rem;color:var(--muted);">. . . (more records)</div>
+    </div>
+    <p style="margin-top:.6rem;font-size:.8rem;color:var(--muted);">Each record is stored sequentially. No structure, no relationships — just flat data.</p>
+  </div>
+</section>
+
+<!-- ════════════════════ LIMITATIONS ════════════════════ -->
+<section id="limitations">
+  <div class="sec-label">Section 06</div>
+  <h2 class="fi">Limitations of File-Based Approach</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px;">These limitations are why DBMS was invented. <strong style="color:var(--primary)">Every single point is exam-worthy!</strong></p>
+
+  <div class="lim-grid fi">
+    <div class="lim-card">
+      <div class="lim-num">01</div>
+      <div class="lim-title">Separated & Isolated Data</div>
+      <div class="lim-desc">Data is scattered across multiple files. Hard to combine data from different files for a single query.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">02</div>
+      <div class="lim-title">Duplication of Data</div>
+      <div class="lim-desc">Same data stored in multiple files (e.g., student address in both student file and exam file). Wastes space.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">03</div>
+      <div class="lim-title">Data Dependence</div>
+      <div class="lim-desc">Application programs depend on physical structure of files. Change file format → must rewrite all programs.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">04</div>
+      <div class="lim-title">Difficulty in User's View</div>
+      <div class="lim-desc">Hard to show data from user's perspective. Different users need different views of same data.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">05</div>
+      <div class="lim-title">Data Integrity Issues</div>
+      <div class="lim-desc">No way to enforce business rules (e.g., age must be > 0). Invalid data can be stored easily.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">06</div>
+      <div class="lim-title">Incompatible File Formats</div>
+      <div class="lim-desc">Files created by different programs have different formats. Hard to share data between applications.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">07</div>
+      <div class="lim-title">Data Security Issues</div>
+      <div class="lim-desc">Difficult to control who can access which data. No fine-grained access control.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">08</div>
+      <div class="lim-title">Uncontrolled Redundancy</div>
+      <div class="lim-desc">Data redundancy leads to data inconsistency — same data has different values in different files.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">09</div>
+      <div class="lim-title">Poor Data Sharing</div>
+      <div class="lim-desc">Multiple users cannot efficiently share the same data simultaneously.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">10</div>
+      <div class="lim-title">Low Productivity</div>
+      <div class="lim-desc">Writing and maintaining separate programs for each file operation is time-consuming and costly.</div>
+    </div>
+    <div class="lim-card">
+      <div class="lim-num">11</div>
+      <div class="lim-title">High Maintenance Cost</div>
+      <div class="lim-desc">Record format vs user requirements and programs vs record format creates constant maintenance burden.</div>
+    </div>
+  </div>
+
+  <div class="hbox fi" style="margin-top:1.5rem;">
+    <p><strong>Memory Trick:</strong> SID-DIS (Separated, Isolation, Duplication, Dependence, Integrity, Security) + Redundancy + Sharing + Productivity + Maintenance</p>
+  </div>
+</section>
+
+<!-- ════════════════════ ADVANTAGES ════════════════════ -->
+<section id="advantages">
+  <div class="sec-label">Section 07</div>
+  <h2 class="fi">Advantages of Database Approach</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px;">DBMS overcomes every limitation of the file-based approach. Each advantage directly solves a limitation.</p>
+
+  <div class="adv-grid fi">
+    <div class="adv-card">
+      <div class="adv-icon">🔄</div>
+      <div class="adv-title">Controlled Redundancy</div>
+      <div class="adv-desc">Data stored once, shared across applications. Eliminates inconsistency.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">🔒</div>
+      <div class="adv-title">Data Security</div>
+      <div class="adv-desc">DBA controls user access. Fine-grained permissions (GRANT/REVOKE).</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">🛡️</div>
+      <div class="adv-title">Integrity Constraints</div>
+      <div class="adv-desc">Rules enforced at DB level (NOT NULL, CHECK, UNIQUE, FK). Invalid data rejected.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">🔗</div>
+      <div class="adv-title">Data Independence</div>
+      <div class="adv-desc">Physical changes don't affect application programs. Logical changes isolated.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">👥</div>
+      <div class="adv-title">Data Sharing</div>
+      <div class="adv-desc">Multiple users access same data concurrently with proper concurrency control.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">🔍</div>
+      <div class="adv-title">Multiple Views</div>
+      <div class="adv-desc">Different users see different views of same data as per their needs.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">♻️</div>
+      <div class="adv-title">Backup & Recovery</div>
+      <div class="adv-desc">DBMS handles recovery automatically after system failure.</div>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">⚡</div>
+      <div class="adv-title">Improved Productivity</div>
+      <div class="adv-desc">Standard SQL queries replace custom programs. Faster development.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ DB USERS ════════════════════ -->
+<section id="users">
+  <div class="sec-label">Section 08</div>
+  <h2 class="fi">Types of Database Users</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px;">Different people interact with DBMS in different ways.</p>
+
+  <div class="g2 fi" style="margin-top:1.2rem;">
+    <div class="card">
+      <div class="ib ired">👑</div>
+      <h3>DBA — Database Administrator</h3>
+      <p style="margin-top:.5rem;font-size:.83rem;color:#b8b8b8;">
+        • Responsible for overall DB management<br>
+        • Defines schema, grants access, manages security<br>
+        • Handles backup and recovery<br>
+        • Tunes performance<br>
+        • Highest level of authority
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib iblue">💻</div>
+      <h3 style="color:var(--blue)">Application Programmers</h3>
+      <p style="margin-top:.5rem;font-size:.83rem;color:#b8b8b8;">
+        • Write application programs using DML (SQL)<br>
+        • Build interfaces for end users<br>
+        • Work with embedded SQL in host languages (C, Java)<br>
+        • Also called "sophisticated users"
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib igreen">🙋</div>
+      <h3 style="color:var(--accent)">Naive / Parametric Users</h3>
+      <p style="margin-top:.5rem;font-size:.83rem;color:#b8b8b8;">
+        • Interact through pre-built interfaces<br>
+        • Don't know SQL — use forms, apps<br>
+        • E.g. bank teller, ticket booking user<br>
+        • Most common type of DB user
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib iorange">🔬</div>
+      <h3 style="color:var(--orange)">Sophisticated Users</h3>
+      <p style="margin-top:.5rem;font-size:.83rem;color:#b8b8b8;">
+        • Data analysts, scientists<br>
+        • Use SQL directly or BI tools<br>
+        • Submit queries without writing programs<br>
+        • E.g. financial analysts, researchers
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ FLASHCARDS ════════════════════ -->
+<section id="flashcards">
+  <div class="sec-label">Section 09</div>
+  <h2 class="fi">Flashcards — Test Your Memory</h2>
+  <p class="fi" style="margin-top:.4rem;">Hover over a card to flip it and see the definition.</p>
+
+  <div class="fc-grid fi">
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Data</div><div class="fc-hint">What kind of facts?</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Stored facts. Can be numerical (integers, floats) or non-numerical (characters, dates). Raw, unprocessed — no context.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">Information</div><div class="fc-hint">What is it made of?</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">RELATED DATA. Data placed in context that gives it meaning. Helps in decision making. E.g. Phy=98, Chem=89, Maths=87.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--blue)"></div><div class="fc-term">Database</div><div class="fc-hint">How is it organised?</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">A computer-based record-keeping system. Collection of information organised so a computer program can quickly select desired pieces of data.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">DBMS</div><div class="fc-hint">Who proposed it?</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">DataBase Management System. Collection of programs to store, modify, extract info from a DB. Relational model by Dr. E. F. Codd (Oracle).</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--purple)"></div><div class="fc-term">ISAM</div><div class="fc-hint">1950s file system</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Full Form</div><div class="fc-def">Indexed Sequential Access Method. A file organization method used in 1950s file systems that uses indexes for random access to sequential records.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">VSAM</div><div class="fc-hint">Another 1950s method</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Full Form</div><div class="fc-def">Virtual Storage Access Method. IBM's improved indexed file access method used in 1950s file-based systems.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Data Dependence</div><div class="fc-hint">Limitation of file-based</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Application programs depend on physical file structure. Changing file format requires rewriting all application programs. Major limitation of file-based approach.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">Data Redundancy</div><div class="fc-hint">Same data, multiple places</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Same data stored in multiple files. Leads to data inconsistency (same data has different values in different places). Wastes storage.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--blue)"></div><div class="fc-term">DBA</div><div class="fc-hint">DB hierarchy top</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Full Form + Role</div><div class="fc-def">Database Administrator. Highest authority in a DB system. Manages schema, security, backup, recovery, performance tuning and grants user access.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Dr. E. F. Codd</div><div class="fc-hint">Relational model father</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Significance</div><div class="fc-def">Edgar Frank "Ted" Codd proposed the Relational Model in 1970. Oracle's DBMS is based on his relational model. Father of modern databases.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">Data Integrity</div><div class="fc-hint">DB guarantee</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Accuracy and consistency of data over its lifetime. Maintained using integrity constraints (NOT NULL, CHECK, PK, FK). Lacking in file-based systems.</div></div>
+      </div>
+    </div>
+    <div class="fc">
+      <div class="fc-in">
+        <div class="fc-fr"><div class="fc-dot" style="background:var(--purple)"></div><div class="fc-term">Data Independence</div><div class="fc-hint">Key DB advantage</div></div>
+        <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Ability to modify schema at one level without affecting schema at the next higher level. Physical independence: change storage without app changes. Logical: change schema without view changes.</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ QUIZ ════════════════════ -->
+<section id="quiz">
+  <div class="sec-label">Section 10</div>
+  <h2 class="fi">Quiz — Test Yourself</h2>
+  <p class="fi" style="margin-top:.4rem;">Questions based on actual exam patterns. Aim for 100%!</p>
+  <div style="margin-top:1.5rem;">
+    <div class="q-dots" id="dots"></div>
+    <div class="qcard fi" id="qcard">
+      <div class="qnum" id="qnum"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+      <div class="qfb" id="qfb"></div>
+      <div class="qnav">
+        <button class="btn btn-o" style="padding:.4rem 1.2rem;font-size:.82rem;" onclick="nextQ()" id="nextBtn">Next →</button>
+        <span id="qscore" style="font-size:.8rem;color:var(--muted);"></span>
+      </div>
+    </div>
+    <div class="score-wrap" id="scoreWrap">
+      <div class="score-ring" id="scoreRing"></div>
+      <h3 id="scoreMsg" style="margin-bottom:.6rem;"></h3>
+      <p id="scoreSub" style="font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;"></p>
+      <button class="btn" onclick="resetQuiz()">Retry Quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ CHEAT SHEET ════════════════════ -->
+<section id="cheatsheet" style="background:linear-gradient(135deg,rgba(231,76,60,.03),rgba(39,174,96,.02));">
+  <div class="sec-label">Section 11</div>
+  <h2 class="fi">Cheat Sheet — Last Minute Revision</h2>
+  <div class="cheat-grid fi">
+    <div class="cheat-item"><div class="ck">Data</div><div class="cv">Stored facts. Numerical or non-numerical. Raw, no context.</div></div>
+    <div class="cheat-item"><div class="ck">Information</div><div class="cv">Related data = Information. Helps in decision making.</div></div>
+    <div class="cheat-item"><div class="ck">Database</div><div class="cv">Computer-based record keeping system to record and maintain info.</div></div>
+    <div class="cheat-item"><div class="ck">DBMS</div><div class="cv">Collection of programs to store, modify, extract info from DB. Dr. E. F. Codd.</div></div>
+    <div class="cheat-item"><div class="ck">File Systems (1950s)</div><div class="cv">Sequential records, ISAM, VSAM. C/C++ to access flat files.</div></div>
+    <div class="cheat-item"><div class="ck">Evolution Timeline</div><div class="cv">50s: File → 60-70s: Hierarchical/Network → 80s: Relational → 80s+: OO</div></div>
+    <div class="cheat-item"><div class="ck">File Limitations (7 main)</div><div class="cv">Separated data, Duplication, Dependence, User view, Integrity, Formats, Security</div></div>
+    <div class="cheat-item"><div class="ck">More File Limitations</div><div class="cv">Redundancy/Inconsistency, Poor sharing, Hard to change, Low productivity, High cost</div></div>
+    <div class="cheat-item"><div class="ck">DB Operations</div><div class="cv">Add, View/Retrieve, Modify/Edit, Delete, Arrange/Sort</div></div>
+    <div class="cheat-item"><div class="ck">DBMS Role (Pyramid)</div><div class="cv">Strategic (top) → Managerial → Operational → Corporate DB (base)</div></div>
+    <div class="cheat-item"><div class="ck">DB Users</div><div class="cv">DBA (admin), App Programmers, Naive Users, Sophisticated Users</div></div>
+    <div class="cheat-item"><div class="ck">Two Approaches</div><div class="cv">File-based (C/C++, flat files) vs Database approach (DBMS software)</div></div>
+  </div>
+</section>
+
+<script>
+// Progress bar
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  const pct=(h.scrollTop/(h.scrollHeight-h.clientHeight))*100;
+  document.getElementById('progress-bar').style.width=pct+'%';
+});
+
+// Fade in observer
+const obs=new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('v');});
+},{threshold:.08});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// Quiz data
+const qs=[
+  {q:"What is Data?",opts:["Related data that helps in decisions","Stored facts — numerical or non-numerical","Processed form of information","Organised collection of records"],ans:1,exp:"Data is stored facts. It can be numerical (integers, floats) or non-numerical (characters, date). By itself it has no context."},
+  {q:"What is Information?",opts:["Raw numbers stored in files","Data that cannot be processed","RELATED DATA that gives context and meaning","A type of database management system"],ans:2,exp:"Information is RELATED DATA. When data is placed in context (related/organized), it becomes information that helps in decision making."},
+  {q:"Who proposed the Relational Model that Oracle's DBMS is based on?",opts:["Bill Gates","Dr. E. F. Codd","Larry Ellison","Ted Codd of IBM"],ans:1,exp:"Dr. Edgar Frank 'Ted' Codd proposed the Relational Model. Oracle's DBMS is patterned on his model. He is the father of modern relational databases."},
+  {q:"What does ISAM stand for?",opts:["Integrated Sequential Access Method","Indexed Sequential Access Method","Internal Storage Access Module","Initialised System Architecture Model"],ans:1,exp:"ISAM = Indexed Sequential Access Method. It was used in 1950s file systems to provide random access to sequential records using indexes."},
+  {q:"Which of the following is a limitation of File-Based systems?",opts:["Controlled redundancy","Multiple user views supported","Data Dependence","Strong data integrity"],ans:2,exp:"Data Dependence is a major limitation of file-based systems. App programs depend on physical file structure — changing file format requires rewriting all programs."},
+  {q:"In the evolution of DBMS, what came after Hierarchical & Network Systems?",opts:["File Systems","Object-Oriented DB","Relational DB Systems","Flat File Systems"],ans:2,exp:"Evolution: 50s=File Systems → 60-70s=Hierarchical/Network → 80s=Relational DB Systems → 80s-today=Object-Oriented. Relational came third."},
+  {q:"A database is a computer-based record-keeping system whose overall purpose is to:",opts:["Execute programs faster","Record and maintain information","Replace all file systems","Run only on mainframes"],ans:1,exp:"By definition: 'A database is a computer-based record-keeping system whose overall purpose is to record and maintain information.'"},
+  {q:"What type of data includes integers and floating point numbers?",opts:["Non-numerical data","Structured data","Numerical data","Derived data"],ans:2,exp:"Numerical data includes integers and floating point numbers. Non-numerical data includes characters, dates, etc."},
+  {q:"Which user type has the HIGHEST authority in a database system?",opts:["Naive Users","Application Programmers","Sophisticated Users","DBA — Database Administrator"],ans:3,exp:"DBA (Database Administrator) has the highest authority. They manage schema, security, backup, recovery and grant/revoke user access."},
+  {q:"In File-Based systems (1950s), which methods were used for random access?",opts:["SQL and NoSQL","ISAM and VSAM","TCP and HTTP","RAM and ROM"],ans:1,exp:"ISAM (Indexed Sequential Access Method) and VSAM (Virtual Storage Access Method) were used in 1950s file systems for random access to sequential records."},
+  {q:"'Unorganised information has no meaning.' What does this imply?",opts:["All data must be encrypted","Organisation/structure of data is necessary","Only computers can store information","Information is always numerical"],ans:1,exp:"The organisation of data/information is necessary because unorganised information has no meaning. This is why databases organise data into structured tables."},
+  {q:"Which file-based limitation causes the same data to have different values in different files?",opts:["Data Security","Data Integrity","Data Redundancy leading to Inconsistency","Separated Data"],ans:2,exp:"Uncontrolled Data Redundancy leads to Data Inconsistency — the same data exists in multiple files and can have different values in each, causing inconsistency."},
+  {q:"Programmers in file-based systems used which languages to access flat files?",opts:["SQL and PL/SQL","HTML and CSS","C and C++","Java and Python"],ans:2,exp:"In file-based systems, programmers used C, C++ to write applications that directly accessed flat files to perform data management."},
+  {q:"What is the DBMS approach?",opts:["Storing all data in Excel spreadsheets","A software system to define, create and maintain a database with controlled access","Using C programs to manage flat files","Storing data only in RAM"],ans:1,exp:"DBMS is a software system that allows users to define, create and maintain a database and provides controlled access to the data."},
+  {q:"Which operation is NOT a standard database operation?",opts:["Add new information","View/retrieve stored info","Compile source code","Delete unwanted info"],ans:2,exp:"Standard DB operations are: Add, View/Retrieve, Modify/Edit, Delete, and Arrange/Sort. Compiling source code is a programming task, not a DB operation."}
+];
+
+let cur=0,score=0,answered=false;
+
+function initQuiz(){
+  const dotsEl=document.getElementById('dots');
+  dotsEl.innerHTML=qs.map((q,i)=>`<div class="q-dot" id="dot${i}"></div>`).join('');
+  showQ();
+}
+
+function showQ(){
+  if(cur>=qs.length){showScore();return;}
+  answered=false;
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qfb').textContent='';
+  document.getElementById('nextBtn').style.display='inline-flex';
+  qs.forEach((q,i)=>{
+    const d=document.getElementById('dot'+i);
+    d.className='q-dot'+(i<cur?' done':i===cur?' cur':'');
+  });
+  const q=qs[cur];
+  document.getElementById('qnum').textContent=`Question ${cur+1} of ${qs.length}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur}`;
+  const optsEl=document.getElementById('opts');
+  optsEl.innerHTML=q.opts.map((o,i)=>`
+    <button class="opt" onclick="answer(${i})">
+      <span class="oletter">${['A','B','C','D'][i]}</span>${o}
+    </button>`).join('');
+}
+
+function answer(idx){
+  if(answered)return;
+  answered=true;
+  const q=qs[cur];
+  const opts=document.querySelectorAll('.opt');
+  opts[q.ans].classList.add('ok');
+  if(idx===q.ans){score++;}
+  else{opts[idx].classList.add('bad');}
+  const fb=document.getElementById('qfb');
+  fb.textContent=(idx===q.ans?'✓ Correct! ':'✗ Wrong! ')+q.exp;
+  fb.className='qfb show '+(idx===q.ans?'ok':'bad');
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur+1}`;
+}
+
+function nextQ(){
+  cur++;
+  showQ();
+}
+
+function showScore(){
+  document.getElementById('qcard').style.display='none';
+  const sw=document.getElementById('scoreWrap');
+  sw.classList.add('show');
+  const pct=Math.round((score/qs.length)*100);
+  document.getElementById('scoreRing').textContent=pct+'%';
+  document.getElementById('scoreMsg').textContent=pct===100?'Perfect Score! 🏆':pct>=80?'Excellent! 🎉':pct>=60?'Good Job! 👍':'Keep Practicing 📚';
+  document.getElementById('scoreSub').textContent=`You got ${score} out of ${qs.length} questions correct.`;
+}
+
+function resetQuiz(){
+  cur=0;score=0;answered=false;
+  document.getElementById('qcard').style.display='block';
+  document.getElementById('scoreWrap').classList.remove('show');
+  initQuiz();
+}
+
+initQuiz();
+</script>
+</body>
+</html>

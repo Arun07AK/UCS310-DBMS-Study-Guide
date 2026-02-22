@@ -1,0 +1,1202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch10 — ER Data Model</title>
+<style>
+:root{--primary:#e74c3c;--accent:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;--dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;--text:#e8e8e8;--muted:#999;--border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.45rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}.logo{color:var(--primary);font-size:.9rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;padding:.25rem .5rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.2rem;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;margin-top:1rem;}
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.purple{background:rgba(142,68,173,.08);border-color:rgba(142,68,173,.3);}
+.hbox.teal{background:rgba(22,160,133,.08);border-color:rgba(22,160,133,.3);}
+.hbox.yellow{background:rgba(241,196,15,.06);border-color:rgba(241,196,15,.3);}
+.hbox p,.hbox li{color:#d0d0e0;}.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}.hbox.blue strong{color:#5dade2;}.hbox.orange strong{color:var(--orange);}
+.hbox.purple strong{color:#c39bd3;}.hbox.teal strong{color:#48c9b0;}.hbox.yellow strong{color:#f9e04b;}
+.diff-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.diff-table th{padding:.5rem .8rem;text-align:left;background:rgba(231,76,60,.1);color:var(--primary);font-size:.7rem;text-transform:uppercase;}
+.diff-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;}
+.diff-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.a-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0 .5rem;}
+.a-tab{padding:.35rem .85rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;}
+.a-tab.on,.a-tab:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.a-panel{display:none;}.a-panel.on{display:block;}
+.eg{background:var(--card2);border-radius:12px;padding:1.2rem 1.4rem;margin:.8rem 0;border:1px solid rgba(255,255,255,.06);}
+.eg-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);font-weight:700;margin-bottom:.3rem;}
+.eg-desc{font-size:.82rem;color:#b8b8b8;margin-bottom:.6rem;line-height:1.5;}
+.note{background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-left:3px solid #f9e04b;border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f9e04b;margin:.6rem 0;line-height:1.5;}
+.gotcha{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-left:3px solid var(--primary);border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f5b7b1;margin:.6rem 0;line-height:1.5;}
+.gotcha strong{color:var(--primary);}
+.pto{background:var(--card);border:2px dashed rgba(231,76,60,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;position:relative;}
+.pto-badge{display:inline-block;background:rgba(231,76,60,.2);color:var(--primary);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.pto-q{font-size:.92rem;font-weight:600;margin-bottom:.6rem;color:var(--text);}
+.pto-hint{font-size:.72rem;color:var(--muted);margin:.5rem 0;font-style:italic;}
+.pto-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.3);border-radius:10px;}
+.pto-reveal.show{display:block;}
+.pto-btn{background:var(--accent);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.pto-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(39,174,96,.4);}
+.pto-btn.revealed{background:var(--muted);cursor:default;}
+.wtq{background:var(--card);border:2px dashed rgba(41,128,185,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;}
+.wtq-badge{display:inline-block;background:rgba(41,128,185,.2);color:#5dade2;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.wtq-q{font-size:.92rem;font-weight:600;margin-bottom:.4rem;color:var(--text);}
+.wtq-hint{font-size:.72rem;color:var(--muted);margin:.3rem 0 .5rem;font-style:italic;}
+.wtq-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.3);border-radius:10px;}
+.wtq-reveal.show{display:block;}
+.wtq-btn{background:var(--blue);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.wtq-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(41,128,185,.4);}
+.step-box{background:var(--card2);border-radius:12px;padding:1rem;margin:.5rem 0;border-left:3px solid var(--teal);}
+.step-num{display:inline-block;background:var(--teal);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:.68rem;font-weight:800;margin-right:.5rem;}
+.step-box p{font-size:.82rem;margin-top:.3rem;}
+.flow-box{display:flex;flex-direction:column;align-items:center;gap:0;margin:1rem 0;}
+.flow-step{background:var(--card);border:2px solid var(--teal);border-radius:12px;padding:.8rem 1.5rem;text-align:center;min-width:280px;}
+.flow-step strong{color:var(--teal);font-size:.85rem;}
+.flow-step p{font-size:.75rem;color:var(--muted);margin-top:.2rem;}
+.flow-arrow{color:var(--teal);font-size:1.2rem;margin:.2rem 0;}
+/* ER Diagram Mini-Figure Styles */
+.er-fig{display:flex;align-items:center;justify-content:center;gap:0;flex-wrap:wrap;margin:1rem 0;padding:1.2rem 1rem;background:var(--card2);border-radius:12px;border:1px solid rgba(255,255,255,.06);overflow:visible;}
+.er-ent{padding:.4rem .9rem;border:2px solid var(--primary);border-radius:4px;background:rgba(231,76,60,.07);font-size:.72rem;font-weight:700;color:var(--primary);white-space:nowrap;}
+.er-ent.weak{border-width:4px;border-style:double;}
+.er-rel{position:relative;display:inline-flex;align-items:center;justify-content:center;width:85px;height:55px;flex-shrink:0;}
+.er-rel::before{content:'';position:absolute;width:52px;height:34px;border:2px solid var(--accent);background:rgba(39,174,96,.08);transform:rotate(45deg);border-radius:2px;}
+.er-rel.ident::before{border-width:4px;border-style:double;}
+.er-rel span{position:relative;z-index:1;font-size:.62rem;font-weight:700;color:var(--accent);}
+.er-attr{padding:.25rem .65rem;border:2px solid var(--blue);border-radius:50%;background:rgba(41,128,185,.06);font-size:.63rem;color:var(--blue);white-space:nowrap;}
+.er-attr.multi{border-width:4px;border-style:double;}
+.er-attr.derived{border-style:dashed;}
+.er-attr.key{text-decoration:underline;}
+.er-conn{width:30px;height:2px;background:rgba(255,255,255,.25);flex-shrink:0;}
+.er-conn.total{height:6px;border-top:2px solid rgba(255,255,255,.4);border-bottom:2px solid rgba(255,255,255,.4);background:transparent;}
+.er-conn.arrow{position:relative;}.er-conn.arrow::after{content:'▸';position:absolute;right:-5px;top:-8px;color:rgba(255,255,255,.5);font-size:.75rem;}
+.er-vconn{width:2px;height:20px;background:rgba(255,255,255,.25);}
+.er-col{display:flex;flex-direction:column;align-items:center;gap:.3rem;}
+.er-row{display:flex;align-items:center;gap:0;}
+.er-aggr{border:2px dashed var(--orange);border-radius:8px;padding:.6rem;display:flex;align-items:center;gap:0;}
+.er-isa-tri{position:relative;width:48px;height:38px;display:inline-flex;align-items:flex-end;justify-content:center;padding-bottom:4px;}
+.er-isa-tri::before{content:'';position:absolute;width:0;height:0;border-left:23px solid transparent;border-right:23px solid transparent;border-bottom:34px solid rgba(142,68,173,.25);}
+.er-isa-tri span{position:relative;z-index:1;font-size:.55rem;font-weight:800;color:var(--purple);}
+.er-fig-lbl{font-size:.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-top:.6rem;text-align:center;width:100%;}
+.er-sym-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:1rem;margin-top:1rem;}
+.er-sym-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;text-align:center;}
+.er-sym-card .shape{margin-bottom:.5rem;min-height:45px;display:flex;align-items:center;justify-content:center;}
+.er-sym-card .name{font-size:.75rem;font-weight:700;color:var(--text);}
+.er-sym-card .desc{font-size:.62rem;color:var(--muted);margin-top:.2rem;}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:900px;cursor:pointer;}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.fc.flipped .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card2);border:1px solid var(--border);}
+.fc-bk{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);transform:rotateY(180deg);}
+.fc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:.4rem;}
+.fc-q{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;}
+.fc-hint{font-size:.6rem;color:var(--muted);margin-top:.5rem;}
+.fc-a{font-size:.77rem;color:#e8e8e8;line-height:1.5;}
+.quiz-wrap{max-width:720px;margin:0 auto;}
+#q-prog{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.3s;}
+.q-dot.done{background:var(--accent);}.q-dot.cur{background:var(--primary);transform:scale(1.3);}.q-dot.bad{background:#c0392b;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;}
+.q-num{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.5;}
+.q-opts{display:flex;flex-direction:column;gap:.6rem;}
+.q-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;font-size:.88rem;cursor:pointer;transition:.2s;text-align:left;}
+.q-opt:hover:not([disabled]){background:rgba(231,76,60,.1);border-color:var(--primary);}
+.q-opt.ok{background:rgba(39,174,96,.15);border-color:var(--accent);color:#82e0aa;}
+.q-opt.no{background:rgba(231,76,60,.15);border-color:var(--primary);color:#f1948a;}
+.q-exp{margin-top:1rem;padding:.8rem 1rem;border-radius:10px;font-size:.82rem;line-height:1.6;display:none;}
+.q-exp.show{display:block;}
+.q-exp.ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#a9dfbf;}
+.q-exp.no{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#f5b7b1;}
+.q-nav{display:flex;justify-content:flex-end;margin-top:1rem;}
+#q-score{text-align:center;padding:2.5rem;display:none;}
+#q-score .sc-n{font-size:4rem;font-weight:900;color:var(--primary);}
+#q-score .sc-l{font-size:.8rem;color:var(--muted);margin-bottom:.8rem;}
+.pyq-badge{display:inline-block;background:rgba(241,196,15,.15);color:#f9e04b;font-size:.55rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:.15rem .6rem;border-radius:999px;margin-left:.5rem;vertical-align:middle;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Ch10 · ER Model</span>
+  <a href="#intro">Intro</a>
+  <a href="#basics">Basics</a>
+  <a href="#attrs">Attributes</a>
+  <a href="#rels">Relationships</a>
+  <a href="#card">Cardinality</a>
+  <a href="#part">Participation</a>
+  <a href="#weak">Weak Entity</a>
+  <a href="#genspec">Gen/Spec</a>
+  <a href="#aggr">Aggregation</a>
+  <a href="#notation">Notation</a>
+  <a href="#cases">Cases</a>
+  <a href="#identify">Identify</a>
+  <a href="#design">Design</a>
+  <a href="#cards">Cards</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+<div id="pb"></div>
+
+<!-- HERO -->
+<section id="intro" style="position:relative;padding-top:110px;min-height:90vh;display:flex;flex-direction:column;justify-content:center;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">UCS310 · Chapter 10</div>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:.6rem;">Entity-Relationship <span style="color:var(--primary);">Data Model</span></h2>
+  <p style="font-size:1rem;color:#999;max-width:600px;margin:.4rem 0 1rem;">The ER Model is a high-level conceptual data model used in database design. It describes the structure of a database as an <strong style="color:var(--text);">enterprise schema</strong> — a blueprint of entities, their attributes, and the relationships among them.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">3</div><div class="l">Building Blocks</div></div>
+    <div class="hs"><div class="n">7</div><div class="l">Attribute Types</div></div>
+    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">15</div><div class="l">Quiz MCQs</div></div>
+  </div>
+  <div class="btns">
+    <a href="#basics" class="btn">Start Learning</a>
+    <a href="#cards" class="btn btn-o">Flashcards</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+</section>
+
+<!-- BASICS: ENTITIES, ENTITY SETS, ENTITY TYPES -->
+<section id="basics">
+  <div class="fi">
+    <div class="sec-label">Foundation</div>
+    <h2>Entities, Entity Sets &amp; Types</h2>
+    <p style="margin:.6rem 0 1rem;">The three basic concepts of the ER model are <strong style="color:var(--text);">Entity Sets</strong>, <strong style="color:var(--text);">Relationship Sets</strong>, and <strong style="color:var(--text);">Attributes</strong>.</p>
+  </div>
+
+  <div class="fi">
+    <h3>What is an Entity?</h3>
+    <div class="hbox">
+      <p>An <strong>Entity</strong> is an object that exists in the real world and is distinguishable from other objects. It can be a person, place, object, event, or concept. In ER diagrams, an entity is represented by a <strong>rectangle</strong>.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">College Database Entities</div>
+      <div class="eg-desc">Student, Professor/Faculty, Course, Department, Result, Class, Subject</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Entity Types</h3>
+    <div class="g2">
+      <div class="card">
+        <h3 style="color:var(--accent);">Tangible Entity</h3>
+        <p style="font-size:.85rem;margin-top:.3rem;">Has <strong style="color:var(--accent);">physical existence</strong> — can be seen or touched.</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.3rem;">Examples: Person, Car, House, Building</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--blue);">Intangible Entity</h3>
+        <p style="font-size:.85rem;margin-top:.3rem;">Has <strong style="color:#5dade2;">logical/conceptual existence</strong> only.</p>
+        <p style="font-size:.78rem;color:var(--muted);margin-top:.3rem;">Examples: Bank Account, Login Information, Course</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Entity Set</h3>
+    <div class="hbox green">
+      <p>An <strong>Entity Set</strong> is a set of entities of the <strong>same type</strong> that share the same properties (attributes). Think of it as a table — the entity set is the table, individual entities are the rows.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Examples of Entity Sets</div>
+      <div class="eg-desc">All persons with a bank account at a branch &bull; All students enrolled in a college &bull; All employees working in a company &bull; All courses offered by a department</div>
+    </div>
+    <div class="er-fig">
+      <div class="er-ent">Student</div>
+      <div style="width:40px;"></div>
+      <div class="er-ent">Course</div>
+      <div style="width:40px;"></div>
+      <div class="er-ent">Department</div>
+      <div class="er-fig-lbl">Entity sets represented as rectangles</div>
+    </div>
+  </div>
+</section>
+
+<!-- ATTRIBUTES -->
+<section id="attrs">
+  <div class="fi">
+    <div class="sec-label">Properties</div>
+    <h2>Attributes &amp; Their Types</h2>
+    <p style="margin:.6rem 0 .5rem;">Attributes are the properties or details that describe an entity. Represented by an <strong style="color:var(--text);">oval</strong> connected to the entity.</p>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Student Entity Attributes</div>
+      <div class="eg-desc">RollNo, Name, Branch, Semester, Address, Mobile No, Age, SPI, Backlogs</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>1. Simple vs Composite</h3>
+    <div class="g2">
+      <div class="hbox blue">
+        <p><strong>Simple Attribute</strong> — cannot be divided further.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Examples: RollNo, Age, Gender</p>
+      </div>
+      <div class="hbox orange">
+        <p><strong>Composite Attribute</strong> — can be divided into sub-parts.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Name → First + Middle + Last<br>Address → Street + Road + City</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>2. Single-Valued vs Multi-Valued</h3>
+    <div class="g2">
+      <div class="hbox teal">
+        <p><strong>Single-Valued</strong> — holds exactly one value per entity.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Examples: RollNo, Age &nbsp;→&nbsp; shown as normal oval</p>
+      </div>
+      <div class="hbox purple">
+        <p><strong>Multi-Valued</strong> — can hold multiple values for one entity.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Examples: Phone_No, Email_ID &nbsp;→&nbsp; shown as <strong>double oval</strong></p>
+      </div>
+    </div>
+    <div class="er-fig">
+      <div class="er-attr">RollNo</div>
+      <div style="width:20px;"></div>
+      <div class="er-attr multi">Phone_No</div>
+      <div class="er-fig-lbl">Single-valued (normal oval) vs Multi-valued (double oval)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>3. Stored vs Derived</h3>
+    <div class="g2">
+      <div class="hbox green">
+        <p><strong>Stored Attribute</strong> — physically stored in the database.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Example: Birth_Date &nbsp;→&nbsp; normal oval</p>
+      </div>
+      <div class="hbox">
+        <p><strong>Derived Attribute</strong> — calculated from a stored attribute.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Example: Age (from Birth_Date) &nbsp;→&nbsp; <strong>dashed oval</strong></p>
+      </div>
+    </div>
+    <div class="er-fig">
+      <div class="er-attr">Birth_Date</div>
+      <div style="width:10px;font-size:.7rem;color:var(--muted);">→</div>
+      <div class="er-attr derived">Age</div>
+      <div class="er-fig-lbl">Stored (solid oval) → Derived (dashed oval)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>4. Key Attribute</h3>
+    <div class="hbox yellow">
+      <p><strong>Key Attribute</strong> uniquely identifies each entity in the entity set. Shown with an <strong>underlined</strong> name inside the oval. Example: <u>Roll_No</u> for Student, <u>Emp_ID</u> for Employee.</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>5. Descriptive Attribute</h3>
+    <div class="hbox blue">
+      <p>A <strong>Descriptive Attribute</strong> belongs to a <strong>relationship</strong>, not to an entity. It describes a property of the association between entities.</p>
+      <p style="font-size:.8rem;margin-top:.3rem;">Example: <strong>Issue_Date</strong> on the Issue relationship between Student and Book.</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Complete Student Entity — All Attribute Types</h3>
+    <div class="er-fig" style="flex-wrap:wrap;gap:.6rem;padding:1.5rem;">
+      <div class="er-col" style="gap:.4rem;align-items:center;">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;">
+          <div class="er-attr key" style="text-decoration:underline;">RollNo</div>
+          <div class="er-attr">Branch</div>
+          <div class="er-attr">Semester</div>
+          <div class="er-attr derived">Age</div>
+          <div class="er-attr">Birth_Date</div>
+          <div class="er-attr multi">Phone_No</div>
+        </div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;">
+          <div class="er-vconn"></div>
+        </div>
+        <div class="er-ent" style="font-size:.85rem;padding:.5rem 1.5rem;">Student</div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;">
+          <div class="er-vconn"></div>
+        </div>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;justify-content:center;">
+          <div class="er-attr">Name</div>
+          <div class="er-attr">Address</div>
+        </div>
+        <div style="font-size:.55rem;color:var(--muted);">↓ composite (subdivides into parts)</div>
+        <div style="display:flex;gap:.3rem;flex-wrap:wrap;justify-content:center;">
+          <div class="er-attr" style="font-size:.55rem;">First</div>
+          <div class="er-attr" style="font-size:.55rem;">Middle</div>
+          <div class="er-attr" style="font-size:.55rem;">Last</div>
+          <div style="width:15px;"></div>
+          <div class="er-attr" style="font-size:.55rem;">Street</div>
+          <div class="er-attr" style="font-size:.55rem;">City</div>
+        </div>
+      </div>
+      <div class="er-fig-lbl"><u>Key</u> &bull; Normal = Simple/Single &bull; Double border = Multi-valued &bull; Dashed = Derived</div>
+    </div>
+    <div class="note">Remember: <u>Underline</u> = Key, Double oval = Multi-valued, Dashed oval = Derived, Ovals hanging off ovals = Composite sub-parts.</div>
+  </div>
+</section>
+
+<!-- RELATIONSHIPS -->
+<section id="rels">
+  <div class="fi">
+    <div class="sec-label">Associations</div>
+    <h2>Relationships &amp; Degree</h2>
+  </div>
+
+  <div class="fi">
+    <div class="hbox green">
+      <p>A <strong>Relationship</strong> is an association between two or more entities. It is represented by a <strong>diamond</strong> shape and placed between the participating entities.</p>
+    </div>
+    <div class="er-fig">
+      <div class="er-ent">Student</div>
+      <div class="er-conn"></div>
+      <div class="er-rel"><span>Issue</span></div>
+      <div class="er-conn"></div>
+      <div class="er-ent">Book</div>
+      <div class="er-fig-lbl">Library System: Student issues Book</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Degree of a Relationship</h3>
+    <p style="font-size:.85rem;margin:.4rem 0;">The <strong style="color:var(--text);">degree</strong> is the number of entity sets participating in the relationship.</p>
+    <div class="g3">
+      <div class="card">
+        <h3 style="color:var(--accent);">Binary (Degree 2)</h3>
+        <p style="font-size:.78rem;margin-top:.3rem;">Two entities participate.<br>Student — Enroll — Course</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--orange);">Ternary (Degree 3)</h3>
+        <p style="font-size:.78rem;margin-top:.3rem;">Three entities participate.<br>Faculty — Guide — Student — Project</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--purple);">Recursive (Unary)</h3>
+        <p style="font-size:.78rem;margin-top:.3rem;">Entity related to <em>itself</em>.<br>Employee works_for Manager (both are Employee)</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Ternary Relationship Example</div>
+      <div class="eg-desc">In a university: a Faculty member guides a Student on a Project. Three entities participate in the "Guide" relationship simultaneously — making it ternary (degree 3).</div>
+    </div>
+    <div class="gotcha"><strong>Gotcha:</strong> A recursive relationship is NOT degree 0 — it's still binary (degree 2), but both participants come from the same entity set. Example: Employee <em>manages</em> Employee.</div>
+  </div>
+
+  <div class="fi">
+    <h3>Descriptive Attributes on Relationships</h3>
+    <div class="er-fig">
+      <div class="er-ent">Student</div>
+      <div class="er-conn"></div>
+      <div class="er-col">
+        <div class="er-attr" style="font-size:.55rem;border-color:var(--orange);color:var(--orange);">Issue_Date</div>
+        <div class="er-vconn"></div>
+        <div class="er-rel"><span>Issue</span></div>
+      </div>
+      <div class="er-conn"></div>
+      <div class="er-ent">Book</div>
+      <div class="er-fig-lbl">Issue_Date is a descriptive attribute — it belongs to the relationship, not to Student or Book</div>
+    </div>
+  </div>
+</section>
+
+<!-- MAPPING CARDINALITY -->
+<section id="card">
+  <div class="fi">
+    <div class="sec-label">Constraints</div>
+    <h2>Mapping Cardinality</h2>
+    <p style="margin:.5rem 0;">Cardinality defines <strong style="color:var(--text);">how many entities</strong> from one set can be associated with entities in another set through a relationship.</p>
+  </div>
+
+  <div class="fi">
+    <div class="a-tabs" data-group="card">
+      <button class="a-tab on" onclick="tabSwitch(this,'card')">1 : 1</button>
+      <button class="a-tab" onclick="tabSwitch(this,'card')">1 : N</button>
+      <button class="a-tab" onclick="tabSwitch(this,'card')">N : 1</button>
+      <button class="a-tab" onclick="tabSwitch(this,'card')">M : N</button>
+    </div>
+
+    <!-- 1:1 -->
+    <div class="a-panel on" data-group="card">
+      <div class="hbox">
+        <p><strong>One-to-One (1:1)</strong> — Each entity in A maps to <strong>exactly one</strong> entity in B, and vice versa.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example</div>
+        <div class="eg-desc">Each customer borrows exactly one loan, and each loan belongs to exactly one customer.<br>C1 → L1, C2 → L2, C3 → L3</div>
+      </div>
+      <div class="er-fig">
+        <div class="er-ent">Customer</div>
+        <div class="er-conn arrow"></div>
+        <div class="er-rel"><span>Borrow</span></div>
+        <div class="er-conn arrow"></div>
+        <div class="er-ent">Loan</div>
+        <div class="er-fig-lbl">Directed arrows on BOTH sides → 1:1</div>
+      </div>
+    </div>
+
+    <!-- 1:N -->
+    <div class="a-panel" data-group="card">
+      <div class="hbox green">
+        <p><strong>One-to-Many (1:N)</strong> — One entity in A maps to <strong>multiple</strong> entities in B, but each entity in B maps to only <strong>one</strong> in A.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example</div>
+        <div class="eg-desc">One customer can have multiple loans, but each loan belongs to only one customer.<br>C1 → L1, C1 → L2, C2 → L3</div>
+      </div>
+      <div class="er-fig">
+        <div class="er-ent">Customer</div>
+        <div class="er-conn arrow"></div>
+        <div class="er-rel"><span>Borrow</span></div>
+        <div class="er-conn"></div>
+        <div class="er-ent">Loan</div>
+        <div class="er-fig-lbl">Arrow toward Customer (one side), line toward Loan (many side)</div>
+      </div>
+    </div>
+
+    <!-- N:1 -->
+    <div class="a-panel" data-group="card">
+      <div class="hbox blue">
+        <p><strong>Many-to-One (N:1)</strong> — Multiple entities in A map to <strong>one</strong> entity in B, but each entity in B can relate to <strong>many</strong> in A.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example</div>
+        <div class="eg-desc">Multiple customers share the same loan.<br>C1 → L1, C2 → L1, C3 → L2</div>
+      </div>
+      <div class="er-fig">
+        <div class="er-ent">Customer</div>
+        <div class="er-conn"></div>
+        <div class="er-rel"><span>Borrow</span></div>
+        <div class="er-conn arrow"></div>
+        <div class="er-ent">Loan</div>
+        <div class="er-fig-lbl">Arrow toward Loan (one side), line toward Customer (many side)</div>
+      </div>
+    </div>
+
+    <!-- M:N -->
+    <div class="a-panel" data-group="card">
+      <div class="hbox purple">
+        <p><strong>Many-to-Many (M:N)</strong> — Entities in A can map to <strong>multiple</strong> in B, and entities in B can map to <strong>multiple</strong> in A.</p>
+      </div>
+      <div class="eg">
+        <div class="eg-lbl">Example</div>
+        <div class="eg-desc">Customers can have multiple loans, and loans can be shared (joint).<br>C1 → L1, C1 → L2, C2 → L1, C3 → L2</div>
+      </div>
+      <div class="er-fig">
+        <div class="er-ent">Customer</div>
+        <div class="er-conn"></div>
+        <div class="er-rel"><span>Borrow</span></div>
+        <div class="er-conn"></div>
+        <div class="er-ent">Loan</div>
+        <div class="er-fig-lbl">No arrows (lines on both sides) → M:N</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Cardinality Quick Reference</h3>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Scenario</th><th>Cardinality</th></tr>
+        <tr><td>One person, one bank account</td><td><strong style="color:var(--primary);">1 : 1</strong></td></tr>
+        <tr><td>Joint account (multiple people, one account)</td><td><strong style="color:var(--accent);">N : 1</strong></td></tr>
+        <tr><td>One person, multiple accounts</td><td><strong style="color:var(--blue);">1 : N</strong></td></tr>
+        <tr><td>Joint accounts + multiple accounts</td><td><strong style="color:var(--purple);">M : N</strong></td></tr>
+        <tr><td>Student and Project</td><td><strong style="color:var(--purple);">M : N</strong></td></tr>
+        <tr><td>Student borrows Book</td><td><strong style="color:var(--blue);">1 : N</strong></td></tr>
+        <tr><td>Subject taught by Faculty</td><td><strong style="color:var(--purple);">M : N</strong></td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="note"><strong>Arrow Rule:</strong> Directed arrow (→) points to the "one" side. Undirected line (—) on the "many" side. 1:1 = arrows both sides. M:N = lines both sides (no arrows).</div>
+    <div class="gotcha"><strong>Gotcha:</strong> Direction in ER indicates the originating entity (parent → child). Directed line = one occurrence at that end. Undirected line = many occurrences.</div>
+  </div>
+</section>
+
+<!-- PARTICIPATION -->
+<section id="part">
+  <div class="fi">
+    <div class="sec-label">Constraints</div>
+    <h2>Participation &amp; Min-Max Notation</h2>
+  </div>
+
+  <div class="fi">
+    <h3>Total vs Partial Participation</h3>
+    <div class="g2">
+      <div class="hbox">
+        <p><strong>Total Participation</strong> (double line ═══) — <em>Every</em> entity in the set MUST participate in at least one instance of the relationship.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Example: Every <strong>Loan</strong> must have at least one borrower.</p>
+      </div>
+      <div class="hbox blue">
+        <p><strong>Partial Participation</strong> (single line ───) — <em>Some</em> entities may not participate in the relationship at all.</p>
+        <p style="font-size:.8rem;margin-top:.3rem;">Example: Not every <strong>Customer</strong> has taken a loan.</p>
+      </div>
+    </div>
+    <div class="er-fig">
+      <div class="er-ent">Customer</div>
+      <div class="er-conn"></div>
+      <div class="er-rel"><span>Borrower</span></div>
+      <div class="er-conn total"></div>
+      <div class="er-ent">Loan</div>
+      <div class="er-fig-lbl">Customer = partial (single line) · Loan = total (double line) — every loan MUST have a borrower</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Min-Max Notation (l..h)</h3>
+    <div class="hbox green">
+      <p>Each entity's participation is expressed as <strong>(min..max)</strong> or <strong>l..h</strong>:</p>
+      <ul style="font-size:.82rem;margin-top:.4rem;margin-left:1.2rem;">
+        <li><strong>min = 0</strong> → Partial participation (not required)</li>
+        <li><strong>min = 1</strong> → Total participation (must participate)</li>
+        <li><strong>max = 1</strong> → At most one relationship</li>
+        <li><strong>max = *</strong> → No upper limit</li>
+      </ul>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Example — Customer-Loan</div>
+      <div class="eg-desc"><strong>Loan</strong> side: <span style="color:var(--primary);font-weight:700;">1..1</span> — every loan participates in exactly one Cust_Loan relationship (total, exactly one customer).<br><strong>Customer</strong> side: <span style="color:var(--blue);font-weight:700;">0..*</span> — a customer may have zero or more loans (partial, no upper limit).</div>
+    </div>
+    <div class="note"><strong>Memory trick:</strong> 1..1 or 1..* = total participation (min ≥ 1 means double line). 0..1 or 0..* = partial participation (min = 0 means single line).</div>
+  </div>
+
+  <div class="fi">
+    <h3>Direction Symbols in ER</h3>
+    <div class="hbox orange">
+      <p>The <strong>direction</strong> in an ER diagram indicates the originating entity (parent → child). A <strong>directed line (arrow)</strong> means one occurrence; an <strong>undirected line</strong> means many occurrences at that end.</p>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">Examples</div>
+      <div class="eg-desc"><strong>Department → Manager</strong> (1:1): One department has one manager.<br><strong>Manager → Employee</strong> (1:N): One manager manages many employees — arrow toward Manager (one), line toward Employee (many).</div>
+    </div>
+  </div>
+</section>
+
+<!-- WEAK ENTITY SETS -->
+<section id="weak">
+  <div class="fi">
+    <div class="sec-label">Special Entities</div>
+    <h2>Weak Entity Sets</h2>
+  </div>
+
+  <div class="fi">
+    <div class="hbox">
+      <p>A <strong>Weak Entity Set</strong> does not have sufficient attributes to form a primary key on its own. It <strong>depends</strong> on a strong (dominant) entity for identification.</p>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <h3 style="color:var(--accent);">Strong Entity (Dominant)</h3>
+        <p style="font-size:.82rem;margin-top:.3rem;">Has its own primary key. Shown as a <strong style="color:var(--accent);">single rectangle</strong>. The weak entity's existence depends on it.</p>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--primary);">Weak Entity (Subordinate)</h3>
+        <p style="font-size:.82rem;margin-top:.3rem;">No sufficient PK. Shown as a <strong>double rectangle</strong>. Connected via a <strong>double diamond</strong> (identifying relationship).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="hbox teal">
+      <p><strong>Primary Key of Weak Entity</strong> = Primary Key of Strong Entity + <strong>Discriminator (Partial Key)</strong></p>
+      <p style="font-size:.8rem;margin-top:.3rem;">The discriminator is shown with a <strong>dashed underline</strong> in the ER diagram.</p>
+    </div>
+    <div class="er-fig" style="gap:.3rem;">
+      <div class="er-col">
+        <div class="er-attr key" style="text-decoration:underline;">Loan_No</div>
+        <div class="er-vconn"></div>
+      </div>
+      <div class="er-ent">Loan</div>
+      <div class="er-conn total"></div>
+      <div class="er-rel ident"><span>L_P</span></div>
+      <div class="er-conn total"></div>
+      <div class="er-ent weak">Payment</div>
+      <div class="er-col">
+        <div class="er-vconn"></div>
+        <div class="er-attr" style="border-style:dashed;text-decoration:underline dashed;">Pay_No</div>
+      </div>
+      <div class="er-fig-lbl">Loan (strong, single rect) ═══ L_P (identifying, double diamond) ═══ Payment (weak, double rect) · Pay_No = discriminator (dashed underline)</div>
+    </div>
+    <div class="eg">
+      <div class="eg-lbl">How it works</div>
+      <div class="eg-desc"><strong>Payment</strong> has no unique ID on its own — payment_no "1" could exist for different loans. The PK becomes <strong>(Loan_No, Payment_No)</strong> — combining the strong entity's key with the discriminator.</div>
+    </div>
+    <div class="gotcha"><strong>Gotcha:</strong> Both participation lines from a weak entity to its identifying relationship are <strong>double lines</strong> (total participation) — a weak entity MUST be associated with its strong entity to exist.</div>
+  </div>
+</section>
+
+<!-- GENERALIZATION & SPECIALIZATION -->
+<section id="genspec">
+  <div class="fi">
+    <div class="sec-label">Hierarchy</div>
+    <h2>Generalization &amp; Specialization</h2>
+  </div>
+
+  <div class="fi">
+    <h3>Superclass &amp; Subclass</h3>
+    <div class="hbox purple">
+      <p>A <strong>Superclass</strong> is a higher-level entity from which others are derived (e.g., Account). A <strong>Subclass</strong> is a lower-level entity derived from the superclass (e.g., Saving_Account, Current_Account). Connected via the <strong>ISA triangle</strong> (▽).</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="g2">
+      <div class="card">
+        <h3 style="color:var(--accent);">Generalization ↑</h3>
+        <p style="font-size:.82rem;margin-top:.3rem;"><strong style="color:var(--accent);">Bottom-Up</strong> approach — combine multiple lower-level entity types that share common attributes into a higher-level (general) entity.</p>
+        <div class="eg" style="margin-top:.6rem;">
+          <div class="eg-lbl">Example</div>
+          <div class="eg-desc" style="font-size:.78rem;">Saving_Account + Current_Account share Acc_No, Balance → Generalize into <strong>Account</strong> superclass.</div>
+        </div>
+      </div>
+      <div class="card">
+        <h3 style="color:var(--blue);">Specialization ↓</h3>
+        <p style="font-size:.82rem;margin-top:.3rem;"><strong style="color:#5dade2;">Top-Down</strong> approach — take subsets of a higher-level entity to form lower-level entities based on distinguishing characteristics.</p>
+        <div class="eg" style="margin-top:.6rem;">
+          <div class="eg-lbl">Example</div>
+          <div class="eg-desc" style="font-size:.78rem;">Employee → Specialize into <strong>Salaried_Employee</strong> (Basic_Pay) and <strong>Hourly_Employee</strong> (Hourly_Rate).</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="er-fig" style="flex-direction:column;gap:.3rem;">
+      <div class="er-ent" style="font-size:.85rem;padding:.5rem 1.5rem;">Account</div>
+      <div style="font-size:.7rem;color:var(--muted);">▼</div>
+      <div class="er-isa-tri"><span>ISA</span></div>
+      <div style="display:flex;gap:2rem;margin-top:.3rem;">
+        <div class="er-col" style="gap:.2rem;">
+          <div class="er-ent">Saving_Acc</div>
+          <div class="er-attr" style="font-size:.55rem;">Int_Rate</div>
+        </div>
+        <div class="er-col" style="gap:.2rem;">
+          <div class="er-ent">Current_Acc</div>
+          <div class="er-attr" style="font-size:.55rem;">Overdraft</div>
+        </div>
+      </div>
+      <div class="er-fig-lbl">Account (superclass) with shared attrs Acc_No, Balance → ISA → Saving (Int_Rate) &amp; Current (Overdraft)</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Generalization vs Specialization</h3>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Aspect</th><th>Generalization</th><th>Specialization</th></tr>
+        <tr><td>Direction</td><td>Bottom-Up ↑</td><td>Top-Down ↓</td></tr>
+        <tr><td>Process</td><td>Create a group from multiple entities</td><td>Create sub-groups within an entity</td></tr>
+        <tr><td>Starts from</td><td>Many lower-level entities → one higher</td><td>One higher-level entity → many lower</td></tr>
+        <tr><td>Logic</td><td>Union of lower-level entities</td><td>Subset of higher-level entity</td></tr>
+        <tr><td>Example</td><td>Saving + Current → Account</td><td>Employee → Salaried + Hourly</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>Multi-Level ISA Hierarchy</h3>
+    <div class="eg">
+      <div class="eg-lbl">Example</div>
+      <div class="eg-desc"><strong>Person</strong>(PID, Name, Address, City) → ISA → <strong>Employee</strong>(Salary) &amp; <strong>Customer</strong>(Balance)<br>Then <strong>Employee</strong> → ISA → <strong>Full_Time</strong>(Days_Worked) &amp; <strong>Part_Time</strong>(Hours_Worked)<br>This shows multiple levels of specialization forming a hierarchy.</div>
+    </div>
+  </div>
+</section>
+
+<!-- AGGREGATION -->
+<section id="aggr">
+  <div class="fi">
+    <div class="sec-label">Advanced</div>
+    <h2>Aggregation</h2>
+  </div>
+
+  <div class="fi">
+    <div class="hbox orange">
+      <p><strong>Limitation:</strong> Basic ER diagrams cannot express <strong>relationships among relationships</strong>.</p>
+      <p style="font-size:.82rem;margin-top:.3rem;"><strong>Solution — Aggregation:</strong> Treat a relationship set (along with its participating entity sets) as a <strong>higher-level abstract entity</strong>, and then define new relationships on it. Shown with a <strong>dashed rectangle</strong> around the aggregated relationship.</p>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example 1 — Work &amp; Manages</div>
+      <div class="eg-desc">Employees work on Jobs at Branches. A Manager manages this "work_on" arrangement. We can't directly connect Manager to a relationship → so we <strong>aggregate</strong> work_on(Employee, Branch, Job) into an abstract entity, then connect Manager → Manages → [work_on aggregate].</div>
+    </div>
+    <div class="er-fig" style="gap:.5rem;">
+      <div class="er-aggr">
+        <div class="er-ent">Employee</div>
+        <div class="er-conn"></div>
+        <div class="er-rel"><span>work_on</span></div>
+        <div class="er-conn"></div>
+        <div class="er-ent">Branch</div>
+      </div>
+      <div class="er-conn"></div>
+      <div class="er-rel"><span>Manages</span></div>
+      <div class="er-conn"></div>
+      <div class="er-ent">Manager</div>
+      <div class="er-fig-lbl">Dashed box = aggregation — work_on treated as an abstract entity that Manager "Manages"</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Example 2 — proj_guide &amp; eval_for</div>
+      <div class="eg-desc">An instructor guides a student on a project (proj_guide). An evaluation committee evaluates this guidance (eval_for). Since eval_for relates to the proj_guide relationship, we aggregate proj_guide into an abstract entity.<br><br><strong>Resulting schema for eval_for:</strong> (s_ID, project_id, i_ID, evaluation_id) — PK of aggregated relationship + PK of associated entity + descriptive attributes.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="hbox teal">
+      <p><strong>Reduction to Relational Schema:</strong> The schema for a relationship on an aggregation contains the <strong>primary key of the aggregated relationship</strong> + the <strong>primary key of the other entity</strong> + any <strong>descriptive attributes</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ER NOTATION REFERENCE -->
+<section id="notation">
+  <div class="fi">
+    <div class="sec-label">Reference</div>
+    <h2>ER Notation — Complete Symbol Chart</h2>
+  </div>
+
+  <div class="fi">
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Symbol</th><th>Name</th><th>Description</th></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--primary);">▭ Rectangle</td><td>Entity</td><td>A distinguishable real-world object</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--primary);">╔═▭═╗ Double Rect</td><td>Weak Entity</td><td>Entity with no sufficient PK (depends on strong entity)</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--accent);">◇ Diamond</td><td>Relationship</td><td>Association between entities</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--accent);">◈ Double Diamond</td><td>Identifying Relationship</td><td>Connects weak entity to its strong entity</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--blue);">○ Oval</td><td>Attribute</td><td>Property of an entity or relationship</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--blue);">◎ Double Oval</td><td>Multi-valued Attribute</td><td>Can hold multiple values (e.g., Phone_No)</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--blue);">◌ Dashed Oval</td><td>Derived Attribute</td><td>Calculated from another stored attribute</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--text);text-decoration:underline;">Underline</td><td>Key Attribute</td><td>Uniquely identifies an entity in the set</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--text);text-decoration:underline dashed;">Dashed Underline</td><td>Discriminator (Partial Key)</td><td>Partial key of a weak entity</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--text);">═══ Double Line</td><td>Total Participation</td><td>Every entity must participate in the relationship</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--muted);">─── Single Line</td><td>Partial Participation</td><td>Some entities may not participate</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--text);">l..h</td><td>Min-Max Notation</td><td>Participation & cardinality constraint (e.g., 0..*, 1..1)</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--purple);">▽ Triangle</td><td>ISA (Generalization)</td><td>Superclass-subclass relationship</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--muted);">→ Directed Line</td><td>Direction</td><td>Points to the "one" side of a cardinality</td></tr>
+        <tr><td style="font-family:monospace;font-weight:700;color:var(--orange);">┊ ┊ Dashed Rect</td><td>Aggregation</td><td>Treats a relationship as an abstract entity</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <div class="fi">
+    <h3>5 Steps to Design an ER Diagram</h3>
+    <div class="flow-box">
+      <div class="flow-step"><strong>1. Identify Entities</strong><p>Find the real-world objects in the system</p></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><strong>2. Find Relationships</strong><p>Determine how entities are associated</p></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><strong>3. Identify Key Attributes</strong><p>Find the primary key for each entity</p></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><strong>4. Identify Other Attributes</strong><p>Add all relevant properties to each entity</p></div>
+      <div class="flow-arrow">↓</div>
+      <div class="flow-step"><strong>5. Draw Complete Diagram</strong><p>Combine everything with cardinalities & participation</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CASE STUDIES -->
+<section id="cases">
+  <div class="fi">
+    <div class="sec-label">Practice</div>
+    <h2>ER Diagram Case Studies</h2>
+    <p style="margin:.4rem 0;">Real-world scenarios from the course — identify entities, relationships, cardinalities, and key attributes.</p>
+  </div>
+
+  <div class="fi">
+    <div class="a-tabs" data-group="cases">
+      <button class="a-tab on" onclick="tabSwitch(this,'cases')">University</button>
+      <button class="a-tab" onclick="tabSwitch(this,'cases')">Car Insurance</button>
+      <button class="a-tab" onclick="tabSwitch(this,'cases')">Banking</button>
+      <button class="a-tab" onclick="tabSwitch(this,'cases')">Library</button>
+    </div>
+
+    <!-- University -->
+    <div class="a-panel on" data-group="cases">
+      <div class="eg">
+        <div class="eg-lbl">University Management System</div>
+        <div class="eg-desc"><strong>Entities:</strong> Student, Instructor, Department, Course, Section<br><strong>Relationships:</strong> Student <em>enrolls</em> Section (M:N) · Instructor <em>teaches</em> Section (1:N) · Instructor <em>member_of</em> Department (N:1, total) · Student <em>majors</em> Department (N:1) · Course <em>offered_by</em> Department (N:1)<br><strong>Key Attributes:</strong> Student(Student_ID), Instructor(Inst_ID), Department(Dept_Name), Course(Course_ID), Section(Sec_ID)</div>
+      </div>
+    </div>
+
+    <!-- Car Insurance -->
+    <div class="a-panel" data-group="cases">
+      <div class="eg">
+        <div class="eg-lbl">Car Insurance System</div>
+        <div class="eg-desc"><strong>Entities:</strong> Customer, Car, Accident<br><strong>Relationships:</strong> Customer <em>owns</em> Car (1:N — one customer owns multiple cars) · Car <em>associated_with</em> Accident (M:N — a car can be in multiple accidents, an accident can involve multiple cars)<br><strong>Key Attributes:</strong> Customer(Cust_ID), Car(License_No), Accident(Report_No)<br><strong>Descriptive Attrs:</strong> owns: Date_of_Purchase · associated_with: Damage_Amount</div>
+      </div>
+    </div>
+
+    <!-- Banking -->
+    <div class="a-panel" data-group="cases">
+      <div class="eg">
+        <div class="eg-lbl">Banking Management System <span class="pyq-badge">PYQ — MST</span></div>
+        <div class="eg-desc"><strong>Entities:</strong> Bank, Branch, Customer, Account, Loan<br><strong>Relationships:</strong> Bank <em>has</em> Branch (1:N) · Branch <em>maintains</em> Account (1:N) · Branch <em>offers</em> Loan (1:N) · Customer <em>holds</em> Account (M:N) · Customer <em>borrows</em> Loan (M:N)<br><strong>Key Attributes:</strong> Bank(Bank_Name), Branch(Branch_No), Customer(Cust_ID), Account(Acc_No), Loan(Loan_No)<br><strong>Other Attrs:</strong> Bank(Address, Code) · Branch(Name, City) · Customer(Name, Phone, Addr) · Account(Type, Balance) · Loan(Amount, Type)</div>
+      </div>
+    </div>
+
+    <!-- Library -->
+    <div class="a-panel" data-group="cases">
+      <div class="eg">
+        <div class="eg-lbl">Library Management System</div>
+        <div class="eg-desc"><strong>Entities:</strong> Book, Reader, Publisher, Staff, Authentication_System, Reports<br><strong>Relationships:</strong> Reader <em>borrows</em> Book (M:N) · Publisher <em>publishes</em> Book (1:N) · Staff <em>manages</em> Book (N:1) · Reader <em>reserve/return</em> Book<br><strong>Key Attributes:</strong> Book(ISBN), Reader(Reader_ID), Publisher(Pub_ID), Staff(Staff_ID)<br><strong>Other Attrs:</strong> Book(Title, Author, Edition, Category) · Reader(Name, Phone, Address) · Publisher(Name, City)</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="eg">
+      <div class="eg-lbl">Hospital Management System</div>
+      <div class="eg-desc"><strong>Entities:</strong> Hospital, Doctor, Patient, Medical_Record<br><strong>Specialization:</strong> Patient → ISA → Indoor_Patient &amp; Outdoor_Patient<br><strong>Relationships:</strong> Hospital <em>has</em> Doctor (1:N) · Doctor <em>treats</em> Patient (1:N) · Patient <em>has</em> Medical_Record (1:1) · Hospital <em>admits</em> Indoor_Patient</div>
+    </div>
+  </div>
+</section>
+
+<!-- IDENTIFY THE CONCEPT -->
+<section id="identify">
+  <div class="fi">
+    <div class="sec-label">Active Learning</div>
+    <h2>Identify the Concept</h2>
+    <p style="margin:.4rem 0;">Read each scenario and identify which ER concept applies. Think before revealing!</p>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">A bank account has an Account_Number that uniquely identifies it. No two accounts share the same number. What type of attribute is Account_Number?</div>
+      <div class="pto-hint">Think about which attribute type is used for unique identification...</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Key Attribute.</strong> Account_Number uniquely identifies each entity in the Account entity set. In an ER diagram, it's shown as an <u>underlined name</u> inside an oval.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">A student's Age can be calculated from their Date_of_Birth. What type of attribute is Age, and how is it shown in ER?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Derived Attribute.</strong> Age is derived (calculated) from the stored attribute Date_of_Birth. It's represented by a <strong>dashed oval</strong> in the ER diagram.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">Every loan in a bank MUST have at least one borrowing customer — no loan can exist without being linked to a customer. What constraint does Loan have?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Total Participation.</strong> Since every Loan entity must participate in the borrower relationship, Loan has total participation — shown as a <strong>double line (═══)</strong> connecting Loan to the relationship. Its min-max would be 1..1 or 1..*.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">A Payment entity has a payment_number, but payment_number alone isn't unique — "Payment #1" could exist under Loan 101 and Loan 202. Payment cannot exist without a Loan. What kind of entity is Payment?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Weak Entity.</strong> Payment has no sufficient PK on its own (payment_no alone isn't unique). Its PK = Loan_No + Payment_No. Shown as a <strong>double rectangle</strong>, connected to Loan via an <strong>identifying relationship (double diamond)</strong>. Payment_No is the <strong>discriminator</strong> (partial key, dashed underline).</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">Saving_Account has (Acc_No, Balance, Interest_Rate). Current_Account has (Acc_No, Balance, Overdraft_Amount). Both share Acc_No and Balance. A designer combines them into an Account superclass. Which process is this?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Generalization (Bottom-Up).</strong> Multiple lower-level entities (Saving, Current) that share common attributes are combined into a higher-level entity (Account). The shared attributes (Acc_No, Balance) go to the superclass; unique attributes (Interest_Rate, Overdraft) stay in the subclasses.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">A Manager needs to manage the "work_on" relationship between Employee, Branch, and Job. But you can't directly connect a new relationship to an existing relationship in basic ER. What concept solves this?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Aggregation.</strong> Treat the work_on relationship (with Employee, Branch, Job) as a higher-level abstract entity by surrounding it in a <strong>dashed rectangle</strong>. Now Manager can have a "Manages" relationship with this aggregated entity.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">In a company database, an Employee entity has a "manages" relationship — where an employee manages other employees. Both participants come from the same entity set. What type of relationship is this?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Recursive (Unary) Relationship.</strong> The entity is related to itself — both the "manager" and "subordinate" roles come from the same Employee entity set. It's still binary (degree 2) but with the same entity on both sides.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Identify the Concept</div>
+      <div class="pto-q">The "Issue" relationship between Student and Book has an attribute "Issue_Date". This date doesn't belong to Student or to Book — it describes when the issue happened. What is Issue_Date?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>Descriptive Attribute.</strong> Issue_Date is an attribute of the <em>relationship</em> itself, not of either entity. It describes a property of the association. In ER, it's drawn as an oval connected to the relationship diamond.</div>
+    </div>
+  </div>
+</section>
+
+<!-- DESIGN CHALLENGES -->
+<section id="design">
+  <div class="fi">
+    <div class="sec-label">Active Learning</div>
+    <h2>Design Challenges</h2>
+    <p style="margin:.4rem 0;">Think through these ER design problems, then reveal the solution to check your work.</p>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div><span class="pyq-badge">PYQ — MST</span>
+      <div class="wtq-q">Banking System: Banks maintain accounts for customers. Each customer can hold multiple accounts but each account belongs to one bank branch. Identify: (a) all entities, (b) relationships with cardinalities, (c) primary keys for each entity.</div>
+      <div class="wtq-hint">Think about how Bank, Branch, Customer, Account, and Loan relate to each other.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Entities:</strong> Bank, Branch, Customer, Account, Loan<br><strong>Relationships:</strong> Bank HAS Branch (1:N) · Branch MAINTAINS Account (1:N) · Customer HOLDS Account (M:N — joint accounts) · Customer BORROWS Loan (M:N) · Branch OFFERS Loan (1:N)<br><strong>PKs:</strong> Bank(<u>Bank_Name</u>), Branch(<u>Branch_No</u>), Customer(<u>Cust_ID</u>), Account(<u>Acc_No</u>), Loan(<u>Loan_No</u>)<br><strong>Minimum tables:</strong> 5 entity tables + 2 relationship tables for M:N (Customer_Account, Customer_Loan) = <strong>7 tables minimum</strong>.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div><span class="pyq-badge">PYQ — AUX</span>
+      <div class="wtq-q">Production Tracking: Products are produced by Workers using Machines in Departments. Given entities Product(Prod_ID, Name), Worker(Worker_ID, Name), Machine(Machine_ID, Type), Department(Dept_ID, Name). Identify relationships, cardinalities, and show how to convert to relational schema with PKs and FKs.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Relationships:</strong> Worker BELONGS_TO Department (N:1) · Worker USES Machine to produce Product — ternary relationship Produces(Worker, Machine, Product)<br><strong>Relational Schema:</strong><br>• Department(<u>Dept_ID</u>, Name)<br>• Worker(<u>Worker_ID</u>, Name, Dept_ID[FK])<br>• Machine(<u>Machine_ID</u>, Type)<br>• Product(<u>Prod_ID</u>, Name)<br>• Produces(<u>Worker_ID[FK]</u>, <u>Machine_ID[FK]</u>, <u>Prod_ID[FK]</u>, Quantity, Date) — composite PK from all 3 FKs.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div><span class="pyq-badge">PYQ — AUX</span>
+      <div class="wtq-q">Explain Generalization and Specialization with suitable examples. Draw the ISA hierarchy for: Person → Employee &amp; Customer, then Employee → Full_Time &amp; Part_Time.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Generalization (Bottom-Up):</strong> Combine Employee + Customer (sharing PID, Name, Address) → Person superclass. Shared attrs go up, unique attrs stay in subclass.<br><strong>Specialization (Top-Down):</strong> Employee → divide into Full_Time(Days_Worked) &amp; Part_Time(Hours_Worked).<br><strong>Hierarchy:</strong> Person(PID, Name, Address, City) → ISA → Employee(Salary) &amp; Customer(Balance). Then Employee → ISA → Full_Time(Days_Worked) &amp; Part_Time(Hours_Worked).<br>Each ISA shown as a <strong>triangle</strong> with "ISA" label.</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div>
+      <div class="wtq-q">Hospital System: Doctors treat patients. Each patient can be Indoor or Outdoor. Indoor patients get a room assignment. Every patient has a medical record. Identify: (a) entities, (b) any generalization/specialization, (c) weak entities if any, (d) cardinalities.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Entities:</strong> Hospital, Doctor, Patient, Medical_Record, Room<br><strong>Specialization:</strong> Patient → ISA → Indoor_Patient &amp; Outdoor_Patient (top-down, based on admission type)<br><strong>Relationships:</strong> Hospital HAS Doctor (1:N) · Doctor TREATS Patient (1:N or M:N) · Patient HAS Medical_Record (1:1, total for Patient) · Indoor_Patient ASSIGNED Room (N:1)<br><strong>No weak entities</strong> if Medical_Record has its own Record_ID. If Medical_Record has no independent PK, it could be weak (depending on design).<br><strong>Total participation:</strong> Patient in HAS Medical_Record (every patient must have a record).</div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="wtq">
+      <div class="wtq-badge">Design Challenge</div>
+      <div class="wtq-q">Student-Subject system: Students opt for subjects. Each student can choose 1 to 5 subjects, and each subject can have 1 to 60 students enrolled. Express this using min-max notation and identify the cardinality type and participation.</div>
+      <button class="wtq-btn" onclick="reveal(this)">Reveal Solution</button>
+      <div class="wtq-reveal"><strong>Cardinality:</strong> M:N (many students, many subjects)<br><strong>Min-Max Notation:</strong> Student side: <strong>1..5</strong> (each student must opt for at least 1 subject, max 5). Subject side: <strong>1..60</strong> (each subject must have at least 1 student, max 60).<br><strong>Participation:</strong> Both sides have min = 1, so <strong>BOTH have total participation</strong> (double lines on both sides). Every student must take at least one subject, and every subject must have at least one student.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="cards">
+  <div class="fi">
+    <div class="sec-label">Review</div>
+    <h2>Flashcards <span style="font-size:.7rem;color:var(--muted);font-weight:400;">(Click to flip)</span></h2>
+  </div>
+  <div class="fc-grid fi">
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Definition</div><div class="fc-q">Entity</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">A distinguishable real-world object — person, place, event, or thing. Represented by a <strong>rectangle</strong> in ER diagrams.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Definition</div><div class="fc-q">Entity Set</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">A collection of entities of the <strong>same type</strong> sharing the same properties. Like a table — entity set = table, entities = rows.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Types</div><div class="fc-q">Tangible vs Intangible Entity</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Tangible</strong> = physical existence (Person, Car). <strong>Intangible</strong> = logical/conceptual existence (Bank Account, Login Info).</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Definition</div><div class="fc-q">Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">A property or detail describing an entity. Represented by an <strong>oval</strong> connected to the entity rectangle.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Simple Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Cannot be divided further into sub-parts. Examples: RollNo, Age, Gender. Shown as a plain oval.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Composite Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Can be divided into sub-parts. Name → First + Middle + Last. Address → Street + City. Sub-parts shown as ovals hanging off the main oval.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Single-Valued Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Holds exactly <strong>one value</strong> per entity. Examples: RollNo, Age. Shown as a normal oval.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Multi-Valued Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Can hold <strong>multiple values</strong> for one entity. Examples: Phone_No, Email_ID. Shown as a <strong>double oval</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Stored Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Physically stored in the database. Example: Date_of_Birth. Shown as a normal oval (nothing special).</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Derived Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Calculated from a stored attribute. Example: Age (from DOB). Shown as a <strong>dashed oval</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Key Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Uniquely identifies each entity. Example: Roll_No. Shown with an <strong>underlined</strong> name inside the oval.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attribute Type</div><div class="fc-q">Descriptive Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Belongs to a <strong>relationship</strong>, not an entity. Describes a property of the association. Example: Issue_Date on the Issue relationship.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Definition</div><div class="fc-q">Relationship</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">An association between two or more entities. Represented by a <strong>diamond</strong> shape in ER diagrams.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Concept</div><div class="fc-q">Degree of a Relationship</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Number of participating entity sets. <strong>Binary = 2</strong>, <strong>Ternary = 3</strong>, <strong>n-ary = n</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Concept</div><div class="fc-q">Recursive Relationship</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">An entity related to <strong>itself</strong>. Example: Employee manages Employee. Still binary (degree 2) but same entity set on both sides.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:1 — One-to-One</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Each entity in A maps to exactly one in B, and vice versa. ER: <strong>arrows on both sides</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">1:N — One-to-Many</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">One entity in A maps to many in B. Arrow toward the "one" side, line on the "many" side.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Cardinality</div><div class="fc-q">M:N — Many-to-Many</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Both sides map to multiple. <strong>No arrows</strong> — lines (no direction) on both sides. Requires a separate relationship table in relational model.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Participation</div><div class="fc-q">Total Participation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Every entity MUST participate in at least one relationship. Shown as a <strong>double line (═══)</strong>. Min ≥ 1 in (l..h) notation.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Participation</div><div class="fc-q">Partial Participation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Some entities may NOT participate. Single line (───). Min = 0 in (l..h) notation. "Not every customer has a loan."</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Notation</div><div class="fc-q">Min-Max (l..h) Notation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">l = minimum, h = maximum. 0 = optional (partial), 1 = required (total), * = no limit. Example: 0..* = partial, unlimited.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Special Entity</div><div class="fc-q">Weak Entity Set</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">No sufficient PK. <strong>Double rectangle</strong>. PK = strong entity PK + <strong>discriminator</strong> (partial key, dashed underline). Connected via <strong>double diamond</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Hierarchy</div><div class="fc-q">Generalization</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Bottom-up</strong> — combine lower-level entities sharing common attributes into a higher-level superclass. Uses <strong>ISA triangle</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Hierarchy</div><div class="fc-q">Specialization</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Top-down</strong> — divide a superclass into subclasses based on distinguishing features. Example: Employee → Salaried + Hourly.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Advanced</div><div class="fc-q">Aggregation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Treat a relationship as a <strong>higher-level abstract entity</strong> to model relationships among relationships. Shown with a <strong>dashed rectangle</strong>.</div></div></div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="fi">
+    <div class="sec-label">Test Yourself</div>
+    <h2>Quiz — 15 MCQs</h2>
+    <p style="margin:.4rem 0;">Select the best answer. Immediate feedback after each question.</p>
+  </div>
+  <div class="quiz-wrap fi">
+    <div id="q-prog"></div>
+    <div id="q-card" class="q-card">
+      <div id="q-num" class="q-num"></div>
+      <div id="q-text" class="q-text"></div>
+      <div id="q-opts" class="q-opts"></div>
+      <div id="q-exp" class="q-exp"></div>
+      <div class="q-nav"><button id="q-next" class="btn" style="display:none;">Next →</button></div>
+    </div>
+    <div id="q-score">
+      <div class="sc-n" id="sc-val"></div>
+      <div class="sc-l">out of 15</div>
+      <p id="sc-msg" style="font-size:1.1rem;font-weight:600;margin:.5rem 0;"></p>
+      <button class="btn" onclick="initQ()" style="margin-top:1rem;">Retake Quiz</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('pb').style.width=(window.scrollY/h*100)+'%';
+});
+
+// FADE IN
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('v')}),{threshold:.15});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+// TABS
+function tabSwitch(btn,group){
+  const tabs=btn.parentElement.querySelectorAll('.a-tab');
+  tabs.forEach(t=>t.classList.remove('on'));
+  btn.classList.add('on');
+  const panels=document.querySelectorAll('.a-panel[data-group="'+group+'"]');
+  const idx=[...tabs].indexOf(btn);
+  panels.forEach((p,i)=>{p.classList.toggle('on',i===idx);});
+}
+
+// REVEAL (PTO / WTQ)
+function reveal(btn){
+  if(btn.classList.contains('revealed'))return;
+  const box=btn.nextElementSibling;
+  box.classList.add('show');
+  btn.textContent='Answer Revealed';
+  btn.classList.add('revealed');
+}
+
+// QUIZ
+const QS=[
+  {q:"What shape represents an Entity in an ER diagram?",o:["Oval","Diamond","Rectangle","Triangle"],a:2,e:"An entity is represented by a rectangle. Ovals = attributes, diamonds = relationships, triangles = ISA (generalization/specialization)."},
+  {q:"Which attribute type is represented by a dashed oval?",o:["Multi-valued","Composite","Derived","Key"],a:2,e:"A dashed oval = derived attribute (calculated from another stored attribute, e.g., Age from DOB). Multi-valued uses a double oval."},
+  {q:"A student can have multiple phone numbers. What type of attribute is Phone_No?",o:["Simple","Composite","Multi-valued","Derived"],a:2,e:"Multi-valued attributes can hold more than one value per entity. Phone_No is multi-valued — shown as a double oval in ER diagrams."},
+  {q:"What does a double line between an entity and a relationship indicate?",o:["1:1 cardinality","Many-to-many cardinality","Total participation","Weak entity"],a:2,e:"A double line (═══) indicates total participation — every entity in the set MUST participate in at least one relationship instance."},
+  {q:"In 1:N between Department and Employee, which side has the arrow?",o:["Employee (many side)","Department (one side)","Both sides","Neither side"],a:1,e:"The directed arrow points to the 'one' side. Department (one) gets the arrow; Employee (many) gets an undirected line."},
+  {q:"What uniquely identifies a weak entity?",o:["Its own primary key","The discriminator alone","PK of strong entity + discriminator","Foreign key"],a:2,e:"A weak entity has no sufficient PK of its own. Its PK = PK of identifying (strong) entity + its discriminator (partial key)."},
+  {q:"A weak entity is represented by:",o:["Dashed rectangle","Double rectangle","Dotted oval","Bold diamond"],a:1,e:"Weak entity = double rectangle. Its identifying relationship = double diamond. The discriminator gets a dashed underline."},
+  {q:"Generalization is a _____ approach.",o:["Top-down","Bottom-up","Left-right","Recursive"],a:1,e:"Generalization is bottom-up: combine multiple lower-level entity types sharing common attributes into a higher-level superclass. Specialization is top-down."},
+  {q:"Which concept lets you express relationships among relationships?",o:["Generalization","Specialization","Aggregation","Cardinality"],a:2,e:"Aggregation treats a relationship set as a higher-level abstract entity (dashed rectangle), allowing new relationships to be defined on it."},
+  {q:"In min-max notation, 0..* on the Customer side means:",o:["Customer must participate (total)","Customer may or may not participate, no upper limit","Exactly zero customers","Customer participates exactly once"],a:1,e:"0..* means min=0 (partial participation — not required) and max=* (no limit). If it were 1..*, min=1 would make it total participation."},
+  {q:"Saving_Account and Current_Account combined into Account is an example of:",o:["Aggregation","Specialization","Generalization","Composition"],a:2,e:"Combining specific entities (Saving, Current) into a general entity (Account) capturing shared attributes is generalization — bottom-up approach."},
+  {q:"The ISA triangle in ER represents:",o:["Aggregation","Weak entity relationship","Superclass-subclass relationship","Ternary relationship"],a:2,e:"ISA (Is-A) triangle represents generalization/specialization — a superclass-subclass hierarchy. Saving_Account IS A type of Account."},
+  {q:"A descriptive attribute belongs to:",o:["An entity","A weak entity only","A relationship","An entity set"],a:2,e:"A descriptive attribute is an attribute of a relationship, not an entity. Example: Issue_Date on the Issue relationship between Student and Book."},
+  {q:"In a recursive relationship, how many entity sets participate?",o:["Zero","One (related to itself)","Two different entities","Three or more"],a:1,e:"A recursive (unary) relationship involves a single entity set related to itself. Example: Employee manages Employee — both roles from the same set."},
+  {q:"What is the degree of a relationship between Faculty, Student, and Project?",o:["1 (Unary)","2 (Binary)","3 (Ternary)","4 (Quaternary)"],a:2,e:"Degree = number of participating entity sets. Faculty + Student + Project = 3 entity sets → ternary relationship (degree 3)."}
+];
+
+let cur=0,score=0,answered=false;
+
+function initQ(){
+  cur=0;score=0;answered=false;
+  document.getElementById('q-score').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('q-num').textContent='Question '+(cur+1)+' of '+QS.length;
+  document.getElementById('q-text').textContent=q.q;
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=()=>answer(i);
+    opts.appendChild(b);
+  });
+  document.getElementById('q-exp').className='q-exp';
+  document.getElementById('q-exp').textContent='';
+  document.getElementById('q-next').style.display='none';
+  answered=false;
+  const prog=document.getElementById('q-prog');
+  prog.innerHTML='';
+  QS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='q-dot'+(i===cur?' cur':'');
+    prog.appendChild(d);
+  });
+}
+
+function answer(i){
+  if(answered)return;
+  answered=true;
+  const q=QS[cur];
+  const btns=document.querySelectorAll('.q-opt');
+  btns.forEach(b=>b.disabled=true);
+  if(i===q.a){score++;btns[i].classList.add('ok');}
+  else{btns[i].classList.add('no');btns[q.a].classList.add('ok');}
+  const exp=document.getElementById('q-exp');
+  exp.textContent=q.e;
+  exp.className='q-exp show '+(i===q.a?'ok':'no');
+  document.getElementById('q-next').style.display='block';
+  const dots=document.querySelectorAll('.q-dot');
+  dots[cur].classList.add(i===q.a?'done':'bad');
+}
+
+document.getElementById('q-next').onclick=()=>{
+  cur++;
+  if(cur>=QS.length){
+    document.getElementById('q-card').style.display='none';
+    const sc=document.getElementById('q-score');
+    sc.style.display='block';
+    document.getElementById('sc-val').textContent=score;
+    const p=score/QS.length;
+    const msgs=['Keep studying — review ER notation!','Getting there — focus on cardinality & participation.','Decent! Revisit weak entities & aggregation.','Good work! Almost mastered ER.','Great job! Solid understanding.','Excellent! Nearly perfect.','Perfect score! ER Model master!'];
+    document.getElementById('sc-msg').textContent=msgs[Math.min(Math.floor(p*6),6)];
+  } else {renderQ();}
+};
+
+initQ();
+</script>
+</body>
+</html>

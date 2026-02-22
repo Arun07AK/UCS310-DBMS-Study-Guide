@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch2 — Three Level Architecture of DBMS</title>
+<style>
+:root{
+  --primary:#2980b9;--secondary:#1a5276;--accent:#27ae60;
+  --orange:#e67e22;--red:#e74c3c;--teal:#16a085;
+  --dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;
+  --text:#e8e8e8;--muted:#999;
+  --border:rgba(41,128,185,.25);--glow:0 0 30px rgba(41,128,185,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.6rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}
+.logo{color:var(--primary);font-size:.95rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;padding:.28rem .6rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(41,128,185,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--teal));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}
+h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}
+.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(41,128,185,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(41,128,185,.08);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(22,160,133,.06);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(41,128,185,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}
+.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.ib{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem;}
+.iblue{background:rgba(41,128,185,.2);}
+.igreen{background:rgba(39,174,96,.2);}
+.ired{background:rgba(231,76,60,.2);}
+.iorange{background:rgba(230,126,34,.2);}
+.iteal{background:rgba(22,160,133,.2);}
+.hbox{background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.red{background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.3);}
+.hbox p{color:#d0d0e0;}
+.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}
+.hbox.orange strong{color:var(--orange);}
+.hbox.red strong{color:var(--red);}
+
+/* THREE LEVEL DIAGRAM */
+.arch-diagram{display:flex;flex-direction:column;gap:0;margin:1.5rem 0;}
+.arch-level{border-radius:12px;padding:1.2rem 1.5rem;border:2px solid;margin:.3rem 0;position:relative;}
+.arch-ext{background:rgba(41,128,185,.1);border-color:rgba(41,128,185,.5);}
+.arch-con{background:rgba(39,174,96,.1);border-color:rgba(39,174,96,.5);}
+.arch-int{background:rgba(231,76,60,.1);border-color:rgba(231,76,60,.5);}
+.arch-level-title{font-size:.7rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;margin-bottom:.3rem;}
+.arch-ext .arch-level-title{color:#5dade2;}
+.arch-con .arch-level-title{color:#58d68d;}
+.arch-int .arch-level-title{color:#ec7063;}
+.arch-level-desc{font-size:.82rem;color:#c0c0d0;}
+.arch-arrow{text-align:center;font-size:1.2rem;color:var(--muted);line-height:.8;}
+.arch-arrow-label{font-size:.65rem;color:var(--muted);display:block;margin-top:.1rem;}
+.ext-views{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:.6rem;}
+.ext-view-box{background:rgba(41,128,185,.15);border:1px solid rgba(41,128,185,.3);border-radius:8px;padding:.5rem .8rem;font-size:.76rem;color:#90c0f0;}
+
+/* MAPPING ARROWS */
+.mapping-label{display:inline-block;font-size:.7rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;background:var(--card2);border:1px solid var(--border);border-radius:6px;padding:.2rem .6rem;margin:.3rem 0;}
+
+/* COMPARISON TABLE */
+.cmp-table{width:100%;border-collapse:collapse;font-size:.84rem;margin-top:1rem;}
+.cmp-table th{background:rgba(41,128,185,.15);color:var(--primary);padding:.65rem 1rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;border-bottom:2px solid var(--border);}
+.cmp-table td{padding:.6rem 1rem;border-bottom:1px solid rgba(255,255,255,.05);color:#c0c0c0;vertical-align:top;}
+.cmp-table tr:hover td{background:rgba(41,128,185,.04);}
+.cmp-table td:first-child{font-weight:700;color:#e0e0e0;}
+
+/* CODE BLOCK */
+.code-block{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem 1.2rem;font-family:'Courier New',monospace;font-size:.8rem;color:#87ceeb;margin:.6rem 0;overflow-x:auto;line-height:1.7;}
+.code-block .kw{color:#5dade2;}.code-block .val{color:#82e0aa;}.code-block .type{color:#f0b27a;}
+
+/* INDEPENDENCE DIAGRAM */
+.indep-diagram{display:flex;flex-direction:column;gap:.3rem;margin:1.2rem 0;}
+.indep-row{display:flex;align-items:center;gap:.8rem;}
+.indep-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:.6rem 1rem;font-size:.8rem;font-weight:600;min-width:150px;text-align:center;}
+.indep-ext{border-color:rgba(41,128,185,.5);color:#5dade2;}
+.indep-con{border-color:rgba(39,174,96,.5);color:#58d68d;}
+.indep-int{border-color:rgba(231,76,60,.5);color:#ec7063;}
+.indep-arrow{font-size:1.1rem;color:var(--orange);font-weight:700;}
+.indep-label{font-size:.72rem;color:var(--orange);font-weight:700;background:rgba(230,126,34,.1);border:1px solid rgba(230,126,34,.3);border-radius:6px;padding:.2rem .6rem;}
+
+/* FLIP CARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:180px;perspective:800px;cursor:pointer;}
+.fc-in{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s cubic-bezier(.4,0,.2,1);position:relative;}
+.fc:hover .fc-in,.fc.flip .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;border:1px solid var(--border);padding:1.1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card);}
+.fc-bk{background:linear-gradient(135deg,var(--card),var(--card2));transform:rotateY(180deg);}
+.fc-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-bottom:.5rem;}
+.fc-term{font-size:.86rem;font-weight:700;line-height:1.35;}
+.fc-hint{font-size:.65rem;color:var(--muted);margin-top:.45rem;}
+.fc-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.3rem;}
+.fc-def{font-size:.78rem;line-height:1.52;color:#c8c8e8;}
+
+/* QUIZ */
+.q-dots{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:.3s;}
+.q-dot.done{background:var(--accent);}
+.q-dot.cur{background:var(--primary);transform:scale(1.3);}
+.q-dot.bad{background:var(--orange);}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:700px;}
+.qnum{font-size:.68rem;color:var(--primary);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;}
+.qtext{font-size:.98rem;font-weight:600;margin-bottom:1.2rem;line-height:1.55;}
+.opts{display:flex;flex-direction:column;gap:.6rem;}
+.opt{padding:.75rem 1rem;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.86rem;transition:.2s;display:flex;align-items:center;gap:.7rem;text-align:left;width:100%;color:var(--text);}
+.opt:hover{background:rgba(41,128,185,.1);border-color:var(--primary);}
+.opt.ok{background:rgba(39,174,96,.12);border-color:var(--accent);color:#a0e0b0;}
+.opt.bad{background:rgba(231,76,60,.12);border-color:var(--red);color:#f0a0a0;}
+.oletter{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.qfb{margin-top:.8rem;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;display:none;line-height:1.6;}
+.qfb.show{display:block;animation:fs .3s;}
+.qfb.ok{background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.25);color:#90d8a0;}
+.qfb.bad{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);color:#f0a0a0;}
+.qnav{display:flex;gap:.75rem;margin-top:1.2rem;align-items:center;}
+.score-wrap{display:none;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;}
+.score-wrap.show{display:block;animation:fs .4s;}
+.score-ring{width:110px;height:110px;margin:0 auto 1.2rem;border-radius:50%;border:6px solid var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:var(--accent);}
+@keyframes fs{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.9rem;margin-top:1.5rem;}
+.cheat-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.ck{color:var(--primary);font-weight:700;font-size:.76rem;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+.cv{font-size:.8rem;color:#c0c0d8;line-height:1.55;}
+@media(max-width:640px){section{padding:80px 1rem 60px;}nav{gap:.3rem;padding:0 .8rem;}.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="pb"></div>
+<nav>
+  <span class="logo">Ch2 · 3-Level Architecture</span>
+  <a href="#hero">Home</a>
+  <a href="#history">History</a>
+  <a href="#schema">Schema</a>
+  <a href="#three-levels">3 Levels</a>
+  <a href="#mappings">Mappings</a>
+  <a href="#independence">Data Independence</a>
+  <a href="#example">Example</a>
+  <a href="#metadata">Metadata</a>
+  <a href="#flashcards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">📐 Chapter 2 · UCS310 DBMS</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.1;" class="fi">Three Level <span style="color:var(--primary)">Architecture</span></h1>
+  <p class="fi" style="margin-top:.8rem;max-width:560px;font-size:1rem;">External → Conceptual → Internal. Master schema, subschema, data independence, and mappings — the most exam-heavy topic after normalization.</p>
+  <div class="btns fi">
+    <a href="#three-levels" class="btn">Start Learning →</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+  <div class="hero-stats fi">
+    <div class="hs"><div class="n">3</div><div class="l">Architecture Levels</div></div>
+    <div class="hs"><div class="n">2</div><div class="l">Data Independence Types</div></div>
+    <div class="hs"><div class="n">2</div><div class="l">Mappings</div></div>
+    <div class="hs"><div class="n">12</div><div class="l">Quiz Questions</div></div>
+  </div>
+</section>
+
+<!-- HISTORY -->
+<section id="history">
+  <div class="sec-label">Section 01</div>
+  <h2 class="fi">History — How Architecture Evolved</h2>
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib iblue">📜</div>
+      <h3>Early Two Level Architecture</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">
+        • First standard proposal made in <strong style="color:#e0e0e0">1971</strong> by <strong style="color:var(--primary)">DBTG (Data Base Task Group)</strong><br>
+        • Appointed by <strong style="color:#e0e0e0">CODASYL</strong> (Conference on Data Systems and Languages), 1971<br>
+        • Recommended a <strong style="color:var(--primary)">two-level approach</strong>:<br>
+        &nbsp;&nbsp;1. <strong style="color:#e0e0e0">Schema</strong> — overall logical structure<br>
+        &nbsp;&nbsp;2. <strong style="color:#e0e0e0">Subschema</strong> — individual user's view
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib igreen">🏗️</div>
+      <h3 style="color:var(--accent)">Three Level Architecture (ANSI/SPARC)</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">
+        • Extended to three levels to provide better <strong style="color:#e0e0e0">data independence</strong><br>
+        • Three levels: <strong style="color:#5dade2">External</strong>, <strong style="color:#58d68d">Conceptual</strong>, <strong style="color:#ec7063">Internal</strong><br>
+        • <strong style="color:#e0e0e0">DBA</strong> is responsible for building schemas and mappings<br>
+        • Each level has its own schema
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- SCHEMA & SUBSCHEMA -->
+<section id="schema">
+  <div class="sec-label">Section 02</div>
+  <h2 class="fi">Schema & Subschema</h2>
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib iblue">🗺️</div>
+      <h3>Schema</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2;">
+        <li>A <strong style="color:#e0e0e0">map of the overall logical structure</strong> or description of the database</li>
+        <li>Gives names of entities, attributes, and specifies relationships</li>
+        <li>An outline/plan describing records and relationships at a particular level</li>
+        <li>Schema = <strong style="color:var(--primary)">Intension</strong> of the database (the design)</li>
+        <li>Instance = <strong style="color:var(--orange)">Extension (or State)</strong> of the database (actual data at a point in time)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="ib iorange">📋</div>
+      <h3 style="color:var(--orange)">Subschema</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2;">
+        <li>A map of the <strong style="color:#e0e0e0">application programmer's view</strong> of the data they use</li>
+        <li>A <strong style="color:var(--orange)">subset of the schema</strong> with the same properties</li>
+        <li>Allows user to view only that part of the DB relevant to them</li>
+        <li>They are <strong style="color:#e0e0e0">values of a table at a particular time</strong></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="hbox fi" style="margin-top:1rem;">
+    <p><strong>Key Distinction:</strong> Schema = intension (structure/design, doesn't change often). Instance = extension/state (actual data values, changes constantly).</p>
+  </div>
+  <div style="overflow-x:auto;margin-top:1rem;" class="fi">
+    <table class="cmp-table">
+      <thead><tr><th>SCHEMA (Intension)</th><th>INSTANCE / STATE (Extension)</th></tr></thead>
+      <tbody>
+        <tr><td>Overall logical structure/design of DB</td><td>Actual data stored in DB at a particular moment</td></tr>
+        <tr><td>Like the blueprint of a building</td><td>Like the actual building at a point in time</td></tr>
+        <tr><td>Defined by DBA, rarely changes</td><td>Changes every time data is inserted/updated/deleted</td></tr>
+        <tr><td>E.g. Student(rollno, name, gpa)</td><td>E.g. Row: (101, "Raju", 8.5) on today's date</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- THREE LEVELS -->
+<section id="three-levels">
+  <div class="sec-label">Section 03</div>
+  <h2 class="fi">Three Level Architecture</h2>
+  <p class="fi" style="margin-top:.5rem;max-width:640px;">The DBMS architecture has three levels or layers. Each level provides a different abstraction of the database.</p>
+
+  <!-- Big Architecture Diagram -->
+  <div class="arch-diagram fi">
+    <div style="text-align:center;margin-bottom:.5rem;">
+      <span style="font-size:.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">USERS / APPLICATION PROGRAMS</span>
+    </div>
+    <div class="arch-level arch-ext">
+      <div class="arch-level-title">External Level / View Level (Highest)</div>
+      <div class="arch-level-desc">Users' view of the database. Multiple different views for different users. Describes the part relevant to each user.</div>
+      <div class="ext-views" style="margin-top:.5rem;">
+        <div class="ext-view-box">View 1 (Input Screen)</div>
+        <div class="ext-view-box">View 2 (Report)</div>
+        <div class="ext-view-box">View m (Transaction)</div>
+        <div class="ext-view-box">External Schema A</div>
+        <div class="ext-view-box">External Schema B</div>
+      </div>
+    </div>
+    <div class="arch-arrow">↕<span class="arch-arrow-label">External / Conceptual Mapping</span></div>
+    <div class="arch-level arch-con">
+      <div class="arch-level-title">Conceptual Level / Logical Level (Middle)</div>
+      <div class="arch-level-desc">Community view — describes WHAT data is stored. Contains all entities, attributes, relationships, constraints, security and integrity info. Conceptual Schema.</div>
+    </div>
+    <div class="arch-arrow">↕<span class="arch-arrow-label">Conceptual / Internal Mapping</span></div>
+    <div class="arch-level arch-int">
+      <div class="arch-level-title">Internal Level / Storage Level / Physical Level (Lowest)</div>
+      <div class="arch-level-desc">Physical representation — describes HOW data is stored. Storage space allocation, record descriptions (byte sizes, offsets), record placement, compression, encryption. Internal Schema.</div>
+    </div>
+    <div class="arch-arrow">↕</div>
+    <div style="text-align:center;background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:8px;padding:.8rem;font-size:.82rem;color:#ec7063;font-weight:700;">
+      💾 Stored Database (Actual Physical Storage)
+    </div>
+  </div>
+
+  <!-- Three level detail cards -->
+  <div class="g3 fi">
+    <div class="card" style="border-top:3px solid #5dade2;">
+      <h3 style="color:#5dade2;font-size:.88rem;">External Level</h3>
+      <p style="margin-top:.5rem;font-size:.82rem;color:#b8b8b8;">
+        • Also called <strong style="color:#e0e0e0">View Level</strong><br>
+        • Users' view of the DB<br>
+        • Describes part <strong style="color:#e0e0e0">relevant to each user</strong><br>
+        • Different users see different views<br>
+        • Example: User A sees date as (day, month, year); User B sees (year, month, day)<br>
+        • Each view = External Schema (Subschema)
+      </p>
+    </div>
+    <div class="card" style="border-top:3px solid #58d68d;">
+      <h3 style="color:#58d68d;font-size:.88rem;">Conceptual Level</h3>
+      <p style="margin-top:.5rem;font-size:.82rem;color:#b8b8b8;">
+        • Also called <strong style="color:#e0e0e0">Logical Level</strong><br>
+        • <strong style="color:#e0e0e0">Community view</strong> of the database<br>
+        • Describes <strong style="color:#58d68d">WHAT data is stored</strong> and relationships<br>
+        • Represents: All entities & attributes, all relationships, constraints on data, security & integrity info<br>
+        • Conceptual Schema — ONE per database
+      </p>
+    </div>
+    <div class="card" style="border-top:3px solid #ec7063;">
+      <h3 style="color:#ec7063;font-size:.88rem;">Internal Level</h3>
+      <p style="margin-top:.5rem;font-size:.82rem;color:#b8b8b8;">
+        • Also called <strong style="color:#e0e0e0">Storage / Physical Level</strong><br>
+        • <strong style="color:#ec7063">Physical representation</strong> on computer<br>
+        • Describes <strong style="color:#ec7063">HOW data is stored</strong><br>
+        • Concerned with: Storage space for data & indexes, record descriptions with stored sizes, record placement, data compression & encryption<br>
+        • Internal Schema
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- MAPPINGS -->
+<section id="mappings">
+  <div class="sec-label">Section 04</div>
+  <h2 class="fi">Mapping Between Views</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">Mappings define correspondences between levels. The DBA defines and maintains these mappings.</p>
+
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib iblue">🔗</div>
+      <h3>External / Conceptual Mapping</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">
+        A mapping between the external and conceptual views gives the <strong style="color:#e0e0e0">correspondence among records and relationships</strong> of the external and conceptual views.<br><br>
+        <em style="color:var(--muted)">Translates user's view into the logical structure of the database.</em>
+      </p>
+      <div style="margin-top:.8rem;background:var(--card2);border-radius:8px;padding:.7rem;font-size:.78rem;color:#90c0f0;">
+        External Schema A → External/Conceptual Mapping A → Conceptual View<br>
+        External Schema B → External/Conceptual Mapping B → Conceptual View
+      </div>
+    </div>
+    <div class="card">
+      <div class="ib igreen">🔗</div>
+      <h3 style="color:var(--accent)">Conceptual / Internal Mapping</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">
+        Conceptual schema is related to internal schema by this mapping. It <strong style="color:#e0e0e0">enables the DBMS to find the actual record or combination of records</strong> in physical storage that constitute a logical record in the conceptual schema.<br><br>
+        <em style="color:var(--muted)">Translates logical schema into physical storage instructions.</em>
+      </p>
+    </div>
+  </div>
+
+  <!-- Library Example Diagram -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:2rem;">Example: Library Database</h3>
+  <p class="fi" style="margin-top:.3rem;font-size:.84rem;">See how the same data appears differently at each level:</p>
+  <div class="fi" style="margin-top:1rem;display:flex;flex-direction:column;gap:.8rem;max-width:700px;">
+    <!-- External Level -->
+    <div style="display:flex;gap:.8rem;flex-wrap:wrap;">
+      <div style="background:rgba(41,128,185,.1);border:2px solid rgba(41,128,185,.5);border-radius:10px;padding:.8rem 1rem;flex:1;min-width:200px;">
+        <div style="font-size:.65rem;color:#5dade2;font-weight:800;text-transform:uppercase;margin-bottom:.4rem;">External View A</div>
+        <div style="font-size:.78rem;color:#b8c8d8;line-height:1.8;">Roll Number<br>Name<br>Address<br>Book Number<br>Date of Issue<br>Date of Return</div>
+      </div>
+      <div style="background:rgba(41,128,185,.1);border:2px solid rgba(41,128,185,.5);border-radius:10px;padding:.8rem 1rem;flex:1;min-width:200px;">
+        <div style="font-size:.65rem;color:#5dade2;font-weight:800;text-transform:uppercase;margin-bottom:.4rem;">External View B</div>
+        <div style="font-size:.78rem;color:#b8c8d8;line-height:1.8;">Roll Number<br>Name<br>Fee</div>
+      </div>
+    </div>
+    <div style="text-align:center;color:var(--muted);font-size:.8rem;">↕ External/Conceptual Mapping ↕</div>
+    <!-- Conceptual Level -->
+    <div style="background:rgba(39,174,96,.1);border:2px solid rgba(39,174,96,.5);border-radius:10px;padding:.8rem 1.2rem;">
+      <div style="font-size:.65rem;color:#58d68d;font-weight:800;text-transform:uppercase;margin-bottom:.4rem;">Conceptual Level</div>
+      <table style="font-size:.78rem;border-collapse:collapse;width:100%;">
+        <tr><th style="text-align:left;color:#a0a0b0;padding:.2rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">Field Name</th><th style="text-align:left;color:#a0a0b0;padding:.2rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">Data Type</th></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Roll Number</td><td style="padding:.2rem .5rem;color:#82e0aa;">Number(6)</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Name</td><td style="padding:.2rem .5rem;color:#82e0aa;">Character(20)</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Address</td><td style="padding:.2rem .5rem;color:#82e0aa;">Character(40)</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Book Number</td><td style="padding:.2rem .5rem;color:#82e0aa;">Number(6)</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Date of Issue</td><td style="padding:.2rem .5rem;color:#82e0aa;">Date</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Date of Return</td><td style="padding:.2rem .5rem;color:#82e0aa;">Date</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Fee</td><td style="padding:.2rem .5rem;color:#82e0aa;">Number(5+2)</td></tr>
+      </table>
+    </div>
+    <div style="text-align:center;color:var(--muted);font-size:.8rem;">↕ Conceptual/Internal Mapping ↕</div>
+    <!-- Internal Level -->
+    <div style="background:rgba(231,76,60,.1);border:2px solid rgba(231,76,60,.5);border-radius:10px;padding:.8rem 1.2rem;">
+      <div style="font-size:.65rem;color:#ec7063;font-weight:800;text-transform:uppercase;margin-bottom:.4rem;">Internal Level</div>
+      <table style="font-size:.76rem;border-collapse:collapse;width:100%;">
+        <tr><th style="text-align:left;color:#a0a0b0;padding:.2rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">Stored Item</th><th style="text-align:left;color:#a0a0b0;padding:.2rem .5rem;border-bottom:1px solid rgba(255,255,255,.1);">Length</th></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Roll Number</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(6), Offset=0</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Name</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(20), Offset=6</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Address</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(40), Offset=26</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Book Number</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(6), Offset=66</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Fee</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(8), Offset=88</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- DATA INDEPENDENCE -->
+<section id="independence">
+  <div class="sec-label">Section 05</div>
+  <h2 class="fi">Data Independence — Key Achievement</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">Data Independence is the <strong style="color:#e0e0e0">main achievement</strong> of the layered architecture of DBMS. There are two kinds:</p>
+
+  <div class="g2 fi" style="margin-top:1.5rem;">
+    <div class="card" style="border-top:3px solid var(--accent);">
+      <div class="ib igreen">🧠</div>
+      <h3 style="color:var(--accent)">Logical Data Independence</h3>
+      <p style="margin-top:.6rem;font-size:.84rem;">
+        <strong style="color:#e0e0e0">Definition:</strong> The conceptual schema can be changed without affecting the existing external schemas.<br><br>
+        <strong style="color:var(--accent)">Ability to modify the conceptual schema WITHOUT causing application programs to be re-written.</strong><br><br>
+        • Modifications at conceptual level are necessary whenever the <strong style="color:#e0e0e0">logical structure of the database is altered</strong><br>
+        • E.g., adding a new field to a table doesn't break existing user views
+      </p>
+    </div>
+    <div class="card" style="border-top:3px solid var(--primary);">
+      <div class="ib iblue">💾</div>
+      <h3>Physical Data Independence</h3>
+      <p style="margin-top:.6rem;font-size:.84rem;">
+        <strong style="color:#e0e0e0">Definition:</strong> Physical storage structures or devices can be changed without affecting the conceptual schema.<br><br>
+        <strong style="color:var(--primary)">Ability to modify the physical schema WITHOUT causing application programs to be re-written.</strong><br><br>
+        • Modifications at physical level are occasionally necessary to <strong style="color:#e0e0e0">improve performance</strong><br>
+        • E.g., changing storage from HDD to SSD doesn't affect the logical design
+      </p>
+    </div>
+  </div>
+
+  <div class="hbox red fi" style="margin-top:1.2rem;">
+    <p><strong>IMPORTANT NOTE:</strong> Logical data independence is <strong style="color:#ec7063">MORE DIFFICULT to achieve</strong> than physical data independence, because application programs are heavily dependent on the logical structure of the data they access.</p>
+  </div>
+
+  <!-- Visual Diagram -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Data Independence — Visual Summary</h3>
+  <div class="fi" style="margin-top:1rem;max-width:600px;">
+    <div style="display:flex;flex-direction:column;gap:.2rem;align-items:flex-start;">
+      <div style="display:flex;align-items:center;gap:1rem;width:100%;">
+        <div style="background:rgba(41,128,185,.15);border:2px solid rgba(41,128,185,.5);border-radius:8px;padding:.6rem 1.2rem;min-width:180px;text-align:center;font-size:.82rem;font-weight:700;color:#5dade2;">External Schema(s)</div>
+        <div style="font-size:.72rem;color:var(--accent);font-weight:700;">← Logical Independence protects this ✓</div>
+      </div>
+      <div style="color:var(--muted);padding-left:80px;font-size:.8rem;">↕ External/Conceptual Mapping</div>
+      <div style="display:flex;align-items:center;gap:1rem;width:100%;">
+        <div style="background:rgba(39,174,96,.15);border:2px solid rgba(39,174,96,.5);border-radius:8px;padding:.6rem 1.2rem;min-width:180px;text-align:center;font-size:.82rem;font-weight:700;color:#58d68d;">Conceptual Schema</div>
+        <div style="font-size:.72rem;color:var(--primary);font-weight:700;">← Physical Independence protects this ✓</div>
+      </div>
+      <div style="color:var(--muted);padding-left:80px;font-size:.8rem;">↕ Conceptual/Internal Mapping</div>
+      <div style="display:flex;align-items:center;gap:1rem;width:100%;">
+        <div style="background:rgba(231,76,60,.15);border:2px solid rgba(231,76,60,.5);border-radius:8px;padding:.6rem 1.2rem;min-width:180px;text-align:center;font-size:.82rem;font-weight:700;color:#ec7063;">Internal Schema</div>
+        <div style="font-size:.72rem;color:var(--muted);">(can change for performance)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Comparison Table -->
+  <div style="overflow-x:auto;margin-top:1.5rem;" class="fi">
+    <table class="cmp-table">
+      <thead><tr><th></th><th>Logical Data Independence</th><th>Physical Data Independence</th></tr></thead>
+      <tbody>
+        <tr><td>What changes?</td><td>Conceptual schema changes</td><td>Internal/Physical schema changes</td></tr>
+        <tr><td>What is protected?</td><td>External schemas (user views)</td><td>Conceptual schema (logical design)</td></tr>
+        <tr><td>When needed?</td><td>When logical structure of DB is altered</td><td>To improve performance (e.g., new storage device)</td></tr>
+        <tr><td>Difficulty</td><td>MORE DIFFICULT to achieve</td><td>Easier to achieve</td></tr>
+        <tr><td>Example</td><td>Add a new column → user views unchanged</td><td>Move from HDD to SSD → logical design unchanged</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- THAPAR EXAMPLE -->
+<section id="example">
+  <div class="sec-label">Section 06</div>
+  <h2 class="fi">Example: Thapar Course Registration DB</h2>
+  <p class="fi" style="margin-top:.4rem;font-size:.84rem;">The same database has different schemas at each level:</p>
+
+  <div class="fi" style="margin-top:1.2rem;">
+    <h3 style="color:#58d68d;margin-bottom:.6rem;">Conceptual Schema (What data is stored)</h3>
+    <div class="code-block">
+<span class="kw">student</span> (st_id: <span class="type">string</span>, name: <span class="type">string</span>, birthdate: <span class="type">date</span>, gender: <span class="type">char</span>, pa_l1: <span class="type">char</span>, pa_l2: <span class="type">char</span>, la_l1: <span class="type">char</span>, cugp: <span class="type">integer</span>, cgpa: <span class="type">real</span>)
+<span class="kw">course</span> (courseno: <span class="type">string</span>, cname: <span class="type">string</span>, credits: <span class="type">integer</span>, lect_h: <span class="type">integer</span>, tut_h: <span class="type">integer</span>, pract_h: <span class="type">integer</span>)
+<span class="kw">instructor</span> (instructor_id: <span class="type">string</span>, name: <span class="type">string</span>, design: <span class="type">string</span>, specialization: <span class="type">string</span>, chamber_no: <span class="type">string</span>, tel_no: <span class="type">integer</span>)
+<span class="kw">course_info</span> (course_no: <span class="type">string</span>, enrollment: <span class="type">integer</span>, sections: <span class="type">integer</span>)
+<span class="kw">st_course_reg</span> (stid: <span class="type">string</span>, course_no: <span class="type">string</span>, section: <span class="type">integer</span>, sem: <span class="type">integer</span>, year: <span class="type">string</span>, grade: <span class="type">string</span>)
+<span class="kw">inst_course_reg</span> (instructor_id: <span class="type">string</span>, courseno: <span class="type">string</span>, section: <span class="type">integer</span>, sem: <span class="type">integer</span>, year: <span class="type">string</span>)</div>
+  </div>
+
+  <div class="fi" style="margin-top:1.2rem;">
+    <h3 style="color:#5dade2;margin-bottom:.6rem;">External Schema (User Views — only what each user needs)</h3>
+    <div class="code-block">
+<span class="kw">course-allotment</span> (instructor_id: <span class="type">string</span>, group: <span class="type">string</span>, specialization: <span class="type">string</span>, course_no: <span class="type">string</span>, section: <span class="type">integer</span>)
+<span class="kw">course-reg</span> (st_id: <span class="type">string</span>, course_no: <span class="type">string</span>, section: <span class="type">integer</span>)
+<span class="kw">grades</span> (st_id: <span class="type">string</span>, course_no: <span class="type">string</span>, grade: <span class="type">string</span>)</div>
+  </div>
+
+  <div class="fi" style="margin-top:1.2rem;">
+    <h3 style="color:#ec7063;margin-bottom:.6rem;">Physical Schema (How data is stored)</h3>
+    <div class="code-block">
+- Relations stored as <span class="val">unordered files</span>
+- Indexes on column(s) of relations (tables) for fast access</div>
+  </div>
+
+  <div class="hbox green fi">
+    <p><strong>Key Insight:</strong> The External schema has FEWER tables and attributes than the Conceptual schema — users only see what they need. Physical schema deals with actual storage details hidden from both other levels.</p>
+  </div>
+</section>
+
+<!-- METADATA -->
+<section id="metadata">
+  <div class="sec-label">Section 07</div>
+  <h2 class="fi">Metadata / Data Dictionary</h2>
+  <div class="g3 fi">
+    <div class="card">
+      <div class="ib iblue">📚</div>
+      <h3>What is Metadata?</h3>
+      <p style="margin-top:.4rem;font-size:.84rem;">
+        <strong style="color:var(--primary)">Data about data.</strong><br><br>
+        Metadata describes the structure, format, and organization of the database itself — not the actual business data.
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib iteal">📖</div>
+      <h3 style="color:var(--teal)">Data Dictionary</h3>
+      <p style="margin-top:.4rem;font-size:.84rem;">
+        A file that contains <strong style="color:#e0e0e0">metadata</strong> (data about data).<br><br>
+        Stores table names, column names, data types, constraints, relationships, indexes — all the structural information.
+      </p>
+    </div>
+    <div class="card">
+      <div class="ib igreen">🔍</div>
+      <h3 style="color:var(--accent)">How it's Used</h3>
+      <p style="margin-top:.4rem;font-size:.84rem;">
+        <strong style="color:#e0e0e0">Data dictionary file is consulted BEFORE actual data is read or modified in the database.</strong><br><br>
+        DBMS checks the data dictionary first to understand the structure, then accesses actual data.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="flashcards">
+  <div class="sec-label">Section 08</div>
+  <h2 class="fi">Flashcards</h2>
+  <p class="fi" style="margin-top:.4rem;">Hover to flip.</p>
+  <div class="fc-grid fi">
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Schema</div><div class="fc-hint">= Intension of DB</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Map of overall logical structure of DB. Gives entity names, attributes, relationships. Called "intension" of DB. Defined by DBA, rarely changes.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">Instance / State</div><div class="fc-hint">= Extension of DB</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Actual data stored in DB at a particular moment. Called "extension" or "state" of DB. Changes constantly with INSERT/UPDATE/DELETE.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">Subschema</div><div class="fc-hint">App programmer's view</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Map of application programmer's view. Subset of schema. Allows user to see only relevant part of DB. Values of a table at a particular time.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#5dade2"></div><div class="fc-term">External Level</div><div class="fc-hint">Highest level</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Also Called</div><div class="fc-def">View Level. Users' view of DB. Describes part relevant to each user. Multiple external schemas possible. E.g., date shown as (DD/MM/YY) for one user, (YYYY-MM-DD) for another.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#58d68d"></div><div class="fc-term">Conceptual Level</div><div class="fc-hint">Middle level</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Also Called</div><div class="fc-def">Logical Level. Community view. Describes WHAT data is stored + relationships. Contains entities, attributes, constraints, security, integrity. ONE conceptual schema per DB.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#ec7063"></div><div class="fc-term">Internal Level</div><div class="fc-hint">Lowest level</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Also Called</div><div class="fc-def">Storage/Physical Level. Physical representation. Describes HOW data is stored. Storage allocation, record byte sizes & offsets, compression, encryption.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--accent)"></div><div class="fc-term">Logical Data Independence</div><div class="fc-hint">Which levels involved?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Conceptual schema can change WITHOUT affecting external schemas. E.g., add a column → user views unaffected. MORE DIFFICULT to achieve than physical.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">Physical Data Independence</div><div class="fc-hint">Which levels involved?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Physical/internal schema can change WITHOUT affecting conceptual schema. E.g., change storage device → logical design unaffected. Needed to improve performance.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--teal)"></div><div class="fc-term">Metadata</div><div class="fc-hint">= Data Dictionary</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Data about data. The data dictionary is a file containing metadata. It is consulted BEFORE actual data is read or modified in the database.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:var(--orange)"></div><div class="fc-term">DBTG</div><div class="fc-hint">1971 proposal</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Full Form</div><div class="fc-def">Data Base Task Group. Produced early proposal for standard DB architecture in 1971. Appointed by CODASYL (Conference on Data Systems and Languages). Recommended two-level approach (Schema + Subschema).</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-label">Section 09</div>
+  <h2 class="fi">Quiz</h2>
+  <p class="fi" style="margin-top:.4rem;">Exam-pattern questions. Aim 100%!</p>
+  <div style="margin-top:1.5rem;">
+    <div class="q-dots" id="dots"></div>
+    <div class="qcard fi" id="qcard">
+      <div class="qnum" id="qnum"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+      <div class="qfb" id="qfb"></div>
+      <div class="qnav">
+        <button class="btn btn-o" style="padding:.4rem 1.2rem;font-size:.82rem;" onclick="nextQ()" id="nextBtn">Next →</button>
+        <span id="qscore" style="font-size:.8rem;color:var(--muted);"></span>
+      </div>
+    </div>
+    <div class="score-wrap" id="scoreWrap">
+      <div class="score-ring" id="scoreRing"></div>
+      <h3 id="scoreMsg" style="margin-bottom:.6rem;"></h3>
+      <p id="scoreSub" style="font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;"></p>
+      <button class="btn" onclick="resetQuiz()">Retry Quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheatsheet">
+  <div class="sec-label">Section 10</div>
+  <h2 class="fi">Cheat Sheet</h2>
+  <div class="cheat-grid fi">
+    <div class="cheat-item"><div class="ck">DBTG / CODASYL</div><div class="cv">1971. Data Base Task Group. Two-level proposal: Schema + Subschema.</div></div>
+    <div class="cheat-item"><div class="ck">Schema</div><div class="cv">Intension of DB. Overall logical structure. Rarely changes.</div></div>
+    <div class="cheat-item"><div class="ck">Instance / State</div><div class="cv">Extension of DB. Actual data at a point in time. Changes constantly.</div></div>
+    <div class="cheat-item"><div class="ck">Subschema</div><div class="cv">Subset of schema. App programmer's view. Part of DB relevant to user.</div></div>
+    <div class="cheat-item"><div class="ck">External Level</div><div class="cv">= View Level. Users' view. Multiple external schemas. Highest level.</div></div>
+    <div class="cheat-item"><div class="ck">Conceptual Level</div><div class="cv">= Logical Level. Community view. WHAT data is stored. One per DB.</div></div>
+    <div class="cheat-item"><div class="ck">Internal Level</div><div class="cv">= Physical/Storage Level. HOW data is stored. Byte sizes, offsets, compression.</div></div>
+    <div class="cheat-item"><div class="ck">Ext/Conceptual Mapping</div><div class="cv">Correspondence between external and conceptual view records/relationships.</div></div>
+    <div class="cheat-item"><div class="ck">Con/Internal Mapping</div><div class="cv">Enables DBMS to find actual physical records for a logical conceptual record.</div></div>
+    <div class="cheat-item"><div class="ck">Logical Data Independence</div><div class="cv">Change conceptual → external unaffected. MORE DIFFICULT to achieve.</div></div>
+    <div class="cheat-item"><div class="ck">Physical Data Independence</div><div class="cv">Change internal → conceptual unaffected. Needed for performance tuning.</div></div>
+    <div class="cheat-item"><div class="ck">Metadata / Data Dictionary</div><div class="cv">Data about data. Consulted BEFORE actual data is read or modified.</div></div>
+  </div>
+</section>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('pb').style.width=((h.scrollTop/(h.scrollHeight-h.clientHeight))*100)+'%';
+});
+const obs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting)el.target.classList.add('v');});},{threshold:.08});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+const qs=[
+  {q:"Which organization produced the first standard two-level DB architecture proposal in 1971?",opts:["ANSI/SPARC","DBTG (appointed by CODASYL)","IBM Research","Dr. E. F. Codd's team"],ans:1,exp:"DBTG (Data Base Task Group) was appointed by CODASYL (Conference on Data Systems and Languages) in 1971 and recommended the two-level approach: Schema + Subschema."},
+  {q:"Schema is called the ___ of the database, while Instance is called the ___ of the database.",opts:["Extension / Intension","Intension / Extension (or State)","View / Model","Physical / Logical"],ans:1,exp:"Schema = Intension (the design/structure). Instance = Extension or State (actual data at a specific time). Schema rarely changes; instance changes with every data operation."},
+  {q:"What is a Subschema?",opts:["A backup copy of the schema","A map of application programmer's view — subset of schema","The physical storage description","The complete database structure"],ans:1,exp:"Subschema is a map of an application programmer's view of the data they use. It is a subset of the schema and allows the user to see only the part of the DB relevant to them."},
+  {q:"Which level describes HOW data is physically stored?",opts:["External Level","Conceptual Level","Internal / Physical Level","Logical Level"],ans:2,exp:"Internal Level (also called Storage/Physical Level) describes HOW the data is physically stored — storage space allocation, byte sizes, offsets, compression, encryption."},
+  {q:"The Conceptual Level is also known as:",opts:["View Level","Logical Level / Community View","Storage Level","Physical Level"],ans:1,exp:"Conceptual Level = Logical Level. It represents the community view, describing WHAT data is stored, all entities/attributes/relationships, constraints, and security/integrity info."},
+  {q:"Logical data independence means:",opts:["Physical schema can change without affecting conceptual schema","Conceptual schema can change without affecting external schemas","External schema changes don't affect conceptual schema","Internal schema changes don't affect external schemas"],ans:1,exp:"Logical data independence: ability to modify the conceptual schema WITHOUT causing application programs (external schemas) to be re-written."},
+  {q:"Which type of data independence is MORE DIFFICULT to achieve?",opts:["Physical data independence","Logical data independence","Both are equally difficult","Neither is difficult"],ans:1,exp:"IMPORTANT: Logical data independence is MORE DIFFICULT to achieve than physical data independence, because application programs are heavily dependent on the logical structure of the data they access."},
+  {q:"Physical data independence modifications at the physical level are necessary in order to:",opts:["Change user views","Improve performance","Add new entities","Remove security constraints"],ans:1,exp:"Modifications at the physical level are occasionally necessary in order to IMPROVE PERFORMANCE (e.g., changing storage devices, adding indexes, reorganizing data on disk)."},
+  {q:"The External/Conceptual mapping provides:",opts:["Physical storage addresses","Correspondence among records and relationships of external and conceptual views","Byte offsets for stored items","User passwords and permissions"],ans:1,exp:"External/Conceptual Mapping gives the correspondence among records and relationships of the external and conceptual views — translates user views into logical structure."},
+  {q:"What is Metadata (Data Dictionary)?",opts:["Actual business data stored in tables","Data about data — structural info consulted before actual data is accessed","Backup copies of all tables","Security policies of the DBMS"],ans:1,exp:"Metadata = data about data. The data dictionary is a file containing metadata. It is consulted BEFORE actual data is read or modified in the database."},
+  {q:"In the Thapar Course Registration DB example, which is an External Schema (View)?",opts:["student table","course_info table","grades view (st_id, course_no, grade)","instructor table"],ans:2,exp:"'grades (st_id, course_no, grade)' is an External Schema — it's a user view showing only grade information. The conceptual schema contains all tables like student, course, instructor, etc."},
+  {q:"Who is responsible for building schemas and mappings in the Three Level Architecture?",opts:["End users","Application programmers","DBA — Database Administrator","Operating System"],ans:2,exp:"DBA (Database Administrator) is responsible for building schemas and mappings at all levels of the three-level architecture."}
+];
+
+let cur=0,score=0,answered=false;
+function initQuiz(){
+  const d=document.getElementById('dots');
+  d.innerHTML=qs.map((q,i)=>`<div class="q-dot" id="dot${i}"></div>`).join('');
+  showQ();
+}
+function showQ(){
+  if(cur>=qs.length){showScore();return;}
+  answered=false;
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qfb').textContent='';
+  qs.forEach((q,i)=>{const d=document.getElementById('dot'+i);d.className='q-dot'+(i<cur?' done':i===cur?' cur':'');});
+  const q=qs[cur];
+  document.getElementById('qnum').textContent=`Question ${cur+1} of ${qs.length}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur}`;
+  document.getElementById('opts').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})"><span class="oletter">${['A','B','C','D'][i]}</span>${o}</button>`).join('');
+}
+function answer(idx){
+  if(answered)return;
+  answered=true;
+  const q=qs[cur];
+  const opts=document.querySelectorAll('.opt');
+  opts[q.ans].classList.add('ok');
+  if(idx===q.ans)score++;
+  else opts[idx].classList.add('bad');
+  const fb=document.getElementById('qfb');
+  fb.textContent=(idx===q.ans?'✓ Correct! ':'✗ Wrong! ')+q.exp;
+  fb.className='qfb show '+(idx===q.ans?'ok':'bad');
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur+1}`;
+}
+function nextQ(){cur++;showQ();}
+function showScore(){
+  document.getElementById('qcard').style.display='none';
+  const sw=document.getElementById('scoreWrap');
+  sw.classList.add('show');
+  const pct=Math.round((score/qs.length)*100);
+  document.getElementById('scoreRing').textContent=pct+'%';
+  document.getElementById('scoreMsg').textContent=pct===100?'Perfect! 🏆':pct>=80?'Excellent! 🎉':pct>=60?'Good! 👍':'Keep Going 📚';
+  document.getElementById('scoreSub').textContent=`You got ${score} out of ${qs.length} correct.`;
+}
+function resetQuiz(){
+  cur=0;score=0;answered=false;
+  document.getElementById('qcard').style.display='block';
+  document.getElementById('scoreWrap').classList.remove('show');
+  initQuiz();
+}
+initQuiz();
+</script>
+</body>
+</html>

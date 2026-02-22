@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch3 — Database Models</title>
+<style>
+:root{
+  --primary:#16a085;--secondary:#1abc9c;--accent:#e74c3c;
+  --blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;
+  --dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;
+  --text:#e8e8e8;--muted:#999;
+  --border:rgba(22,160,133,.25);--glow:0 0 30px rgba(22,160,133,.3);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.6rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}
+.logo{color:var(--primary);font-size:.95rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.7rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;white-space:nowrap;padding:.28rem .6rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(22,160,133,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--blue));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}
+h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}
+.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(22,160,133,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(22,160,133,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(231,76,60,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(22,160,133,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}
+.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.ib{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin-bottom:.8rem;}
+.iteal{background:rgba(22,160,133,.2);}
+.iblue{background:rgba(41,128,185,.2);}
+.ired{background:rgba(231,76,60,.2);}
+.iorange{background:rgba(230,126,34,.2);}
+.hbox{background:rgba(22,160,133,.08);border:1px solid rgba(22,160,133,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.red{background:rgba(231,76,60,.08);border-color:rgba(231,76,60,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox p{color:#d0d0e0;}
+.hbox strong{color:var(--primary);}
+.hbox.red strong{color:#ec7063;}
+.hbox.blue strong{color:#5dade2;}
+.hbox.orange strong{color:var(--orange);}
+
+/* BIG COMPARISON TABLE */
+.cmp3{width:100%;border-collapse:collapse;font-size:.8rem;margin-top:1rem;}
+.cmp3 th{padding:.7rem .9rem;text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid rgba(255,255,255,.08);}
+.cmp3 td{padding:.6rem .9rem;border-bottom:1px solid rgba(255,255,255,.05);vertical-align:top;color:#b8b8c0;line-height:1.55;}
+.cmp3 tr:hover td{background:rgba(22,160,133,.04);}
+.cmp3 .sno{color:var(--muted);font-size:.72rem;text-align:center;}
+.th-hier{background:rgba(231,76,60,.12);color:#ec7063;}
+.th-net{background:rgba(230,126,34,.12);color:#f0b27a;}
+.th-rel{background:rgba(22,160,133,.12);color:#76d7c4;}
+.td-hier{border-left:2px solid rgba(231,76,60,.3);}
+.td-net{border-left:2px solid rgba(230,126,34,.3);}
+.td-rel{border-left:2px solid rgba(22,160,133,.3);}
+
+/* MODEL CARDS */
+.model-card{border-radius:16px;padding:1.5rem;border:2px solid;}
+.mc-hier{background:rgba(231,76,60,.06);border-color:rgba(231,76,60,.3);}
+.mc-net{background:rgba(230,126,34,.06);border-color:rgba(230,126,34,.3);}
+.mc-rel{background:rgba(22,160,133,.06);border-color:rgba(22,160,133,.3);}
+.mc-title{font-size:1.1rem;font-weight:800;margin-bottom:.3rem;}
+.mc-hier .mc-title{color:#ec7063;}
+.mc-net .mc-title{color:#f0b27a;}
+.mc-rel .mc-title{color:#76d7c4;}
+.mc-sub{font-size:.7rem;color:var(--muted);margin-bottom:.8rem;font-style:italic;}
+
+/* SVG DIAGRAMS */
+.diagram-box{background:var(--card2);border:1px solid var(--border);border-radius:14px;padding:1.2rem;margin:1rem 0;overflow-x:auto;}
+
+/* TABS */
+.tab-row{display:flex;gap:.5rem;flex-wrap:wrap;margin:.8rem 0 0;}
+.tab{padding:.4rem 1rem;border-radius:8px;background:var(--card);border:1px solid var(--border);font-size:.8rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted);}
+.tab:hover{color:var(--text);border-color:var(--primary);}
+.tab.on{background:var(--primary);border-color:var(--primary);color:#fff;}
+.panel{display:none;animation:fs .3s ease;margin-top:.8rem;}
+.panel.on{display:block;}
+@keyframes fs{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* FLIP CARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:800px;cursor:pointer;}
+.fc-in{width:100%;height:100%;transform-style:preserve-3d;transition:transform .5s;position:relative;}
+.fc:hover .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;width:100%;height:100%;backface-visibility:hidden;border-radius:14px;border:1px solid var(--border);padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card);}
+.fc-bk{background:linear-gradient(135deg,var(--card),var(--card2));transform:rotateY(180deg);}
+.fc-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);margin-bottom:.5rem;}
+.fc-term{font-size:.86rem;font-weight:700;line-height:1.35;}
+.fc-hint{font-size:.65rem;color:var(--muted);margin-top:.4rem;}
+.fc-lbl{font-size:.65rem;color:var(--muted);margin-bottom:.3rem;}
+.fc-def{font-size:.77rem;line-height:1.5;color:#c8c8e8;}
+
+/* QUIZ */
+.q-dots{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:var(--border);transition:.3s;}
+.q-dot.done{background:var(--primary);}
+.q-dot.cur{background:var(--accent);transform:scale(1.3);}
+.q-dot.bad{background:var(--orange);}
+.qcard{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2rem;max-width:700px;}
+.qnum{font-size:.68rem;color:var(--primary);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:.4rem;}
+.qtext{font-size:.98rem;font-weight:600;margin-bottom:1.2rem;line-height:1.55;}
+.opts{display:flex;flex-direction:column;gap:.6rem;}
+.opt{padding:.75rem 1rem;border-radius:10px;cursor:pointer;background:rgba(255,255,255,.04);border:1px solid var(--border);font-size:.86rem;transition:.2s;display:flex;align-items:center;gap:.7rem;text-align:left;width:100%;color:var(--text);}
+.opt:hover{background:rgba(22,160,133,.1);border-color:var(--primary);}
+.opt.ok{background:rgba(22,160,133,.12);border-color:var(--primary);color:#76d7c4;}
+.opt.bad{background:rgba(231,76,60,.12);border-color:var(--accent);color:#f0a0a0;}
+.oletter{width:24px;height:24px;border-radius:50%;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.qfb{margin-top:.8rem;padding:.75rem 1rem;border-radius:10px;font-size:.84rem;display:none;line-height:1.6;}
+.qfb.show{display:block;animation:fs .3s;}
+.qfb.ok{background:rgba(22,160,133,.08);border:1px solid rgba(22,160,133,.25);color:#76d7c4;}
+.qfb.bad{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.25);color:#f0a0a0;}
+.qnav{display:flex;gap:.75rem;margin-top:1.2rem;align-items:center;}
+.score-wrap{display:none;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:2.5rem;max-width:440px;}
+.score-wrap.show{display:block;animation:fs .4s;}
+.score-ring{width:110px;height:110px;margin:0 auto 1.2rem;border-radius:50%;border:6px solid var(--primary);display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:800;color:var(--primary);}
+.cheat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.9rem;margin-top:1.5rem;}
+.cheat-item{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:1rem;}
+.ck{color:var(--primary);font-weight:700;font-size:.76rem;margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.05em;}
+.cv{font-size:.8rem;color:#c0c0d8;line-height:1.55;}
+@media(max-width:640px){section{padding:80px 1rem 60px;}nav{gap:.3rem;padding:0 .8rem;}.g2,.g3{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div id="pb"></div>
+<nav>
+  <span class="logo">Ch3 · Database Models</span>
+  <a href="#hero">Home</a>
+  <a href="#hierarchical">Hierarchical</a>
+  <a href="#network">Network</a>
+  <a href="#relational">Relational</a>
+  <a href="#example">Bank Example</a>
+  <a href="#comparison">Comparison</a>
+  <a href="#flashcards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+  <a href="#cheatsheet">Cheat Sheet</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero" style="min-height:100vh;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">🗂️ Chapter 3 · UCS310 DBMS</div>
+  <h1 style="font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.1;" class="fi">Database <span style="color:var(--primary)">Models</span></h1>
+  <p class="fi" style="margin-top:.8rem;max-width:560px;font-size:1rem;">Hierarchical, Network & Relational — understand the full comparison, diagrams, anomalies, and why the Relational Model won. Every point from the slides is here.</p>
+  <div class="btns fi">
+    <a href="#hierarchical" class="btn">Start Learning →</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+  <div class="hero-stats fi">
+    <div class="hs"><div class="n">3</div><div class="l">DB Models</div></div>
+    <div class="hs"><div class="n">13</div><div class="l">Comparison Points</div></div>
+    <div class="hs"><div class="n">12</div><div class="l">Quiz Questions</div></div>
+    <div class="hs"><div class="n">9</div><div class="l">Flashcards</div></div>
+  </div>
+</section>
+
+<!-- MODELS OVERVIEW -->
+<section id="overview">
+  <div class="sec-label">Section 01</div>
+  <h2 class="fi">Three Database Models</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">Databases evolved through three major data models. Understanding each — and how they compare — is essential for exams.</p>
+  <div class="g3 fi" style="margin-top:1.2rem;">
+    <div class="model-card mc-hier">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">🌳</div>
+      <div class="mc-title">Hierarchical</div>
+      <div class="mc-sub">IBM IMS, 1968 — oldest</div>
+      <p style="font-size:.8rem;color:#c0a0a0;">Tree structure. Each node has exactly ONE parent. Causes insertion/deletion anomalies.</p>
+    </div>
+    <div class="model-card mc-net">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">🕸️</div>
+      <div class="mc-title">Network</div>
+      <div class="mc-sub">CODASYL DBTG — advanced</div>
+      <p style="font-size:.8rem;color:#c0b090;">Graph structure. Child can have MANY parents. Uses Records + Sets. Complex but more flexible.</p>
+    </div>
+    <div class="model-card mc-rel">
+      <div style="font-size:1.8rem;margin-bottom:.3rem;">📊</div>
+      <div class="mc-title">Relational</div>
+      <div class="mc-sub">E.F. Codd, 1970 — standard today</div>
+      <p style="font-size:.8rem;color:#a0c8c0;">Table structure. Data only, no physical links. SQL querying. Oracle, MySQL, etc.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HIERARCHICAL -->
+<section id="hierarchical">
+  <div class="sec-label">Section 02</div>
+  <h2 class="fi" style="color:#ec7063;">Hierarchical Model</h2>
+
+  <div class="g2 fi">
+    <div class="card" style="border-left:3px solid #ec7063;">
+      <div class="ib ired">🌳</div>
+      <h3 style="color:#ec7063;">Key Properties</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>Oldest data model — developed by <strong style="color:#e0e0e0">IBM in 1968</strong></li>
+        <li>Organizes data in <strong style="color:#e0e0e0">tree-like structure</strong></li>
+        <li>Contains <strong style="color:#e0e0e0">nodes connected by branches</strong></li>
+        <li>Topmost node = <strong style="color:#ec7063">root node</strong></li>
+        <li>Multiple top-level nodes = <strong style="color:#ec7063">root segments</strong></li>
+        <li>Each node has <strong style="color:#e0e0e0">exactly ONE parent</strong></li>
+        <li>One parent may have <strong style="color:#e0e0e0">many children</strong></li>
+        <li>Implements <strong style="color:#e0e0e0">1:1 and 1:N</strong> relationships only</li>
+        <li>Pointers used to establish relationships <strong style="color:#e0e0e0">physically</strong></li>
+        <li>Examples: <strong style="color:#e0e0e0">IMS from IBM, System 2000 from Intel</strong></li>
+        <li>&XML and XAML use this model</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid #ec7063;">
+      <h3 style="color:#ec7063;">Problems / Anomalies</h3>
+      <div style="margin-top:.8rem;display:flex;flex-direction:column;gap:.6rem;">
+        <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:.7rem .9rem;">
+          <div style="font-size:.8rem;font-weight:700;color:#ec7063;margin-bottom:.2rem;">Insertion Anomaly</div>
+          <div style="font-size:.78rem;color:#c0b0b0;">Child node cannot be inserted without the parent node existing.</div>
+        </div>
+        <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:.7rem .9rem;">
+          <div style="font-size:.8rem;font-weight:700;color:#ec7063;margin-bottom:.2rem;">Deletion Anomaly</div>
+          <div style="font-size:.78rem;color:#c0b0b0;">Difficult to delete parent node (all children would be lost).</div>
+        </div>
+        <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:.7rem .9rem;">
+          <div style="font-size:.8rem;font-weight:700;color:#ec7063;margin-bottom:.2rem;">Update Inconsistency</div>
+          <div style="font-size:.78rem;color:#c0b0b0;">Update leads to inconsistency due to multiple instances of child records.</div>
+        </div>
+        <div style="background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.2);border-radius:8px;padding:.7rem .9rem;">
+          <div style="font-size:.8rem;font-weight:700;color:#ec7063;margin-bottom:.2rem;">Lacks Data Independence</div>
+          <div style="font-size:.78rem;color:#c0b0b0;">No data independence. Less flexible. No SQL querying support.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hierarchical Tree Diagram -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Hierarchical Tree Diagram — Bank Accounts</h3>
+  <div class="diagram-box fi">
+    <svg viewBox="0 0 600 260" style="width:100%;max-width:600px;display:block;margin:0 auto;">
+      <!-- Root -->
+      <rect x="240" y="10" width="120" height="35" rx="6" fill="rgba(231,76,60,.2)" stroke="rgba(231,76,60,.6)" stroke-width="1.5"/>
+      <text x="300" y="32" text-anchor="middle" font-size="12" fill="#ec7063" font-weight="700">BANK</text>
+      <!-- Level 1 Customers -->
+      <line x1="300" y1="45" x2="100" y2="100" stroke="#555" stroke-width="1.5"/>
+      <line x1="300" y1="45" x2="300" y2="100" stroke="#555" stroke-width="1.5"/>
+      <line x1="300" y1="45" x2="500" y2="100" stroke="#555" stroke-width="1.5"/>
+      <!-- X -->
+      <rect x="30" y="100" width="140" height="35" rx="5" fill="rgba(231,76,60,.1)" stroke="rgba(231,76,60,.4)" stroke-width="1.5"/>
+      <text x="100" y="122" text-anchor="middle" font-size="11" fill="#e8c8c8">X | 74, AH-1</text>
+      <!-- Y -->
+      <rect x="230" y="100" width="140" height="35" rx="5" fill="rgba(231,76,60,.1)" stroke="rgba(231,76,60,.4)" stroke-width="1.5"/>
+      <text x="300" y="122" text-anchor="middle" font-size="11" fill="#e8c8c8">Y | 85, CH-5</text>
+      <!-- Z -->
+      <rect x="430" y="100" width="140" height="35" rx="5" fill="rgba(231,76,60,.1)" stroke="rgba(231,76,60,.4)" stroke-width="1.5"/>
+      <text x="500" y="122" text-anchor="middle" font-size="11" fill="#e8c8c8">Z | 100, AH-8</text>
+      <!-- X's account -->
+      <line x1="100" y1="135" x2="100" y2="190" stroke="#555" stroke-width="1.5"/>
+      <rect x="50" y="190" width="100" height="35" rx="4" fill="rgba(22,160,133,.1)" stroke="rgba(22,160,133,.3)" stroke-width="1.5"/>
+      <text x="100" y="212" text-anchor="middle" font-size="11" fill="#76d7c4">7405 | 30000</text>
+      <!-- Y's accounts -->
+      <line x1="300" y1="135" x2="230" y2="190" stroke="#555" stroke-width="1.5"/>
+      <line x1="300" y1="135" x2="340" y2="190" stroke="#555" stroke-width="1.5"/>
+      <rect x="175" y="190" width="110" height="35" rx="4" fill="rgba(22,160,133,.1)" stroke="rgba(22,160,133,.3)" stroke-width="1.5"/>
+      <text x="230" y="212" text-anchor="middle" font-size="11" fill="#76d7c4">9545 | 40000</text>
+      <rect x="290" y="190" width="110" height="35" rx="4" fill="rgba(22,160,133,.1)" stroke="rgba(22,160,133,.3)" stroke-width="1.5"/>
+      <text x="345" y="212" text-anchor="middle" font-size="11" fill="#76d7c4">8448 | 50000</text>
+      <!-- Z's accounts -->
+      <line x1="500" y1="135" x2="460" y2="190" stroke="#555" stroke-width="1.5"/>
+      <line x1="500" y1="135" x2="535" y2="190" stroke="#555" stroke-width="1.5"/>
+      <rect x="410" y="190" width="100" height="35" rx="4" fill="rgba(22,160,133,.1)" stroke="rgba(22,160,133,.3)" stroke-width="1.5"/>
+      <text x="460" y="212" text-anchor="middle" font-size="11" fill="#76d7c4">8448 | 50000</text>
+      <rect x="488" y="190" width="100" height="35" rx="4" fill="rgba(22,160,133,.1)" stroke="rgba(22,160,133,.3)" stroke-width="1.5"/>
+      <text x="538" y="212" text-anchor="middle" font-size="11" fill="#76d7c4">9400 | 35000</text>
+      <!-- PROBLEM label -->
+      <text x="300" y="250" text-anchor="middle" font-size="10" fill="#ec7063">⚠ Account 8448 stored TWICE (under Y AND Z) → Duplication problem!</text>
+    </svg>
+  </div>
+</section>
+
+<!-- NETWORK -->
+<section id="network">
+  <div class="sec-label">Section 03</div>
+  <h2 class="fi" style="color:#f0b27a;">Network Model</h2>
+  <div class="g2 fi">
+    <div class="card" style="border-left:3px solid #f0b27a;">
+      <div class="ib iorange">🕸️</div>
+      <h3 style="color:#f0b27a;">Key Properties</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li><strong style="color:#e0e0e0">Advanced version</strong> of hierarchical model</li>
+        <li>Uses <strong style="color:#f0b27a">directed graphs</strong> instead of tree structure</li>
+        <li>Child can have <strong style="color:#f0b27a">more than one parent</strong></li>
+        <li>Uses concepts of <strong style="color:#e0e0e0">Records and Sets</strong></li>
+        <li>Data = collection of records; Relationships = links/pointers</li>
+        <li>Records organized as <strong style="color:#e0e0e0">collections of arbitrary graphs</strong></li>
+        <li>Implements <strong style="color:#e0e0e0">1:1, 1:N, and M:N</strong> relationships</li>
+        <li>CODASYL DBTG proposal — <strong style="color:#e0e0e0">Honeywell, UNIVAC, ICL</strong></li>
+        <li>Examples: <strong style="color:#e0e0e0">VAX-DBMS, DMS-1100 (UNIVAC), SUPRADBMS</strong></li>
+        <li>Partial data independence</li>
+        <li>No insertion or deletion anomaly</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid #f0b27a;">
+      <h3 style="color:#f0b27a;">Differences from Hierarchical</h3>
+      <div style="margin-top:.8rem;overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:.8rem;">
+          <tr><th style="text-align:left;color:#f0b27a;padding:.4rem .6rem;border-bottom:1px solid rgba(255,255,255,.1);">Hierarchical</th><th style="text-align:left;color:#f0b27a;padding:.4rem .6rem;border-bottom:1px solid rgba(255,255,255,.1);">Network</th></tr>
+          <tr><td style="padding:.35rem .6rem;color:#c0b0a0;">Tree structure</td><td style="padding:.35rem .6rem;color:#c0b0a0;">Graph structure (directed)</td></tr>
+          <tr><td style="padding:.35rem .6rem;color:#c0b0a0;">ONE parent per node</td><td style="padding:.35rem .6rem;color:#c0b0a0;">MANY parents allowed</td></tr>
+          <tr><td style="padding:.35rem .6rem;color:#c0b0a0;">1:1 and 1:N only</td><td style="padding:.35rem .6rem;color:#c0b0a0;">Also supports M:N</td></tr>
+          <tr><td style="padding:.35rem .6rem;color:#c0b0a0;">Records as trees</td><td style="padding:.35rem .6rem;color:#c0b0a0;">Records as arbitrary graphs</td></tr>
+        </table>
+      </div>
+      <div class="hbox orange" style="margin-top:.8rem;">
+        <p style="font-size:.8rem;"><strong>Similarity:</strong> Both use records (for data) and links/pointers (for relationships). Both are complex to design and maintain.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Network Diagram -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Network Graph Diagram — Bank Accounts</h3>
+  <div class="diagram-box fi">
+    <svg viewBox="0 0 560 200" style="width:100%;max-width:560px;display:block;margin:0 auto;">
+      <!-- Customers (left) -->
+      <rect x="20" y="30" width="140" height="35" rx="5" fill="rgba(230,126,34,.15)" stroke="rgba(230,126,34,.5)" stroke-width="1.5"/>
+      <text x="90" y="52" text-anchor="middle" font-size="11" fill="#f0b27a">X | 74, AH-1</text>
+      <rect x="20" y="90" width="140" height="35" rx="5" fill="rgba(230,126,34,.15)" stroke="rgba(230,126,34,.5)" stroke-width="1.5"/>
+      <text x="90" y="112" text-anchor="middle" font-size="11" fill="#f0b27a">Y | 85, CH-5</text>
+      <rect x="20" y="150" width="140" height="35" rx="5" fill="rgba(230,126,34,.15)" stroke="rgba(230,126,34,.5)" stroke-width="1.5"/>
+      <text x="90" y="172" text-anchor="middle" font-size="11" fill="#f0b27a">Z | 100, AH-8</text>
+      <!-- Accounts (right) -->
+      <rect x="380" y="20" width="140" height="35" rx="5" fill="rgba(22,160,133,.15)" stroke="rgba(22,160,133,.5)" stroke-width="1.5"/>
+      <text x="450" y="42" text-anchor="middle" font-size="11" fill="#76d7c4">7405 | 30000</text>
+      <rect x="380" y="70" width="140" height="35" rx="5" fill="rgba(22,160,133,.15)" stroke="rgba(22,160,133,.5)" stroke-width="1.5"/>
+      <text x="450" y="92" text-anchor="middle" font-size="11" fill="#76d7c4">9545 | 40000</text>
+      <rect x="380" y="120" width="140" height="35" rx="5" fill="rgba(22,160,133,.15)" stroke="rgba(22,160,133,.5)" stroke-width="1.5"/>
+      <text x="450" y="142" text-anchor="middle" font-size="11" fill="#76d7c4">8448 | 50000</text>
+      <rect x="380" y="155" width="140" height="35" rx="5" fill="rgba(22,160,133,.15)" stroke="rgba(22,160,133,.5)" stroke-width="1.5"/>
+      <text x="450" y="177" text-anchor="middle" font-size="11" fill="#76d7c4">9400 | 35000</text>
+      <!-- Links -->
+      <line x1="160" y1="47" x2="380" y2="37" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="160" y1="107" x2="380" y2="87" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="160" y1="107" x2="380" y2="137" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+      <line x1="160" y1="167" x2="380" y2="137" stroke="#f39c12" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arr2)"/>
+      <line x1="160" y1="167" x2="380" y2="172" stroke="#666" stroke-width="1.5" marker-end="url(#arr)"/>
+      <!-- Key: 8448 shared by Y and Z -->
+      <text x="280" y="115" text-anchor="middle" font-size="10" fill="#f39c12">8448 shared</text>
+      <text x="280" y="127" text-anchor="middle" font-size="10" fill="#f39c12">by Y &amp; Z →</text>
+      <text x="280" y="140" text-anchor="middle" font-size="10" fill="#76d7c4">No duplication!</text>
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#666"/></marker>
+        <marker id="arr2" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L8,3 z" fill="#f39c12"/></marker>
+      </defs>
+    </svg>
+    <p style="font-size:.78rem;color:var(--muted);text-align:center;margin-top:.3rem;">Key advantage: account 8448 stored ONCE, shared between Y and Z via links. No duplication!</p>
+  </div>
+</section>
+
+<!-- RELATIONAL -->
+<section id="relational">
+  <div class="sec-label">Section 04</div>
+  <h2 class="fi" style="color:#76d7c4;">Relational Model</h2>
+  <div class="g2 fi">
+    <div class="card" style="border-left:3px solid #76d7c4;">
+      <div class="ib iteal">📊</div>
+      <h3 style="color:#76d7c4;">Key Properties</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>Developed by <strong style="color:#e0e0e0">E.F. Codd in 1970</strong></li>
+        <li><strong style="color:#76d7c4">No physical links</strong> (unlike hierarchical/network)</li>
+        <li>Data represented <strong style="color:#76d7c4">in table form only</strong></li>
+        <li>Deals with <strong style="color:#e0e0e0">data, not physical structure</strong></li>
+        <li>Provides information regarding <strong style="color:#e0e0e0">metadata</strong></li>
+        <li>At intersection of row and column: <strong style="color:#76d7c4">only ONE value per tuple</strong></li>
+        <li>Provides easy way to <strong style="color:#e0e0e0">handle queries</strong></li>
+        <li>Implements <strong style="color:#e0e0e0">1:1, 1:N, and M:N</strong> relationships</li>
+        <li>Logical representation: <strong style="color:#e0e0e0">rows and columns</strong></li>
+        <li>No insertion/deletion anomaly (with normalization)</li>
+        <li><strong style="color:#76d7c4">SQL-based declarative querying</strong> supported</li>
+        <li>Provides full <strong style="color:#e0e0e0">data independence</strong></li>
+        <li>Easy to comprehend (physical details hidden)</li>
+        <li>Examples: <strong style="color:#e0e0e0">Oracle, MySQL, SQL Server</strong></li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid #76d7c4;">
+      <h3 style="color:#76d7c4;">Relational Model Data (Bank Example)</h3>
+      <p style="margin-top:.4rem;font-size:.8rem;margin-bottom:.8rem;">Same bank data stored in TWO separate tables:</p>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem;font-weight:700;text-transform:uppercase;">Customer Table</p>
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem;margin-bottom:1rem;">
+        <tr style="background:rgba(22,160,133,.15);">
+          <th style="text-align:left;padding:.3rem .5rem;color:#76d7c4;">cust-name</th>
+          <th style="text-align:left;padding:.3rem .5rem;color:#76d7c4;">cust-address</th>
+          <th style="text-align:left;padding:.3rem .5rem;color:#76d7c4;">ac-no</th>
+        </tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">X</td><td style="padding:.3rem .5rem;color:#c0c0d0;">74, AH-1</td><td style="padding:.3rem .5rem;color:#c0c0d0;">7405</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">Y</td><td style="padding:.3rem .5rem;color:#c0c0d0;">85, CH-5</td><td style="padding:.3rem .5rem;color:#c0c0d0;">9545</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Y</td><td style="padding:.3rem .5rem;color:#c0c0d0;">85, CH-5</td><td style="padding:.3rem .5rem;color:#c0c0d0;">8448</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">Z</td><td style="padding:.3rem .5rem;color:#c0c0d0;">100, AH-8</td><td style="padding:.3rem .5rem;color:#c0c0d0;">9400</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">Z</td><td style="padding:.3rem .5rem;color:#c0c0d0;">100, AH-8</td><td style="padding:.3rem .5rem;color:#c0c0d0;">8448</td></tr>
+      </table>
+      <p style="font-size:.72rem;color:var(--muted);margin-bottom:.3rem;font-weight:700;text-transform:uppercase;">Account Table</p>
+      <table style="width:100%;border-collapse:collapse;font-size:.78rem;">
+        <tr style="background:rgba(22,160,133,.15);">
+          <th style="text-align:left;padding:.3rem .5rem;color:#76d7c4;">ac-no</th>
+          <th style="text-align:left;padding:.3rem .5rem;color:#76d7c4;">balance</th>
+        </tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">7405</td><td style="padding:.3rem .5rem;color:#c0c0d0;">30000</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">8448</td><td style="padding:.3rem .5rem;color:#c0c0d0;">50000</td></tr>
+        <tr><td style="padding:.3rem .5rem;color:#c0c0d0;">9400</td><td style="padding:.3rem .5rem;color:#c0c0d0;">35000</td></tr>
+        <tr style="background:rgba(255,255,255,.03);"><td style="padding:.3rem .5rem;color:#c0c0d0;">9545</td><td style="padding:.3rem .5rem;color:#c0c0d0;">40000</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section id="comparison">
+  <div class="sec-label">Section 05</div>
+  <h2 class="fi">Complete Comparison — All 13 Points</h2>
+  <p class="fi" style="margin-top:.4rem;font-size:.84rem;color:var(--muted);">This full table from the PPT is a classic exam question. Know ALL 13 rows.</p>
+  <div style="overflow-x:auto;margin-top:1rem;" class="fi">
+    <table class="cmp3">
+      <thead>
+        <tr>
+          <th style="color:var(--muted);width:40px;">S.No</th>
+          <th class="th-hier">Hierarchical Data Model</th>
+          <th class="th-net">Network Data Model</th>
+          <th class="th-rel">Relational Data Model</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="sno">1</td><td class="td-hier">Uses hierarchy method. Oldest, not in use today.</td><td class="td-net">Organizes records through links or pointers.</td><td class="td-rel">Organizes records in table form. Relationships via common fields.</td></tr>
+        <tr><td class="sno">2</td><td class="td-hier">Uses tree structure.</td><td class="td-net">Uses directed graphs.</td><td class="td-rel">Uses tables.</td></tr>
+        <tr><td class="sno">3</td><td class="td-hier">Implements 1:1 and 1:N relations.</td><td class="td-net">Also implements M:N (many-to-many) relationships.</td><td class="td-rel">Also implements M:N relationships.</td></tr>
+        <tr><td class="sno">4</td><td class="td-hier">Pointers used to establish relationships physically.</td><td class="td-net">Linked list used to establish relationships physically.</td><td class="td-rel">Logical representation with rows and columns.</td></tr>
+        <tr><td class="sno">5</td><td class="td-hier" style="color:#f1948a;">Insertion anomaly: child cannot be inserted without parent.</td><td class="td-net">No insertion anomaly.</td><td class="td-rel">No insertion anomaly.</td></tr>
+        <tr><td class="sno">6</td><td class="td-hier" style="color:#f1948a;">Deletion anomaly: difficult to delete parent node.</td><td class="td-net">No deletion anomaly.</td><td class="td-rel">No deletion anomaly.</td></tr>
+        <tr><td class="sno">7</td><td class="td-hier" style="color:#f1948a;">Update leads to inconsistency (multiple child instances).</td><td class="td-net">No such problem (only one instance of records).</td><td class="td-rel">Updating easy with normalization; redundant data removed.</td></tr>
+        <tr><td class="sno">8</td><td class="td-hier" style="color:#f1948a;">Lacks data independence.</td><td class="td-net">Partial data independence.</td><td class="td-rel" style="color:#76d7c4;">Provides data independence.</td></tr>
+        <tr><td class="sno">9</td><td class="td-hier" style="color:#f1948a;">No querying facility.</td><td class="td-net" style="color:#f1948a;">No querying facility.</td><td class="td-rel" style="color:#76d7c4;">SQL-based declarative querying supported.</td></tr>
+        <tr><td class="sno">10</td><td class="td-hier">Used to access complex and asymmetric data.</td><td class="td-net">Used to access complex and symmetric data.</td><td class="td-rel">Used to access complex and symmetric data.</td></tr>
+        <tr><td class="sno">11</td><td class="td-hier" style="color:#f1948a;">Difficult to design (complexity).</td><td class="td-net" style="color:#f1948a;">Difficult to design and manipulate; burdens programmer.</td><td class="td-rel" style="color:#76d7c4;">Easy to comprehend — physical details concealed from users.</td></tr>
+        <tr><td class="sno">12</td><td class="td-hier" style="color:#f1948a;">Less flexible.</td><td class="td-net">More flexible than hierarchical.</td><td class="td-rel" style="color:#76d7c4;">Flexible.</td></tr>
+        <tr><td class="sno">13</td><td class="td-hier">&XML and XAML use this model.</td><td class="td-net">VAX-DBMS, DMS-1100 (UNIVAC), SUPRADBMS.</td><td class="td-rel" style="color:#76d7c4;">Oracle, SQL. Mostly used in real-world applications.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="flashcards">
+  <div class="sec-label">Section 06</div>
+  <h2 class="fi">Flashcards</h2>
+  <div class="fc-grid fi">
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#ec7063"></div><div class="fc-term">Hierarchical Model</div><div class="fc-hint">Year + structure?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Key Facts</div><div class="fc-def">IBM 1968. Tree structure. Each node has EXACTLY ONE parent. 1:1 and 1:N only. Insertion/deletion anomalies. Lacks data independence. IMS from IBM.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#f0b27a"></div><div class="fc-term">Network Model</div><div class="fc-hint">Key difference from hierarchical?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Key Facts</div><div class="fc-def">Advanced hierarchical. Directed graphs. Child can have MANY parents. Records + Sets. CODASYL DBTG. Supports M:N. No anomalies. Partial data independence.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#76d7c4"></div><div class="fc-term">Relational Model</div><div class="fc-hint">Who + year?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Key Facts</div><div class="fc-def">E.F. Codd, 1970. Table structure. No physical links. Data only. SQL querying. Full data independence. No anomalies. Oracle, MySQL, SQL Server.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#ec7063"></div><div class="fc-term">Insertion Anomaly (Hierarchical)</div><div class="fc-hint">What's the rule?</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">Child node CANNOT be inserted without the parent node existing first. E.g., cannot create an account without a customer existing in the tree.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#f0b27a"></div><div class="fc-term">Root Node</div><div class="fc-hint">In hierarchical model</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">The topmost node in a hierarchical tree. If multiple nodes appear at the top level, they are called "root segments" instead of root node.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#76d7c4"></div><div class="fc-term">Records & Sets</div><div class="fc-hint">Network model concept</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Definition</div><div class="fc-def">The two data structures used in the Network model. Records store data. Sets represent relationships (links/pointers between records). Records organized as arbitrary graphs.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot"></div><div class="fc-term">CODASYL DBTG</div><div class="fc-hint">Network model origin</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Full Form</div><div class="fc-def">Conference on Data Systems and Languages — Data Base Task Group. Proposed the Network model standard. Led to DDL and DML for network databases (Honeywell, UNIVAC, ICL).</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#ec7063"></div><div class="fc-term">Why Hierarchical Fails</div><div class="fc-hint">3 main problems</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Problems</div><div class="fc-def">1. Insertion anomaly (no parent = no child). 2. Deletion anomaly (parent deletion loses all children). 3. Update inconsistency (same child stored multiple times). Also: no data independence, no SQL.</div></div>
+    </div></div>
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-dot" style="background:#76d7c4"></div><div class="fc-term">Why Relational Won</div><div class="fc-hint">Main advantages</div></div>
+      <div class="fc-bk"><div class="fc-lbl">Reasons</div><div class="fc-def">No physical links needed. Data independence. SQL-based querying. Easy for users (physical details hidden). No anomalies with normalization. M:N relationships supported. Used by Oracle, MySQL.</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-label">Section 07</div>
+  <h2 class="fi">Quiz</h2>
+  <p class="fi" style="margin-top:.4rem;">Questions based on the full comparison table and model properties.</p>
+  <div style="margin-top:1.5rem;">
+    <div class="q-dots" id="dots"></div>
+    <div class="qcard fi" id="qcard">
+      <div class="qnum" id="qnum"></div>
+      <div class="qtext" id="qtext"></div>
+      <div class="opts" id="opts"></div>
+      <div class="qfb" id="qfb"></div>
+      <div class="qnav">
+        <button class="btn btn-o" style="padding:.4rem 1.2rem;font-size:.82rem;" onclick="nextQ()">Next →</button>
+        <span id="qscore" style="font-size:.8rem;color:var(--muted);"></span>
+      </div>
+    </div>
+    <div class="score-wrap" id="scoreWrap">
+      <div class="score-ring" id="scoreRing"></div>
+      <h3 id="scoreMsg" style="margin-bottom:.6rem;"></h3>
+      <p id="scoreSub" style="font-size:.85rem;color:var(--muted);margin-bottom:1.2rem;"></p>
+      <button class="btn" onclick="resetQuiz()">Retry Quiz</button>
+    </div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheatsheet">
+  <div class="sec-label">Section 08</div>
+  <h2 class="fi">Cheat Sheet</h2>
+  <div class="cheat-grid fi">
+    <div class="cheat-item"><div class="ck">Hierarchical</div><div class="cv">IBM 1968. Tree. ONE parent per node. 1:1 &amp; 1:N. IMS/System2000. XML/XAML.</div></div>
+    <div class="cheat-item"><div class="ck">Network</div><div class="cv">CODASYL DBTG. Graph. MANY parents. Records+Sets. 1:1, 1:N, M:N. VAX-DBMS, DMS-1100.</div></div>
+    <div class="cheat-item"><div class="ck">Relational</div><div class="cv">E.F. Codd 1970. Tables. No physical links. SQL. Oracle, MySQL. Full data independence.</div></div>
+    <div class="cheat-item"><div class="ck">Hierarchical Anomalies</div><div class="cv">Insertion (no parent=no child), Deletion (parent loss=children loss), Update inconsistency.</div></div>
+    <div class="cheat-item"><div class="ck">Data Independence</div><div class="cv">Hierarchical: NONE. Network: PARTIAL. Relational: FULL.</div></div>
+    <div class="cheat-item"><div class="ck">Querying</div><div class="cv">Hierarchical: None. Network: None. Relational: SQL-based declarative querying.</div></div>
+    <div class="cheat-item"><div class="ck">Relationships</div><div class="cv">Hierarchical: 1:1, 1:N. Network &amp; Relational: also M:N.</div></div>
+    <div class="cheat-item"><div class="ck">Flexibility</div><div class="cv">Hierarchical: least flexible. Network: more flexible. Relational: most flexible.</div></div>
+    <div class="cheat-item"><div class="ck">Implementation</div><div class="cv">Hierarchical: pointers. Network: linked list. Relational: rows and columns (logical).</div></div>
+  </div>
+</section>
+
+<script>
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('pb').style.width=((h.scrollTop/(h.scrollHeight-h.clientHeight))*100)+'%';
+});
+const obs=new IntersectionObserver(e=>{e.forEach(el=>{if(el.isIntersecting)el.target.classList.add('v');});},{threshold:.08});
+document.querySelectorAll('.fi').forEach(el=>obs.observe(el));
+
+const qs=[
+  {q:"The hierarchical data model was developed by which company and in which year?",opts:["IBM in 1968","E.F. Codd in 1970","CODASYL in 1971","Bell Labs in 1965"],ans:0,exp:"Hierarchical model developed by IBM in 1968. It is the oldest type of data model. Examples: IMS from IBM, System 2000 from Intel."},
+  {q:"In a hierarchical model, each node has:",opts:["No parents","Exactly one parent","Multiple parents possible","Two parents maximum"],ans:1,exp:"In the hierarchical model, each node has EXACTLY ONE parent. This is the key limitation — it cannot handle M:N relationships without data duplication."},
+  {q:"The Network model uses which structure to organize data?",opts:["Tree structure","Sequential files","Directed graphs (arbitrary graphs)","Hash tables"],ans:2,exp:"The Network model uses directed graphs instead of tree structure. Records are organized as collections of arbitrary graphs — a child can have more than one parent."},
+  {q:"Which model supports M:N (many-to-many) relationships?",opts:["Hierarchical only","Network only","Both Network and Relational","Only Relational"],ans:2,exp:"Both Network and Relational models support M:N relationships. The Hierarchical model implements only 1:1 and 1:N relations."},
+  {q:"What is the insertion anomaly in the hierarchical model?",opts:["Cannot insert duplicate records","Child node cannot be inserted without the parent node","Parent cannot be modified","All child nodes are auto-deleted"],ans:1,exp:"Insertion anomaly in hierarchical: child node CANNOT be inserted without the parent node existing. E.g., cannot create a bank account without the customer existing in the tree."},
+  {q:"Which database model provides FULL data independence?",opts:["Hierarchical","Network (partial)","Relational","None of them"],ans:2,exp:"Relational model provides full data independence. Hierarchical has NO data independence. Network has PARTIAL data independence."},
+  {q:"The CODASYL DBTG proposal is associated with which database model?",opts:["Hierarchical","Relational","Network","Object-Oriented"],ans:2,exp:"CODASYL (Conference on Data Systems and Languages) Data Base Task Group proposed the Network model. Led to DDL/DML used by Honeywell, UNIVAC, ICL."},
+  {q:"The relational model was developed by:",opts:["IBM in 1968","E.F. Codd in 1970","CODASYL in 1971","Bill Gates in 1980"],ans:1,exp:"E.F. Codd developed the Relational Model in 1970. Oracle's DBMS is patterned on his model. It uses tables with no physical links."},
+  {q:"Which models support SQL-based declarative querying?",opts:["Hierarchical only","Network only","All three models","Relational only"],ans:3,exp:"Only the Relational model supports SQL-based declarative querying. Hierarchical and Network models have NO facility for querying the database."},
+  {q:"The two data structures used in the Network model are:",opts:["Trees and Graphs","Tables and Views","Records and Sets","Nodes and Links"],ans:2,exp:"The Network model uses the concept of two data structures: Records (to store data) and Sets (to represent relationships via links/pointers)."},
+  {q:"Which is the most flexible database model?",opts:["Hierarchical","Network","Relational","All are equally flexible"],ans:2,exp:"Relational is the most flexible. Hierarchical is LESS flexible. Network is more flexible than hierarchical but less than relational."},
+  {q:"Which databases use the Relational model?",opts:["IMS and System 2000","VAX-DBMS and SUPRADBMS","Oracle and SQL (MySQL, SQL Server)","&XML and XAML"],ans:2,exp:"Oracle, SQL (MySQL, SQL Server, etc.) use the Relational model. It is mostly used in real-world applications. &XML/XAML use hierarchical. VAX-DBMS/SUPRADBMS use network."}
+];
+let cur=0,score=0,answered=false;
+function initQuiz(){
+  document.getElementById('dots').innerHTML=qs.map((q,i)=>`<div class="q-dot" id="dot${i}"></div>`).join('');
+  showQ();
+}
+function showQ(){
+  if(cur>=qs.length){showScore();return;}
+  answered=false;
+  document.getElementById('qfb').className='qfb';
+  document.getElementById('qfb').textContent='';
+  qs.forEach((q,i)=>{const d=document.getElementById('dot'+i);d.className='q-dot'+(i<cur?' done':i===cur?' cur':'');});
+  const q=qs[cur];
+  document.getElementById('qnum').textContent=`Question ${cur+1} of ${qs.length}`;
+  document.getElementById('qtext').textContent=q.q;
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur}`;
+  document.getElementById('opts').innerHTML=q.opts.map((o,i)=>`<button class="opt" onclick="answer(${i})"><span class="oletter">${['A','B','C','D'][i]}</span>${o}</button>`).join('');
+}
+function answer(idx){
+  if(answered)return;
+  answered=true;
+  const q=qs[cur];
+  const opts=document.querySelectorAll('.opt');
+  opts[q.ans].classList.add('ok');
+  if(idx===q.ans)score++;
+  else opts[idx].classList.add('bad');
+  const fb=document.getElementById('qfb');
+  fb.textContent=(idx===q.ans?'✓ Correct! ':'✗ Wrong! ')+q.exp;
+  fb.className='qfb show '+(idx===q.ans?'ok':'bad');
+  document.getElementById('qscore').textContent=`Score: ${score}/${cur+1}`;
+}
+function nextQ(){cur++;showQ();}
+function showScore(){
+  document.getElementById('qcard').style.display='none';
+  const sw=document.getElementById('scoreWrap');sw.classList.add('show');
+  const pct=Math.round((score/qs.length)*100);
+  document.getElementById('scoreRing').textContent=pct+'%';
+  document.getElementById('scoreMsg').textContent=pct===100?'Perfect! 🏆':pct>=80?'Excellent! 🎉':pct>=60?'Good! 👍':'Keep Going 📚';
+  document.getElementById('scoreSub').textContent=`You got ${score} out of ${qs.length} correct.`;
+}
+function resetQuiz(){
+  cur=0;score=0;answered=false;
+  document.getElementById('qcard').style.display='block';
+  document.getElementById('scoreWrap').classList.remove('show');
+  initQuiz();
+}
+initQuiz();
+</script>
+</body>
+</html>

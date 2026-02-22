@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch9 — Subqueries in SQL</title>
+<style>
+:root{--primary:#e74c3c;--accent:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;--dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;--text:#e8e8e8;--muted:#999;--border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.45rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}.logo{color:var(--primary);font-size:.9rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;padding:.25rem .5rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.2rem;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;margin-top:1rem;}
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.purple{background:rgba(142,68,173,.08);border-color:rgba(142,68,173,.3);}
+.hbox.teal{background:rgba(22,160,133,.08);border-color:rgba(22,160,133,.3);}
+.hbox.yellow{background:rgba(241,196,15,.06);border-color:rgba(241,196,15,.3);}
+.hbox p,.hbox li{color:#d0d0e0;}.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}.hbox.blue strong{color:#5dade2;}.hbox.orange strong{color:var(--orange);}
+.hbox.purple strong{color:#c39bd3;}.hbox.teal strong{color:#48c9b0;}.hbox.yellow strong{color:#f9e04b;}
+.code-block{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem 1.2rem;font-family:'Courier New',monospace;font-size:.78rem;color:#87ceeb;margin:.6rem 0;overflow-x:auto;line-height:1.8;white-space:pre;}
+.kw{color:#e74c3c;font-weight:700;}.fn{color:#3498db;}.val{color:#82e0aa;}.cm{color:#555;font-style:italic;}.hl{background:rgba(241,196,15,.15);color:#f9e04b;border-radius:3px;padding:0 2px;}
+.tb{color:#f39c12;font-style:italic;}.cl{color:#3498db;}
+.demo-table{border-collapse:collapse;font-size:.8rem;margin:.7rem 0;width:100%;}
+.demo-table th{padding:.5rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid rgba(255,255,255,.1);background:rgba(231,76,60,.1);color:var(--primary);}
+.demo-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;font-family:monospace;font-size:.78rem;}
+.demo-table tr:hover td{background:rgba(255,255,255,.02);}
+.null-cell{background:rgba(241,196,15,.15) !important;color:#f9e04b !important;font-weight:700;}
+.hl-row td{background:rgba(231,76,60,.07) !important;}
+.tbl-wrap{overflow-x:auto;margin:.5rem 0;}
+.diff-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.diff-table th{padding:.5rem .8rem;text-align:left;background:rgba(231,76,60,.1);color:var(--primary);font-size:.7rem;text-transform:uppercase;}
+.diff-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;}
+.diff-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.a-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0 .5rem;}
+.a-tab{padding:.35rem .85rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;}
+.a-tab.on,.a-tab:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.a-panel{display:none;}.a-panel.on{display:block;}
+.eg{background:var(--card2);border-radius:12px;padding:1.2rem 1.4rem;margin:.8rem 0;border:1px solid rgba(255,255,255,.06);}
+.eg-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);font-weight:700;margin-bottom:.3rem;}
+.eg-desc{font-size:.82rem;color:#b8b8b8;margin-bottom:.6rem;line-height:1.5;}
+.note{background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-left:3px solid #f9e04b;border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f9e04b;margin:.6rem 0;line-height:1.5;}
+.gotcha{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-left:3px solid var(--primary);border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f5b7b1;margin:.6rem 0;line-height:1.5;}
+.gotcha strong{color:var(--primary);}
+.pto{background:var(--card);border:2px dashed rgba(231,76,60,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;position:relative;}
+.pto-badge{display:inline-block;background:rgba(231,76,60,.2);color:var(--primary);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.pto-q{font-size:.92rem;font-weight:600;margin-bottom:.6rem;color:var(--text);}
+.pto-hint{font-size:.72rem;color:var(--muted);margin:.5rem 0;font-style:italic;}
+.pto-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.3);border-radius:10px;}
+.pto-reveal.show{display:block;}
+.pto-btn{background:var(--accent);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.pto-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(39,174,96,.4);}
+.pto-btn.revealed{background:var(--muted);cursor:default;}
+.wtq{background:var(--card);border:2px dashed rgba(41,128,185,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;}
+.wtq-badge{display:inline-block;background:rgba(41,128,185,.2);color:#5dade2;font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.wtq-q{font-size:.92rem;font-weight:600;margin-bottom:.4rem;color:var(--text);}
+.wtq-hint{font-size:.72rem;color:var(--muted);margin:.3rem 0 .5rem;font-style:italic;}
+.wtq-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(41,128,185,.08);border:1px solid rgba(41,128,185,.3);border-radius:10px;}
+.wtq-reveal.show{display:block;}
+.wtq-btn{background:var(--blue);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.wtq-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(41,128,185,.4);}
+.step-box{background:var(--card2);border-radius:12px;padding:1rem;margin:.5rem 0;border-left:3px solid var(--teal);}
+.step-num{display:inline-block;background:var(--teal);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:.68rem;font-weight:800;margin-right:.5rem;}
+.step-box p{font-size:.82rem;margin-top:.3rem;}
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:900px;cursor:pointer;}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.fc.flipped .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card2);border:1px solid var(--border);}
+.fc-bk{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);transform:rotateY(180deg);}
+.fc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:.4rem;}
+.fc-q{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;}
+.fc-hint{font-size:.6rem;color:var(--muted);margin-top:.5rem;}
+.fc-a{font-size:.77rem;color:#e8e8e8;line-height:1.5;}
+.quiz-wrap{max-width:720px;margin:0 auto;}
+#q-prog{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.3s;}
+.q-dot.done{background:var(--accent);}.q-dot.cur{background:var(--primary);transform:scale(1.3);}.q-dot.bad{background:#c0392b;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;}
+.q-num{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.5;}
+.q-opts{display:flex;flex-direction:column;gap:.6rem;}
+.q-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;font-size:.88rem;cursor:pointer;transition:.2s;text-align:left;}
+.q-opt:hover:not([disabled]){background:rgba(231,76,60,.1);border-color:var(--primary);}
+.q-opt.ok{background:rgba(39,174,96,.15);border-color:var(--accent);color:#82e0aa;}
+.q-opt.no{background:rgba(231,76,60,.15);border-color:var(--primary);color:#f1948a;}
+.q-exp{margin-top:1rem;padding:.8rem 1rem;border-radius:10px;font-size:.82rem;line-height:1.6;display:none;}
+.q-exp.show{display:block;}
+.q-exp.ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#a9dfbf;}
+.q-exp.no{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#f5b7b1;}
+.q-nav{display:flex;justify-content:flex-end;margin-top:1rem;}
+#q-score{text-align:center;padding:2.5rem;display:none;}
+#q-score .sc-n{font-size:4rem;font-weight:900;color:var(--primary);}
+#q-score .sc-l{font-size:.8rem;color:var(--muted);margin-bottom:.8rem;}
+.pyq-badge{display:inline-block;background:rgba(241,196,15,.15);color:#f9e04b;font-size:.55rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:.15rem .6rem;border-radius:999px;margin-left:.5rem;vertical-align:middle;}
+.flow-box{display:flex;flex-direction:column;align-items:center;gap:0;margin:1rem 0;}
+.flow-step{background:var(--card);border:2px solid var(--teal);border-radius:12px;padding:.8rem 1.5rem;text-align:center;min-width:280px;}
+.flow-step strong{color:var(--teal);font-size:.85rem;}
+.flow-step p{font-size:.75rem;color:var(--muted);margin-top:.2rem;}
+.flow-arrow{color:var(--teal);font-size:1.2rem;margin:.2rem 0;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Ch9 · Subqueries</span>
+  <a href="#intro">Intro</a>
+  <a href="#types">Types</a>
+  <a href="#single">Single-Row</a>
+  <a href="#multi">Multi-Row</a>
+  <a href="#multicol">Multi-Col</a>
+  <a href="#correlated">Correlated</a>
+  <a href="#exists">EXISTS</a>
+  <a href="#compare">Compare</a>
+  <a href="#advanced">Advanced</a>
+  <a href="#predict">Predict</a>
+  <a href="#write">Write</a>
+  <a href="#cards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+<div id="pb"></div>
+
+<!-- HERO -->
+<section id="intro" style="position:relative;padding-top:110px;min-height:90vh;display:flex;flex-direction:column;justify-content:center;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">UCS310 · Chapter 9</div>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:.6rem;">Subqueries in <span style="color:var(--primary);">SQL</span></h2>
+  <p style="font-size:1rem;color:#999;max-width:580px;margin:.4rem 0 1rem;">A subquery is a SELECT statement embedded inside another SQL statement. The inner query executes first and its result is used by the outer query — letting you solve complex problems in a single statement.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">6</div><div class="l">Subquery Types</div></div>
+    <div class="hs"><div class="n">8</div><div class="l">Predict-Output</div></div>
+    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">15</div><div class="l">Quiz Questions</div></div>
+  </div>
+  <div class="btns"><a href="#types" class="btn">Start Learning →</a><a href="#quiz" class="btn btn-o">Take Quiz</a></div>
+
+  <div class="g2 fi" style="margin-top:2.5rem;">
+    <div class="hbox blue">
+      <strong>What is a Subquery?</strong>
+      <p style="margin-top:.4rem;">A SELECT statement nested inside another SELECT, INSERT, UPDATE, or DELETE statement. Also called an <strong style="color:#5dade2;">inner query</strong> or <strong style="color:#5dade2;">nested query</strong>.</p>
+    </div>
+    <div class="hbox green">
+      <strong>Why Subqueries?</strong>
+      <p style="margin-top:.4rem;">They let you answer <strong style="color:var(--accent);">multi-part questions</strong> in a single SQL statement. E.g., "Who earns more than Abel?" requires first finding Abel's salary, then comparing.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SUBQUERY SYNTAX & TYPES OVERVIEW -->
+<section id="types">
+  <div class="sec-label">Foundations</div>
+  <h2 class="fi">Subquery Syntax &amp; Types</h2>
+
+  <div class="eg fi">
+    <div class="eg-lbl">General Syntax</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">column1</span>, <span class="cl">column2</span>
+  <span class="kw">FROM</span> <span class="tb">table</span>
+  <span class="kw">WHERE</span> <span class="cl">column</span> operator
+        (<span class="kw">SELECT</span> <span class="cl">column</span>
+         <span class="kw">FROM</span> <span class="tb">table</span>
+         <span class="kw">WHERE</span> condition);</div>
+  </div>
+
+  <div class="hbox orange fi">
+    <strong>Execution Flow</strong>
+    <p style="margin-top:.4rem;">1. The <strong style="color:var(--orange);">inner query</strong> (subquery) executes <strong style="color:var(--orange);">first</strong><br>2. Its result is passed to the <strong style="color:var(--orange);">outer query</strong> (main query)<br>3. The outer query uses this result to complete its execution</p>
+  </div>
+
+  <div class="note fi">Guidelines: (1) Enclose subquery in <strong>parentheses</strong>. (2) Place it on the <strong>right side</strong> of the comparison operator. (3) <strong>No ORDER BY</strong> in subquery (unless Top-N analysis). (4) Use <strong>single-row operators</strong> with single-row subqueries and <strong>multiple-row operators</strong> with multiple-row subqueries.</div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Motivating Problem</div>
+    <div class="eg-desc">Who has a salary greater than Abel's?</div>
+    <div class="code-block"><span class="cm">-- Two-step approach without subquery:</span>
+<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span> <span class="kw">WHERE</span> <span class="cl">last_name</span> = <span class="val">'Abel'</span>;  <span class="cm">-- Returns 11000</span>
+<span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span> <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; <span class="val">11000</span>;
+
+<span class="cm">-- One-step approach WITH subquery:</span>
+<span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="cl">salary</span>
+                    <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">last_name</span> = <span class="val">'Abel'</span>);</div>
+    <div class="tbl-wrap">
+      <table class="demo-table">
+        <tr><th>LAST_NAME</th><th>SALARY</th></tr>
+        <tr><td>King</td><td>24000</td></tr>
+        <tr><td>Kochhar</td><td>17000</td></tr>
+        <tr><td>De Haan</td><td>17000</td></tr>
+        <tr><td>Hartstein</td><td>13000</td></tr>
+        <tr><td>Higgins</td><td>12000</td></tr>
+      </table>
+    </div>
+  </div>
+
+  <h3 class="fi" style="margin-top:1.5rem;">Types of Subqueries</h3>
+  <div class="g2 fi">
+    <div class="card" style="border-color:rgba(41,128,185,.4);">
+      <h3 style="color:#5dade2;">Single-Row Subquery</h3>
+      <p style="margin-top:.4rem;">Returns <strong>one row, one value</strong>. Use with single-row operators: <code>=, &gt;, &gt;=, &lt;, &lt;=, &lt;&gt;</code></p>
+    </div>
+    <div class="card" style="border-color:rgba(142,68,173,.4);">
+      <h3 style="color:#c39bd3;">Multiple-Row Subquery</h3>
+      <p style="margin-top:.4rem;">Returns <strong>multiple rows</strong>. Use with multi-row operators: <code>IN, ANY, ALL</code></p>
+    </div>
+    <div class="card" style="border-color:rgba(230,126,34,.4);">
+      <h3 style="color:#f0b27a;">Multiple-Column Subquery</h3>
+      <p style="margin-top:.4rem;">Returns <strong>multiple columns</strong>. Compare column pairs: <code>(col1, col2) IN (subquery)</code></p>
+    </div>
+    <div class="card" style="border-color:rgba(22,160,133,.4);">
+      <h3 style="color:#48c9b0;">Correlated Subquery</h3>
+      <p style="margin-top:.4rem;">References the <strong>outer query</strong>. Re-executes for <strong>each row</strong> of the outer query.</p>
+    </div>
+  </div>
+</section>
+
+<!-- SINGLE-ROW SUBQUERIES -->
+<section id="single">
+  <div class="sec-label">Type 1</div>
+  <h2 class="fi">Single-Row Subqueries</h2>
+  <p class="fi">Return exactly <strong>one value</strong>. Use with single-row comparison operators.</p>
+
+  <div class="tbl-wrap fi">
+    <table class="diff-table">
+      <tr><th>Operator</th><th>Meaning</th></tr>
+      <tr><td><code>=</code></td><td>Equal to</td></tr>
+      <tr><td><code>&gt;</code></td><td>Greater than</td></tr>
+      <tr><td><code>&gt;=</code></td><td>Greater than or equal to</td></tr>
+      <tr><td><code>&lt;</code></td><td>Less than</td></tr>
+      <tr><td><code>&lt;=</code></td><td>Less than or equal to</td></tr>
+      <tr><td><code>&lt;&gt;</code></td><td>Not equal to</td></tr>
+    </table>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example 1 — Two Subqueries in One Query</div>
+    <div class="eg-desc">Find employees with the same job as employee 141 AND salary greater than employee 143.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">job_id</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">job_id</span> = (<span class="kw">SELECT</span> <span class="cl">job_id</span> <span class="kw">FROM</span> <span class="tb">employees</span> <span class="kw">WHERE</span> <span class="cl">employee_id</span> = <span class="val">141</span>)
+    <span class="kw">AND</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span> <span class="kw">WHERE</span> <span class="cl">employee_id</span> = <span class="val">143</span>);</div>
+
+    <div class="step-box">
+      <span class="step-num">1</span><strong>Inner query 1:</strong> job_id of emp 141 → <code>ST_CLERK</code>
+      <p>Inner query 2: salary of emp 143 → <code>2600</code></p>
+    </div>
+    <div class="step-box">
+      <span class="step-num">2</span><strong>Outer query becomes:</strong> WHERE job_id = 'ST_CLERK' AND salary &gt; 2600
+    </div>
+    <table class="demo-table">
+      <tr><th>LAST_NAME</th><th>JOB_ID</th><th>SALARY</th></tr>
+      <tr><td>Rajs</td><td>ST_CLERK</td><td>3500</td></tr>
+      <tr><td>Davies</td><td>ST_CLERK</td><td>3100</td></tr>
+    </table>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example 2 — Aggregate Function in Subquery</div>
+    <div class="eg-desc">Find the employee with the minimum salary.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">job_id</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> = (<span class="kw">SELECT</span> <span class="fn">MIN</span>(<span class="cl">salary</span>) <span class="kw">FROM</span> <span class="tb">employees</span>);</div>
+    <table class="demo-table">
+      <tr><th>LAST_NAME</th><th>JOB_ID</th><th>SALARY</th></tr>
+      <tr><td>Vargas</td><td>ST_CLERK</td><td>2500</td></tr>
+    </table>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example 3 — HAVING Clause with Subquery</div>
+    <div class="eg-desc">Find departments whose minimum salary is greater than the minimum salary of department 50.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">department_id</span>, <span class="fn">MIN</span>(<span class="cl">salary</span>)
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">GROUP BY</span> <span class="cl">department_id</span>
+  <span class="kw">HAVING</span> <span class="fn">MIN</span>(<span class="cl">salary</span>) &gt; (<span class="kw">SELECT</span> <span class="fn">MIN</span>(<span class="cl">salary</span>)
+                            <span class="kw">FROM</span> <span class="tb">employees</span>
+                            <span class="kw">WHERE</span> <span class="cl">department_id</span> = <span class="val">50</span>);</div>
+    <div class="step-box">
+      <span class="step-num">1</span><strong>Inner query:</strong> MIN(salary) of dept 50 → <code>2500</code>
+      <p>Outer query: Show departments where MIN(salary) &gt; 2500</p>
+    </div>
+  </div>
+
+  <h3 class="fi" style="margin-top:1.5rem;">Error Cases</h3>
+
+  <div class="gotcha fi">
+    <strong>ORA-01427: single-row subquery returns more than one row</strong><br>
+    If you use a single-row operator (like <code>=</code>) but the subquery returns multiple rows, Oracle throws this error. Use <code>IN</code>, <code>ANY</code>, or <code>ALL</code> instead.
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Error Example</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">employee_id</span>, <span class="cl">last_name</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> = (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">department_id</span> = <span class="val">20</span>);
+<span class="cm">-- ERROR: ORA-01427 (dept 20 has multiple employees with different salaries)</span></div>
+  </div>
+
+  <div class="gotcha fi">
+    <strong>Subquery returns no rows?</strong> If the inner query returns no rows (empty set), the outer query comparison is NULL. Result: <strong>no rows selected</strong> — not an error, just an empty result.
+  </div>
+</section>
+
+<!-- MULTIPLE-ROW SUBQUERIES -->
+<section id="multi">
+  <div class="sec-label">Type 2</div>
+  <h2 class="fi">Multiple-Row Subqueries</h2>
+  <p class="fi">Return more than one row. Must use multi-row operators: <strong>IN, ANY, ALL</strong>.</p>
+
+  <div class="tbl-wrap fi">
+    <table class="diff-table">
+      <tr><th>Operator</th><th>Meaning</th></tr>
+      <tr><td><code>IN</code></td><td>Equal to any value in the list</td></tr>
+      <tr><td><code>ANY</code></td><td>Compare to each value returned (with &lt;, &gt;, = etc.)</td></tr>
+      <tr><td><code>ALL</code></td><td>Compare to all values returned (must satisfy ALL)</td></tr>
+    </table>
+  </div>
+
+  <div class="a-tabs fi">
+    <button class="a-tab on" onclick="showA('in',this)">IN</button>
+    <button class="a-tab" onclick="showA('any',this)">ANY</button>
+    <button class="a-tab" onclick="showA('all',this)">ALL</button>
+    <button class="a-tab" onclick="showA('shortcuts',this)">Shortcuts</button>
+  </div>
+
+  <div class="a-panel on" id="ap-in">
+    <div class="eg">
+      <div class="eg-lbl">IN Operator</div>
+      <div class="eg-desc">Find employees whose salary matches ANY IT_PROG salary, but who are NOT IT_PROGs themselves.</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>, <span class="cl">department_id</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> <span class="kw">IN</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                     <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>)
+    <span class="kw">AND</span> <span class="cl">job_id</span> &lt;&gt; <span class="val">'IT_PROG'</span>;</div>
+      <div class="step-box">
+        <span class="step-num">1</span><strong>Inner query:</strong> salaries of IT_PROG → <code>{9000, 6000, 4200}</code>
+        <p>Outer query: WHERE salary IN (9000, 6000, 4200) AND job_id &lt;&gt; 'IT_PROG'</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="a-panel" id="ap-any">
+    <div class="eg">
+      <div class="eg-lbl">ANY Operator — Less Than ANY</div>
+      <div class="eg-desc">Find employees with salary less than ANY IT_PROG salary (i.e., less than the MAXIMUM).</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">employee_id</span>, <span class="cl">last_name</span>, <span class="cl">job_id</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &lt; <span class="kw">ANY</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                        <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>)
+    <span class="kw">AND</span> <span class="cl">job_id</span> &lt;&gt; <span class="val">'IT_PROG'</span>;</div>
+      <div class="step-box">
+        <span class="step-num">1</span><strong>Inner query:</strong> IT_PROG salaries = {9000, 6000, 4200}
+        <p><code>&lt; ANY</code> means less than the <strong>maximum</strong> = less than 9000</p>
+      </div>
+      <div class="hbox teal">
+        <strong>&lt; ANY = &lt; MAX</strong>
+        <p style="margin-top:.3rem;">Salary must be less than at least ONE value in the set. If it's less than the MAX, it satisfies the condition.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="a-panel" id="ap-all">
+    <div class="eg">
+      <div class="eg-lbl">ALL Operator — Less Than ALL</div>
+      <div class="eg-desc">Find employees with salary less than ALL IT_PROG salaries (i.e., less than the MINIMUM).</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">employee_id</span>, <span class="cl">last_name</span>, <span class="cl">job_id</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &lt; <span class="kw">ALL</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                        <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>)
+    <span class="kw">AND</span> <span class="cl">job_id</span> &lt;&gt; <span class="val">'IT_PROG'</span>;</div>
+      <div class="step-box">
+        <span class="step-num">1</span><strong>Inner query:</strong> IT_PROG salaries = {9000, 6000, 4200}
+        <p><code>&lt; ALL</code> means less than <strong>every</strong> value = less than the minimum = less than 4200</p>
+      </div>
+      <div class="hbox purple">
+        <strong>&lt; ALL = &lt; MIN</strong>
+        <p style="margin-top:.3rem;">Salary must be less than ALL values in the set. If it's less than the MIN, it satisfies the condition.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="a-panel" id="ap-shortcuts">
+    <h3 style="margin-bottom:.8rem;">ANY &amp; ALL Shortcut Table</h3>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Expression</th><th>Equivalent To</th><th>Think of it as...</th></tr>
+        <tr><td><code>&lt; ANY</code></td><td><code>&lt; MAX(list)</code></td><td>Less than the largest</td></tr>
+        <tr><td><code>&gt; ANY</code></td><td><code>&gt; MIN(list)</code></td><td>Greater than the smallest</td></tr>
+        <tr><td><code>= ANY</code></td><td><code>IN</code></td><td>Equal to any one value</td></tr>
+        <tr><td><code>&lt; ALL</code></td><td><code>&lt; MIN(list)</code></td><td>Less than the smallest</td></tr>
+        <tr><td><code>&gt; ALL</code></td><td><code>&gt; MAX(list)</code></td><td>Greater than the largest</td></tr>
+      </table>
+    </div>
+    <div class="note">
+      <strong>Memory trick:</strong> ANY is lenient (just beat ONE), ALL is strict (beat EVERY one).<br>
+      <code>&lt; ANY</code> → less than at least one → less than MAX.<br>
+      <code>&lt; ALL</code> → less than every single one → less than MIN.
+    </div>
+  </div>
+</section>
+
+<!-- MULTIPLE-COLUMN SUBQUERIES -->
+<section id="multicol">
+  <div class="sec-label">Type 3</div>
+  <h2 class="fi">Multiple-Column Subqueries</h2>
+  <p class="fi">Compare <strong>multiple columns simultaneously</strong> using a column tuple.</p>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example 1 — Product Matching</div>
+    <div class="eg-desc">Find order details where both product_id and quantity match a specific condition.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">order_id</span>, <span class="cl">product_id</span>, <span class="cl">quantity</span>
+  <span class="kw">FROM</span> <span class="tb">order_details</span>
+  <span class="kw">WHERE</span> (<span class="cl">product_id</span>, <span class="cl">quantity</span>) <span class="kw">IN</span>
+        (<span class="kw">SELECT</span> <span class="cl">product_id</span>, <span class="cl">quantity</span>
+         <span class="kw">FROM</span> <span class="tb">order_details</span>
+         <span class="kw">WHERE</span> <span class="cl">order_id</span> = <span class="val">1</span>);</div>
+    <div class="hbox blue">
+      <strong>How it works:</strong>
+      <p style="margin-top:.3rem;">Both <code>product_id</code> AND <code>quantity</code> must match as a <strong style="color:#5dade2;">pair</strong>. The subquery returns pairs like (101, 5), (102, 3). The outer query finds rows matching any of these pairs.</p>
+    </div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example 2 — Employee Matching by Salary &amp; Commission</div>
+    <div class="eg-desc">Display employees whose salary and commission match those of employees in Delhi.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">e.ename</span>, <span class="cl">d.dname</span>, <span class="cl">e.sal</span>
+  <span class="kw">FROM</span> <span class="tb">emp</span> e, <span class="tb">dept</span> d
+  <span class="kw">WHERE</span> (<span class="cl">sal</span>, <span class="cl">comm</span>) <span class="kw">IN</span>
+        (<span class="kw">SELECT</span> <span class="cl">sal</span>, <span class="cl">comm</span>
+         <span class="kw">FROM</span> <span class="tb">emp</span>
+         <span class="kw">WHERE</span> <span class="cl">d.loc</span> = <span class="val">'Delhi'</span>);</div>
+  </div>
+
+  <div class="gotcha fi">
+    <strong>Column count must match!</strong> The number and data types of columns in the WHERE clause must match those in the SELECT list of the subquery. <code>(sal, comm) IN (SELECT sal FROM ...)</code> is an error.
+  </div>
+</section>
+
+<!-- CORRELATED SUBQUERIES -->
+<section id="correlated">
+  <div class="sec-label">Type 4</div>
+  <h2 class="fi">Correlated Subqueries <span class="pyq-badge">PYQ FAVORITE</span></h2>
+  <p class="fi">A correlated subquery references the <strong>outer query</strong> and is evaluated <strong>once for each row</strong> processed by the outer query. The inner query is driven by the outer query.</p>
+
+  <div class="flow-box fi">
+    <div class="flow-step"><strong>GET</strong><p>candidate row from outer query</p></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step"><strong>EXECUTE</strong><p>inner query using candidate row value</p></div>
+    <div class="flow-arrow">↓</div>
+    <div class="flow-step"><strong>USE</strong><p>values from inner query to qualify or disqualify candidate row</p></div>
+    <div class="flow-arrow">↺ repeat for each row</div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Correlated Subquery Syntax</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">column1</span>, <span class="cl">column2</span>
+  <span class="kw">FROM</span> <span class="tb">table1</span> <span class="hl">outer</span>
+  <span class="kw">WHERE</span> <span class="cl">column1</span> operator
+        (<span class="kw">SELECT</span> <span class="cl">column1</span>, <span class="cl">column2</span>
+         <span class="kw">FROM</span> <span class="tb">table2</span>
+         <span class="kw">WHERE</span> expr1 = <span class="hl">outer</span>.expr2);</div>
+    <div class="note">The keyword <code>outer</code> is an alias for the outer table. The inner query <strong>references this alias</strong> — that's what makes it correlated.</div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Example — Salary &gt; Dept Average <span class="pyq-badge">EST Q3(b)</span></div>
+    <div class="eg-desc">Find all employees who earn more than the average salary in their department.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>, <span class="cl">department_id</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span> <span class="hl">outer</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">salary</span>)
+                    <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">department_id</span> = <span class="hl">outer</span>.<span class="cl">department_id</span>);</div>
+    <div class="step-box">
+      <span class="step-num">1</span><strong>For each employee row</strong>, Oracle calculates AVG(salary) of THAT employee's department
+    </div>
+    <div class="step-box">
+      <span class="step-num">2</span><strong>Compares:</strong> Is this employee's salary &gt; their department average?
+    </div>
+    <div class="step-box">
+      <span class="step-num">3</span><strong>If yes:</strong> include in result. Then move to next row and repeat.
+    </div>
+  </div>
+
+  <div class="gotcha fi">
+    <strong>Performance note:</strong> A correlated subquery re-executes for EVERY row of the outer query. With a 10,000-row table, the subquery runs 10,000 times. Regular (non-correlated) subqueries run only ONCE. Use correlated subqueries only when necessary.
+  </div>
+</section>
+
+<!-- EXISTS & NOT EXISTS -->
+<section id="exists">
+  <div class="sec-label">Special Operators</div>
+  <h2 class="fi">EXISTS &amp; NOT EXISTS</h2>
+  <p class="fi">The <strong>EXISTS</strong> operator tests whether the subquery returns <strong>at least one row</strong>. Returns TRUE if the subquery result is non-empty, FALSE otherwise.</p>
+
+  <div class="eg fi">
+    <div class="eg-lbl">EXISTS — Employees Who Are Managers</div>
+    <div class="eg-desc">Find employees who have at least one person reporting to them.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">emp_id</span>, <span class="cl">name</span>, <span class="cl">job_id</span>, <span class="cl">dept_id</span>
+  <span class="kw">FROM</span> <span class="tb">emp</span> <span class="hl">outer</span>
+  <span class="kw">WHERE</span> <span class="kw">EXISTS</span> (<span class="kw">SELECT</span> <span class="cl">manager_id</span>
+                  <span class="kw">FROM</span> <span class="tb">emp</span>
+                  <span class="kw">WHERE</span> <span class="cl">manager_id</span> = <span class="hl">outer</span>.<span class="cl">emp_id</span>);</div>
+    <div class="step-box">
+      <span class="step-num">1</span><strong>For each employee:</strong> check if ANY other employee has them as manager_id
+      <p>If subquery returns at least 1 row → EXISTS is TRUE → include this employee</p>
+    </div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">NOT EXISTS — Empty Departments <span class="pyq-badge">MST Q4</span></div>
+    <div class="eg-desc">Find all departments that do not have any employees.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">dept_id</span>, <span class="cl">dept_name</span>
+  <span class="kw">FROM</span> <span class="tb">department</span> d
+  <span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span>
+    (<span class="kw">SELECT</span> <span class="cl">dept_id</span>
+     <span class="kw">FROM</span> <span class="tb">employee</span>
+     <span class="kw">WHERE</span> <span class="cl">dept_id</span> = d.<span class="cl">dept_id</span>);</div>
+    <div class="hbox green">
+      <strong>NOT EXISTS pattern:</strong>
+      <p style="margin-top:.3rem;">For each department, if the subquery finds <strong style="color:var(--accent);">zero employees</strong> with that dept_id → NOT EXISTS is TRUE → department is included. This is the correlated-subquery equivalent of <code>LEFT JOIN ... WHERE IS NULL</code>.</p>
+    </div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Correlated Subquery with EXISTS — Orders Example</div>
+    <div class="eg-desc">Show all orders that include furniture finished in natural ash.</div>
+    <div class="code-block"><span class="kw">SELECT DISTINCT</span> <span class="cl">OrderID</span>
+  <span class="kw">FROM</span> <span class="tb">OrderLine_T</span>
+  <span class="kw">WHERE</span> <span class="kw">EXISTS</span>
+    (<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Product_T</span>
+     <span class="kw">WHERE</span> <span class="cl">ProductID</span> = <span class="tb">OrderLine_T</span>.<span class="cl">ProductID</span>
+       <span class="kw">AND</span> <span class="cl">ProductFinish</span> = <span class="val">'Natural Ash'</span>);</div>
+    <div class="note">A correlated subquery always refers to an attribute from a table referenced in the outer query. Here <code>OrderLine_T.ProductID</code> comes from the outer query.</div>
+  </div>
+</section>
+
+<!-- COMPARISON TABLE -->
+<section id="compare">
+  <div class="sec-label">Key Distinction</div>
+  <h2 class="fi">Non-Correlated vs. Correlated Subqueries <span class="pyq-badge">EST Q3(b)</span></h2>
+
+  <div class="tbl-wrap fi">
+    <table class="diff-table">
+      <tr><th>Feature</th><th>Non-Correlated (Regular)</th><th>Correlated</th></tr>
+      <tr><td><strong>Inner query depends on outer?</strong></td><td>No — runs independently</td><td>Yes — references outer query's row</td></tr>
+      <tr><td><strong>Execution count</strong></td><td>Once only</td><td>Once per each outer row</td></tr>
+      <tr><td><strong>Execution order</strong></td><td>Inner first → result to outer</td><td>Outer drives inner (row by row)</td></tr>
+      <tr><td><strong>Performance</strong></td><td>Generally faster</td><td>Slower (repeated execution)</td></tr>
+      <tr><td><strong>Alias reference</strong></td><td>No outer alias in inner query</td><td>Inner query uses outer alias (e.g., <code>outer.col</code>)</td></tr>
+      <tr><td><strong>Example use case</strong></td><td>"Find salary &gt; Abel's salary"</td><td>"Find salary &gt; their own dept average"</td></tr>
+    </table>
+  </div>
+
+  <div class="g2 fi">
+    <div class="hbox blue">
+      <strong>Non-Correlated Example</strong>
+      <div class="code-block" style="font-size:.72rem;"><span class="kw">SELECT</span> <span class="cl">last_name</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+<span class="kw">WHERE</span> <span class="cl">department_id</span> <span class="kw">IN</span>
+  (<span class="kw">SELECT</span> <span class="cl">department_id</span>
+   <span class="kw">FROM</span> <span class="tb">departments</span>
+   <span class="kw">WHERE</span> <span class="cl">department_name</span> = <span class="val">'Sales'</span>);</div>
+      <p style="font-size:.75rem;">Inner query returns dept_id of 'Sales' — runs ONCE. No reference to outer query.</p>
+    </div>
+    <div class="hbox orange">
+      <strong>Correlated Example</strong>
+      <div class="code-block" style="font-size:.72rem;"><span class="kw">SELECT</span> <span class="cl">last_name</span> <span class="kw">FROM</span> <span class="tb">employees</span> <span class="hl">e</span>
+<span class="kw">WHERE</span> <span class="cl">salary</span> &gt;
+  (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">salary</span>)
+   <span class="kw">FROM</span> <span class="tb">employees</span>
+   <span class="kw">WHERE</span> <span class="cl">department_id</span> = <span class="hl">e</span>.<span class="cl">department_id</span>);</div>
+      <p style="font-size:.75rem;">Inner query uses <code>e.department_id</code> from the outer row. Re-runs for EVERY employee row.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ADVANCED: SUBQUERY IN FROM, CORRELATED UPDATE/DELETE -->
+<section id="advanced">
+  <div class="sec-label">Advanced</div>
+  <h2 class="fi">Subquery in FROM &amp; Correlated DML</h2>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Subquery in FROM Clause (Derived Table / Inline View)</div>
+    <div class="eg-desc">Show all products whose standard price is higher than the average price.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">ProductDescription</span>, <span class="cl">ProductStandardPrice</span>, <span class="cl">AvgPrice</span>
+  <span class="kw">FROM</span>
+    (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">ProductStandardPrice</span>) <span class="cl">AvgPrice</span> <span class="kw">FROM</span> <span class="tb">Product_T</span>),
+    <span class="tb">Product_T</span>
+  <span class="kw">WHERE</span> <span class="cl">ProductStandardPrice</span> &gt; <span class="cl">AvgPrice</span>;</div>
+    <div class="hbox teal">
+      <strong>Why use subquery in FROM?</strong>
+      <p style="margin-top:.3rem;">The WHERE clause <strong style="color:#48c9b0;">cannot directly use aggregate functions</strong>. But a subquery in the FROM clause creates a <strong style="color:#48c9b0;">derived table</strong> with the aggregate as a column — which CAN be used in WHERE.</p>
+    </div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Correlated UPDATE</div>
+    <div class="eg-desc">Use a correlated subquery to update rows in one table based on rows from another table.</div>
+    <div class="code-block"><span class="kw">UPDATE</span> <span class="tb">table1</span> alias1
+  <span class="kw">SET</span> <span class="cl">column</span> = (<span class="kw">SELECT</span> expression
+                  <span class="kw">FROM</span> <span class="tb">table2</span> alias2
+                  <span class="kw">WHERE</span> alias1.<span class="cl">column</span> = alias2.<span class="cl">column</span>);</div>
+  </div>
+
+  <div class="eg fi">
+    <div class="eg-lbl">Correlated DELETE</div>
+    <div class="eg-desc">Use a correlated subquery to delete rows in one table based on rows from another table.</div>
+    <div class="code-block"><span class="kw">DELETE FROM</span> <span class="tb">table1</span> alias1
+  <span class="kw">WHERE</span> <span class="cl">column1</span> operator
+        (<span class="kw">SELECT</span> expression
+         <span class="kw">FROM</span> <span class="tb">table2</span> alias2
+         <span class="kw">WHERE</span> alias1.<span class="cl">column</span> = alias2.<span class="cl">column</span>);</div>
+  </div>
+</section>
+
+<!-- PREDICT THE OUTPUT -->
+<section id="predict">
+  <div class="sec-label">Active Learning</div>
+  <h2 class="fi">Predict the Output</h2>
+  <p class="fi" style="margin-bottom:1rem;">Think through each query step-by-step before revealing the answer.</p>
+
+  <div class="pto fi" id="pto1">
+    <div class="pto-badge">Predict #1</div>
+    <div class="pto-q">What does this return?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">last_name</span> = <span class="val">'Abel'</span>);
+<span class="cm">-- Abel's salary = 11000</span></div>
+    <div class="pto-hint">Think: What single value does the inner query return? What does &gt; that value give?</div>
+    <button class="pto-btn" onclick="reveal('pto1')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer:</strong> All employees with salary &gt; 11000. Inner query returns 11000 (Abel's salary). Outer query: King (24000), Kochhar (17000), De Haan (17000), Hartstein (13000), Higgins (12000).
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto2">
+    <div class="pto-badge">Predict #2</div>
+    <div class="pto-q">What happens here?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> = (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">department_id</span> = <span class="val">20</span>);
+<span class="cm">-- Dept 20 has multiple employees with DIFFERENT salaries</span></div>
+    <div class="pto-hint">Think: Single-row operator (=) with a subquery that returns multiple rows...</div>
+    <button class="pto-btn" onclick="reveal('pto2')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer: ERROR — ORA-01427</strong><br>
+      The subquery returns multiple rows, but <code>=</code> is a single-row operator. Fix: use <code>IN</code> instead of <code>=</code>.
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto3">
+    <div class="pto-badge">Predict #3</div>
+    <div class="pto-q">What does <code>&lt; ANY (9000, 6000, 4200)</code> mean?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &lt; <span class="kw">ANY</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                        <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>);</div>
+    <div class="pto-hint">Remember: &lt; ANY = &lt; ??? of the list</div>
+    <button class="pto-btn" onclick="reveal('pto3')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer:</strong> <code>&lt; ANY</code> = less than the <strong>MAXIMUM</strong> = <code>&lt; 9000</code>. Returns all employees earning less than 9000. The query needs to satisfy at least ONE value — and being less than the max means you're less than at least one value.
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto4">
+    <div class="pto-badge">Predict #4</div>
+    <div class="pto-q">What does <code>&gt; ALL (9000, 6000, 4200)</code> mean?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; <span class="kw">ALL</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                        <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>);</div>
+    <div class="pto-hint">Remember: &gt; ALL = &gt; ??? of the list</div>
+    <button class="pto-btn" onclick="reveal('pto4')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer:</strong> <code>&gt; ALL</code> = greater than the <strong>MAXIMUM</strong> = <code>&gt; 9000</code>. Must beat EVERY value. Only employees earning more than 9000: King (24000), Kochhar (17000), De Haan (17000), Hartstein (13000), Higgins (12000), Abel (11000).
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto5">
+    <div class="pto-badge">Predict #5</div>
+    <div class="pto-q">What does this subquery return when the inner query finds NO matching employee?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> = (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">last_name</span> = <span class="val">'Haas'</span>);
+<span class="cm">-- No employee named 'Haas' exists</span></div>
+    <div class="pto-hint">Think: If inner query returns nothing, what does = (nothing) evaluate to?</div>
+    <button class="pto-btn" onclick="reveal('pto5')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer: no rows selected</strong><br>
+      The subquery returns NULL (empty set). <code>salary = NULL</code> evaluates to UNKNOWN for every row. No row satisfies the condition. This is NOT an error — just an empty result.
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto6">
+    <div class="pto-badge">Predict #6</div>
+    <div class="pto-q">Is this a correlated or non-correlated subquery?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span> e
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">salary</span>)
+                    <span class="kw">FROM</span> <span class="tb">employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">department_id</span> = e.<span class="cl">department_id</span>);</div>
+    <div class="pto-hint">Look: does the inner query reference the outer query's alias?</div>
+    <button class="pto-btn" onclick="reveal('pto6')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer: CORRELATED.</strong> The inner query uses <code>e.department_id</code> which is from the outer query's alias <code>e</code>. This means the subquery re-executes for each row, calculating the average salary of THAT row's department.
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto7">
+    <div class="pto-badge">Predict #7</div>
+    <div class="pto-q">What does EXISTS return here?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">dept_id</span>, <span class="cl">dept_name</span>
+  <span class="kw">FROM</span> <span class="tb">department</span> d
+  <span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span>
+    (<span class="kw">SELECT</span> <span class="cl">dept_id</span> <span class="kw">FROM</span> <span class="tb">employee</span>
+     <span class="kw">WHERE</span> <span class="cl">dept_id</span> = d.<span class="cl">dept_id</span>);
+<span class="cm">-- Departments: HR(1), IT(2), Marketing(5)
+-- Employees: Alice(dept 1), Bob(dept 2), Charlie(dept 2)</span></div>
+    <div class="pto-hint">Which department has NO employees?</div>
+    <button class="pto-btn" onclick="reveal('pto7')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer: Marketing (dept 5)</strong><br>
+      HR has Alice, IT has Bob & Charlie. Marketing has no employees → the subquery returns empty for dept 5 → NOT EXISTS is TRUE. Only Marketing appears.
+    </div>
+  </div>
+
+  <div class="pto fi" id="pto8">
+    <div class="pto-badge">Predict #8</div>
+    <div class="pto-q">What does <code>= ANY</code> evaluate to?</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">last_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">employees</span>
+  <span class="kw">WHERE</span> <span class="cl">salary</span> = <span class="kw">ANY</span> (<span class="kw">SELECT</span> <span class="cl">salary</span> <span class="kw">FROM</span> <span class="tb">employees</span>
+                        <span class="kw">WHERE</span> <span class="cl">job_id</span> = <span class="val">'IT_PROG'</span>);</div>
+    <div class="pto-hint">Remember the ANY shortcuts table...</div>
+    <button class="pto-btn" onclick="reveal('pto8')">Reveal Answer</button>
+    <div class="pto-reveal">
+      <strong>Answer:</strong> <code>= ANY</code> is exactly the same as <code>IN</code>. Returns employees whose salary is 9000, 6000, or 4200 (the IT_PROG salaries). "Equal to ANY one of these values" = "IN this list."
+    </div>
+  </div>
+</section>
+
+<!-- WRITE THE QUERY -->
+<section id="write">
+  <div class="sec-label">Active Learning</div>
+  <h2 class="fi">Write the Query</h2>
+  <p class="fi" style="margin-bottom:1rem;">Try writing the SQL yourself before revealing the solution.</p>
+
+  <div class="wtq fi" id="wtq1">
+    <div class="wtq-badge">Challenge #1 <span class="pyq-badge">EST Q3(b)</span></div>
+    <div class="wtq-q">Find the names of employees who work in the 'Sales' department using a subquery.</div>
+    <div class="wtq-hint">Tables: Employees(emp_id, emp_name, department_id, salary), Departments(department_id, department_name)</div>
+    <button class="wtq-btn" onclick="reveal('wtq1')">Reveal Solution</button>
+    <div class="wtq-reveal">
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">emp_name</span>
+  <span class="kw">FROM</span> <span class="tb">Employees</span>
+  <span class="kw">WHERE</span> <span class="cl">department_id</span> <span class="kw">IN</span>
+    (<span class="kw">SELECT</span> <span class="cl">department_id</span>
+     <span class="kw">FROM</span> <span class="tb">Departments</span>
+     <span class="kw">WHERE</span> <span class="cl">department_name</span> = <span class="val">'Sales'</span>);</div>
+      <p style="font-size:.78rem;color:#a9dfbf;">Non-correlated subquery: inner query finds Sales dept_id once, outer query filters employees by that dept_id.</p>
+    </div>
+  </div>
+
+  <div class="wtq fi" id="wtq2">
+    <div class="wtq-badge">Challenge #2 <span class="pyq-badge">EST Q3(b)</span></div>
+    <div class="wtq-q">Find names of employees whose salary is greater than the average salary in their own department using a CORRELATED subquery.</div>
+    <div class="wtq-hint">This is the correlated version — inner query must reference outer query's department_id</div>
+    <button class="wtq-btn" onclick="reveal('wtq2')">Reveal Solution</button>
+    <div class="wtq-reveal">
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">emp_name</span>, <span class="cl">salary</span>
+  <span class="kw">FROM</span> <span class="tb">Employees</span> e
+  <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">salary</span>)
+                    <span class="kw">FROM</span> <span class="tb">Employees</span>
+                    <span class="kw">WHERE</span> <span class="cl">department_id</span> = e.<span class="cl">department_id</span>);</div>
+      <p style="font-size:.78rem;color:#a9dfbf;">Correlated: inner query uses <code>e.department_id</code> from the outer row. Re-runs for each employee.</p>
+    </div>
+  </div>
+
+  <div class="wtq fi" id="wtq3">
+    <div class="wtq-badge">Challenge #3 <span class="pyq-badge">AUX Q4(a)</span></div>
+    <div class="wtq-q">Find the names of departments where at least one employee earns more than the overall average salary across all employees.</div>
+    <div class="wtq-hint">You need a subquery for the overall average AND a way to check "at least one"</div>
+    <button class="wtq-btn" onclick="reveal('wtq3')">Reveal Solution</button>
+    <div class="wtq-reveal">
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">department_name</span>
+  <span class="kw">FROM</span> <span class="tb">Departments</span>
+  <span class="kw">WHERE</span> <span class="cl">department_id</span> <span class="kw">IN</span>
+    (<span class="kw">SELECT</span> <span class="cl">department_id</span>
+     <span class="kw">FROM</span> <span class="tb">Employees</span>
+     <span class="kw">WHERE</span> <span class="cl">salary</span> &gt; (<span class="kw">SELECT</span> <span class="fn">AVG</span>(<span class="cl">salary</span>) <span class="kw">FROM</span> <span class="tb">Employees</span>));</div>
+      <p style="font-size:.78rem;color:#a9dfbf;">Nested subquery: innermost gets overall AVG, middle finds dept_ids with at least one high earner, outer gets dept names.</p>
+    </div>
+  </div>
+
+  <div class="wtq fi" id="wtq4">
+    <div class="wtq-badge">Challenge #4 <span class="pyq-badge">AUX Q4(c)</span></div>
+    <div class="wtq-q">Write a SQL subquery to display the department number (dept_id) and the lowest salary of the department with the highest average salary.</div>
+    <div class="wtq-hint">You'll need: GROUP BY department, HAVING with a nested subquery on AVG</div>
+    <button class="wtq-btn" onclick="reveal('wtq4')">Reveal Solution</button>
+    <div class="wtq-reveal">
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">department_id</span>, <span class="fn">MIN</span>(<span class="cl">salary</span>)
+  <span class="kw">FROM</span> <span class="tb">Employees</span>
+  <span class="kw">GROUP BY</span> <span class="cl">department_id</span>
+  <span class="kw">HAVING</span> <span class="fn">AVG</span>(<span class="cl">salary</span>) = (<span class="kw">SELECT</span> <span class="fn">MAX</span>(<span class="fn">AVG</span>(<span class="cl">salary</span>))
+                           <span class="kw">FROM</span> <span class="tb">Employees</span>
+                           <span class="kw">GROUP BY</span> <span class="cl">department_id</span>);</div>
+      <p style="font-size:.78rem;color:#a9dfbf;">Inner: MAX(AVG(salary)) gives the highest dept average. Outer: finds the dept whose AVG matches, then shows its MIN salary.</p>
+    </div>
+  </div>
+
+  <div class="wtq fi" id="wtq5">
+    <div class="wtq-badge">Challenge #5 <span class="pyq-badge">MST Q4(a)</span></div>
+    <div class="wtq-q">Find employees whose departments have no assigned location (Location is NULL).</div>
+    <div class="wtq-hint">Tables: EMP(Employee_ID, Employee_Name, Department, Salary), Dept(Department, Department_Name, Location). Use NOT EXISTS or IN.</div>
+    <button class="wtq-btn" onclick="reveal('wtq5')">Reveal Solution</button>
+    <div class="wtq-reveal">
+      <div class="code-block"><span class="cm">-- Using subquery with IN:</span>
+<span class="kw">SELECT</span> <span class="cl">Employee_Name</span>
+  <span class="kw">FROM</span> <span class="tb">EMP</span>
+  <span class="kw">WHERE</span> <span class="cl">Department</span> <span class="kw">IN</span>
+    (<span class="kw">SELECT</span> <span class="cl">Department</span> <span class="kw">FROM</span> <span class="tb">Dept</span>
+     <span class="kw">WHERE</span> <span class="cl">Location</span> <span class="kw">IS NULL</span>);
+
+<span class="cm">-- Using NOT EXISTS (find depts WITH location, exclude them):</span>
+<span class="kw">SELECT</span> <span class="cl">Employee_Name</span>
+  <span class="kw">FROM</span> <span class="tb">EMP</span> e
+  <span class="kw">WHERE</span> <span class="kw">NOT EXISTS</span>
+    (<span class="kw">SELECT</span> <span class="val">1</span> <span class="kw">FROM</span> <span class="tb">Dept</span> d
+     <span class="kw">WHERE</span> d.<span class="cl">Department</span> = e.<span class="cl">Department</span>
+       <span class="kw">AND</span> d.<span class="cl">Location</span> <span class="kw">IS NOT NULL</span>);</div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="cards">
+  <div class="sec-label">Review</div>
+  <h2 class="fi">Flashcards — Click to Flip</h2>
+  <p class="fi" style="margin-bottom:.3rem;color:#999;">25 cards. Click each card to reveal the answer.</p>
+
+  <div class="fc-grid fi">
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Definition</div><div class="fc-q">What is a subquery?</div></div>
+      <div class="fc-bk"><div class="fc-a">A SELECT statement <strong>embedded inside</strong> another SQL statement (SELECT, INSERT, UPDATE, or DELETE). Also called inner query or nested query.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Execution</div><div class="fc-q">Which executes first — inner or outer query?</div></div>
+      <div class="fc-bk"><div class="fc-a">In a <strong>non-correlated</strong> subquery: inner first, result passed to outer.<br>In a <strong>correlated</strong> subquery: outer drives, inner runs per row.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Guidelines</div><div class="fc-q">Name 4 subquery rules.</div></div>
+      <div class="fc-bk"><div class="fc-a">1. Enclose in <strong>parentheses</strong><br>2. Place on <strong>right side</strong> of operator<br>3. No <strong>ORDER BY</strong> (unless Top-N)<br>4. Match operator type to result type</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Single-Row</div><div class="fc-q">List all 6 single-row operators.</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>=</code> <code>&gt;</code> <code>&gt;=</code> <code>&lt;</code> <code>&lt;=</code> <code>&lt;&gt;</code><br><br>These expect the subquery to return <strong>exactly one value</strong>.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Multi-Row</div><div class="fc-q">List the 3 multi-row operators.</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>IN</strong> — equal to any value<br><strong>ANY</strong> — compare with each value<br><strong>ALL</strong> — compare with all values<br>Use when subquery returns multiple rows.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Error</div><div class="fc-q">What is ORA-01427?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Single-row subquery returns more than one row.</strong> You used =, &gt;, &lt; etc. but the subquery returned multiple rows. Fix: use IN, ANY, or ALL instead.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Edge Case</div><div class="fc-q">What if a subquery returns no rows?</div></div>
+      <div class="fc-bk"><div class="fc-a">The comparison evaluates to <strong>NULL/UNKNOWN</strong> for every row. Result: <strong>no rows selected</strong>. This is NOT an error — just an empty result set.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ANY Shortcut</div><div class="fc-q">&lt; ANY = ?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>&lt; ANY</code> = <code>&lt; MAX</code><br><br>"Less than at least ONE" = less than the biggest. If you beat the max, you'd beat all, which is ALL territory.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ANY Shortcut</div><div class="fc-q">&gt; ANY = ?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>&gt; ANY</code> = <code>&gt; MIN</code><br><br>"Greater than at least ONE" = greater than the smallest. You just need to beat one value.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ANY Shortcut</div><div class="fc-q">= ANY = ?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>= ANY</code> = <code>IN</code><br><br>"Equal to at least one value in the set" — that's exactly what IN does.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALL Shortcut</div><div class="fc-q">&lt; ALL = ?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>&lt; ALL</code> = <code>&lt; MIN</code><br><br>"Less than EVERY value" = less than the smallest one. Must beat them all.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALL Shortcut</div><div class="fc-q">&gt; ALL = ?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>&gt; ALL</code> = <code>&gt; MAX</code><br><br>"Greater than EVERY value" = greater than the biggest. The strictest comparison.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Memory</div><div class="fc-q">ANY vs ALL — which is stricter?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>ALL is stricter.</strong> ANY = lenient (beat just one). ALL = strict (beat every one). &lt; ANY = &lt; MAX (easy). &lt; ALL = &lt; MIN (hard).</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Multi-Column</div><div class="fc-q">How to match multiple columns in a subquery?</div></div>
+      <div class="fc-bk"><div class="fc-a">Use a <strong>column tuple</strong>:<br><code>(col1, col2) IN (SELECT col1, col2 FROM ...)</code><br>Both columns must match as a pair.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Correlated</div><div class="fc-q">What makes a subquery "correlated"?</div></div>
+      <div class="fc-bk"><div class="fc-a">The inner query <strong>references a column from the outer query</strong> (using the outer table's alias). This forces re-execution for each outer row.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Correlated</div><div class="fc-q">How many times does a correlated subquery execute?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Once for each row</strong> processed by the outer query. If outer table has 1000 rows, the subquery runs 1000 times. Regular subquery runs only once.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Correlated</div><div class="fc-q">What is the GET → EXECUTE → USE flow?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>GET:</strong> candidate row from outer query<br><strong>EXECUTE:</strong> inner query using that row's values<br><strong>USE:</strong> result to qualify/disqualify the row<br>Repeat for each row.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">EXISTS</div><div class="fc-q">What does EXISTS return?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>TRUE</strong> if the subquery returns at least one row.<br><strong>FALSE</strong> if the subquery returns zero rows.<br>It doesn't care about the actual values — just whether rows exist.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">NOT EXISTS</div><div class="fc-q">NOT EXISTS is equivalent to which JOIN pattern?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>LEFT JOIN ... WHERE right.key IS NULL</code><br><br>Both find rows in the left table with <strong>no matching rows</strong> in the right table.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">FROM Clause</div><div class="fc-q">Why use a subquery in FROM?</div></div>
+      <div class="fc-bk"><div class="fc-a">Creates a <strong>derived table / inline view</strong>. Useful because WHERE clause cannot use aggregate functions directly. The subquery computes the aggregate, then WHERE can reference it as a column.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">HAVING</div><div class="fc-q">Can subqueries appear in HAVING?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Yes!</strong> Common pattern:<br><code>HAVING MIN(salary) &gt; (SELECT MIN(salary) FROM ... WHERE dept = 50)</code><br>Compare group aggregates against subquery results.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DML</div><div class="fc-q">Can you use correlated subqueries in UPDATE?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Yes!</strong> Correlated UPDATE:<br><code>UPDATE t1 SET col = (SELECT expr FROM t2 WHERE t1.id = t2.id)</code><br>Updates rows based on matching data from another table.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DML</div><div class="fc-q">Can you use correlated subqueries in DELETE?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Yes!</strong> Correlated DELETE:<br><code>DELETE FROM t1 a WHERE col operator (SELECT ... FROM t2 WHERE t2.id = a.id)</code><br>Deletes rows based on related data.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Exam Pattern</div><div class="fc-q">Highest avg salary dept — how to find it?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code>HAVING AVG(salary) = (SELECT MAX(AVG(salary)) FROM emp GROUP BY dept_id)</code><br><br>Nested aggregate: inner computes MAX of all dept averages.</div></div>
+    </div></div>
+
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Exam Pattern</div><div class="fc-q">Subquery vs JOIN — when to use which?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Subquery:</strong> when you need a single value for comparison, or when checking existence.<br><strong>JOIN:</strong> when you need columns from both tables in the result. Often interchangeable — know both forms for exams.</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="sec-label">Chapter 9 · Test Yourself</div>
+  <h2 class="fi">Quiz — Subqueries in SQL</h2>
+  <p class="fi" style="margin:.5rem 0 1.5rem;color:#999;">15 questions including output prediction and concept checks. Think carefully before answering.</p>
+  <div class="quiz-wrap">
+    <div id="q-prog"></div>
+    <div class="q-card" id="q-card">
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-opts" id="q-opts"></div>
+      <div class="q-exp" id="q-exp"></div>
+      <div class="q-nav"><button class="btn" id="q-next" style="display:none;">Next Question →</button></div>
+    </div>
+    <div id="q-score">
+      <div class="sc-n" id="sc-val"></div>
+      <div class="sc-l">out of 15</div>
+      <p style="color:#999;margin-top:.8rem;" id="sc-msg"></p>
+      <button class="btn" style="margin-top:1.2rem;" onclick="initQ()">Retake Quiz</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  document.getElementById('pb').style.width=(d.scrollTop/(d.scrollHeight-d.clientHeight)*100)+'%';
+});
+
+// FADE IN
+const observer=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')}),{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>observer.observe(el));
+
+// TABS
+function showA(id,btn){
+  document.querySelectorAll('.a-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('ap-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// REVEAL (PTO + WTQ)
+function reveal(id){
+  const el=document.getElementById(id);
+  const rev=el.querySelector('.pto-reveal, .wtq-reveal');
+  const btn=el.querySelector('.pto-btn, .wtq-btn');
+  rev.classList.add('show');
+  btn.textContent='Answer Revealed';
+  btn.classList.add('revealed');
+}
+
+// QUIZ
+const QS=[
+  {q:"A subquery returns 3 rows and you use the = operator. What happens?",o:["Returns the first row only","ORA-01427 error","Returns all 3 rows","Returns NULL"],a:1,e:"ORA-01427: single-row subquery returns more than one row. The = operator expects exactly one value. Use IN, ANY, or ALL for multi-row subqueries."},
+  {q:"What does < ANY (9000, 6000, 4200) evaluate to?",o:["< 4200 (less than MIN)","< 9000 (less than MAX)","< 6000 (less than median)","Error — can't use < with ANY"],a:1,e:"< ANY = < MAX of the list. 'Less than at least ONE value' means less than the maximum (9000). ANY is lenient — just beat one value."},
+  {q:"What does > ALL (9000, 6000, 4200) evaluate to?",o:["> 4200","> 6000","> 9000","Error"],a:2,e:"> ALL = > MAX of the list. 'Greater than EVERY value' means greater than the maximum (9000). ALL is strict — must beat them all."},
+  {q:"Which of these is equivalent to = ANY?",o:["= ALL","IN","EXISTS","BETWEEN"],a:1,e:"= ANY is exactly the same as IN. 'Equal to at least one value in the set' is the definition of IN."},
+  {q:"A subquery in the WHERE clause returns no rows. The outer query returns:",o:["All rows","An error","No rows (empty result)","NULL"],a:2,e:"When the subquery returns no rows, the comparison evaluates to NULL/UNKNOWN for every row. No row satisfies the condition, so the result is empty. This is NOT an error."},
+  {q:"In a correlated subquery, how many times does the inner query execute?",o:["Once","Twice","Once per row of the outer query","Once per table"],a:2,e:"A correlated subquery re-executes for EACH row processed by the outer query. If the outer table has N rows, the subquery runs N times."},
+  {q:"What makes a subquery 'correlated'?",o:["It uses IN operator","It uses aggregate functions","It references a column from the outer query","It returns multiple rows"],a:2,e:"A correlated subquery references the outer query's table/alias (e.g., outer.department_id). This dependency forces per-row re-execution."},
+  {q:"EXISTS returns TRUE when:",o:["The subquery returns exactly one row","The subquery returns NULL","The subquery returns at least one row","The subquery returns all rows"],a:2,e:"EXISTS returns TRUE if the subquery result set is non-empty (one or more rows). It doesn't care about the actual values — just whether rows exist."},
+  {q:"NOT EXISTS (SELECT ... FROM employee WHERE dept_id = d.dept_id) finds:",o:["Departments WITH employees","Departments with NULL dept_id","Departments WITHOUT any employees","All departments"],a:2,e:"NOT EXISTS returns TRUE when the subquery finds ZERO rows. So it finds departments where no employee has that dept_id — departments with no employees."},
+  {q:"Which is generally faster — non-correlated or correlated subquery?",o:["Correlated (runs per row)","Non-correlated (runs once)","They're identical","Depends on EXISTS"],a:1,e:"Non-correlated subqueries run ONCE and pass the result to the outer query. Correlated subqueries re-execute for each outer row, making them generally slower."},
+  {q:"WHERE (sal, comm) IN (SELECT sal, comm FROM ...) — what type of subquery is this?",o:["Single-row","Multiple-row","Multiple-column","Correlated"],a:2,e:"This is a multiple-column subquery. It compares TWO columns (sal AND comm) simultaneously as a pair against the subquery results."},
+  {q:"Can a subquery appear in the HAVING clause?",o:["No, only in WHERE","Yes, to compare group aggregates","Yes, but only with EXISTS","No, HAVING doesn't support nesting"],a:1,e:"Yes! Subqueries in HAVING are common: HAVING MIN(salary) > (SELECT MIN(salary) FROM ... WHERE dept = 50). This compares aggregated group results."},
+  {q:"SELECT ... FROM (SELECT AVG(price) AvgP FROM Product_T), Product_T WHERE price > AvgP; — what is the subquery in FROM called?",o:["Correlated subquery","Inline view / derived table","Temporary table","Materialized view"],a:1,e:"A subquery in the FROM clause creates a derived table (also called inline view). It lets you use aggregates in WHERE by computing them as a named column in a virtual table."},
+  {q:"For the query: SELECT emp_name FROM Employees WHERE dept_id IN (SELECT dept_id FROM Departments WHERE dept_name = 'Sales') — is this correlated?",o:["Yes — it references outer table","No — inner query is independent","Yes — it uses IN","Depends on the data"],a:1,e:"NO, this is NOT correlated. The inner query (SELECT dept_id FROM Departments WHERE dept_name = 'Sales') does NOT reference any column from the outer query. It runs independently once."},
+  {q:"UPDATE t1 SET col = (SELECT expr FROM t2 WHERE t1.id = t2.id) — what type of operation is this?",o:["Non-correlated UPDATE","Correlated UPDATE","Nested UPDATE","Invalid syntax"],a:1,e:"This is a CORRELATED UPDATE. The subquery references t1.id from the outer UPDATE statement. For each row being updated, the subquery finds the matching value from t2."}
+];
+
+let cur=0,score=0,answered=false;
+
+function initQ(){
+  cur=0;score=0;answered=false;
+  document.getElementById('q-score').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('q-num').textContent='Question '+(cur+1)+' of '+QS.length;
+  document.getElementById('q-text').textContent=q.q;
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=()=>answer(i);
+    opts.appendChild(b);
+  });
+  document.getElementById('q-exp').className='q-exp';
+  document.getElementById('q-exp').textContent='';
+  document.getElementById('q-next').style.display='none';
+  answered=false;
+  const prog=document.getElementById('q-prog');
+  prog.innerHTML='';
+  QS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='q-dot'+(i===cur?' cur':'');
+    prog.appendChild(d);
+  });
+}
+
+function answer(i){
+  if(answered)return;
+  answered=true;
+  const q=QS[cur];
+  const btns=document.querySelectorAll('.q-opt');
+  btns.forEach(b=>b.disabled=true);
+  if(i===q.a){score++;btns[i].classList.add('ok');}
+  else{btns[i].classList.add('no');btns[q.a].classList.add('ok');}
+  const exp=document.getElementById('q-exp');
+  exp.textContent=q.e;
+  exp.className='q-exp show '+(i===q.a?'ok':'no');
+  document.getElementById('q-next').style.display='block';
+  const dots=document.querySelectorAll('.q-dot');
+  dots[cur].classList.add(i===q.a?'done':'bad');
+}
+
+document.getElementById('q-next').onclick=()=>{
+  cur++;
+  if(cur>=QS.length){
+    document.getElementById('q-card').style.display='none';
+    const sc=document.getElementById('q-score');
+    sc.style.display='block';
+    document.getElementById('sc-val').textContent=score;
+    const p=score/QS.length;
+    const msgs=['Keep studying — review subquery types!','Getting there — focus on ANY vs ALL.','Decent! Revisit correlated subqueries.','Good work! Almost there.','Great job! Solid understanding.','Excellent! Nearly perfect.','Perfect score! Outstanding!'];
+    document.getElementById('sc-msg').textContent=msgs[Math.min(Math.floor(p*6),6)];
+  } else {renderQ();}
+};
+
+initQ();
+</script>
+</body>
+</html>

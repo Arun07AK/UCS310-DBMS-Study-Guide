@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ch7 — SQL Basics</title>
+<style>
+:root{--primary:#e74c3c;--accent:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;--dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;--text:#e8e8e8;--muted:#999;--border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.45rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}.logo{color:var(--primary);font-size:.9rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;padding:.25rem .5rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.2rem;}
+.g4{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:1rem;margin-top:1rem;}
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.purple{background:rgba(142,68,173,.08);border-color:rgba(142,68,173,.3);}
+.hbox.teal{background:rgba(22,160,133,.08);border-color:rgba(22,160,133,.3);}
+.hbox.yellow{background:rgba(241,196,15,.06);border-color:rgba(241,196,15,.3);}
+.hbox p,.hbox li{color:#d0d0e0;}.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}.hbox.blue strong{color:#5dade2;}.hbox.orange strong{color:var(--orange);}
+.hbox.purple strong{color:#c39bd3;}.hbox.teal strong{color:#48c9b0;}.hbox.yellow strong{color:#f9e04b;}
+.code-block{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.9rem 1.2rem;font-family:'Courier New',monospace;font-size:.78rem;color:#87ceeb;margin:.6rem 0;overflow-x:auto;line-height:1.8;white-space:pre;}
+.kw{color:#e74c3c;font-weight:700;}.fn{color:#3498db;}.val{color:#82e0aa;}.cm{color:#555;font-style:italic;}.hl{background:rgba(241,196,15,.15);color:#f9e04b;border-radius:3px;padding:0 2px;}
+.tb{color:#f39c12;font-style:italic;}.cl{color:#3498db;}
+.demo-table{border-collapse:collapse;font-size:.8rem;margin:.7rem 0;width:100%;}
+.demo-table th{padding:.5rem .8rem;text-align:left;font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;border-bottom:2px solid rgba(255,255,255,.1);background:rgba(231,76,60,.1);color:var(--primary);}
+.demo-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;font-family:monospace;font-size:.78rem;}
+.demo-table tr:hover td{background:rgba(255,255,255,.02);}
+.null-cell{background:rgba(241,196,15,.15) !important;color:#f9e04b !important;font-weight:700;}
+.hl-row td{background:rgba(231,76,60,.07) !important;}
+.tbl-wrap{overflow-x:auto;margin:.5rem 0;}
+/* SQL TYPE CARDS */
+.sql-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(185px,1fr));gap:1rem;margin-top:1.2rem;}
+.stc{border-radius:14px;padding:1.2rem;border:2px solid;position:relative;}
+.stc-ddl{background:rgba(231,76,60,.06);border-color:rgba(231,76,60,.5);}
+.stc-dml{background:rgba(41,128,185,.06);border-color:rgba(41,128,185,.5);}
+.stc-dcl{background:rgba(142,68,173,.06);border-color:rgba(142,68,173,.5);}
+.stc-tcl{background:rgba(230,126,34,.06);border-color:rgba(230,126,34,.5);}
+.stc-dql{background:rgba(39,174,96,.06);border-color:rgba(39,174,96,.5);}
+.s-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .6rem;border-radius:999px;display:inline-block;margin-bottom:.5rem;}
+.t-ddl{background:rgba(231,76,60,.2);color:#f1948a;}
+.t-dml{background:rgba(41,128,185,.2);color:#5dade2;}
+.t-dcl{background:rgba(142,68,173,.2);color:#c39bd3;}
+.t-tcl{background:rgba(230,126,34,.2);color:#f0b27a;}
+.t-dql{background:rgba(39,174,96,.2);color:#76d7c4;}
+.stc h4{font-size:.95rem;font-weight:800;margin-bottom:.3rem;}
+.stc-ddl h4{color:#f1948a;}.stc-dml h4{color:#5dade2;}.stc-dcl h4{color:#c39bd3;}.stc-tcl h4{color:#f0b27a;}.stc-dql h4{color:#76d7c4;}
+.cmt{font-size:.62rem;padding:.15rem .5rem;border-radius:4px;display:inline-block;margin:.3rem 0;}
+.cmt-yes{background:rgba(39,174,96,.2);color:#76d7c4;}.cmt-no{background:rgba(231,76,60,.2);color:#f1948a;}
+.cmd-list{list-style:none;margin-top:.5rem;}.cmd-list li{font-size:.75rem;padding:.15rem 0;color:#c0c0d0;}.cmd-list li::before{content:"▸ ";opacity:.6;}
+/* ALTER TABS */
+.a-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0 .5rem;}
+.a-tab{padding:.35rem .85rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;}
+.a-tab.on,.a-tab:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.a-panel{display:none;}.a-panel.on{display:block;}
+/* EXAMPLE BLOCK */
+.eg{background:var(--card2);border-radius:12px;padding:1.2rem 1.4rem;margin:.8rem 0;border:1px solid rgba(255,255,255,.06);}
+.eg-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);font-weight:700;margin-bottom:.3rem;}
+.eg-desc{font-size:.82rem;color:#b8b8b8;margin-bottom:.6rem;line-height:1.5;}
+.note{background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-left:3px solid #f9e04b;border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f9e04b;margin:.6rem 0;line-height:1.5;}
+/* COMPARISON */
+.cmp-card{border-radius:14px;padding:1.2rem 1.4rem;border-left:4px solid;background:var(--card2);}
+.cmp-in{border-color:var(--blue);}.cmp-bt{border-color:var(--orange);}.cmp-lk{border-color:var(--purple);}
+.cmp-card h4{font-size:.92rem;font-weight:800;margin-bottom:.4rem;}
+.cmp-in h4{color:#5dade2;}.cmp-bt h4{color:var(--orange);}.cmp-lk h4{color:#c39bd3;}
+.wc-table{width:100%;max-width:560px;border-collapse:collapse;margin:.6rem 0;font-size:.79rem;}
+.wc-table th{padding:.4rem .7rem;background:rgba(142,68,173,.15);color:#c39bd3;text-align:left;font-size:.68rem;text-transform:uppercase;}
+.wc-table td{padding:.4rem .7rem;border-bottom:1px solid rgba(255,255,255,.05);color:#c0c0d0;font-family:monospace;}
+.diff-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.diff-table th{padding:.5rem .8rem;text-align:left;background:rgba(231,76,60,.1);color:var(--primary);font-size:.7rem;text-transform:uppercase;}
+.diff-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;}
+.diff-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+/* FLIP CARDS */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:900px;cursor:pointer;}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.fc:hover .fc-in,.fc.flipped .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card2);border:1px solid var(--border);}
+.fc-bk{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);transform:rotateY(180deg);}
+.fc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:.4rem;}
+.fc-q{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;}
+.fc-hint{font-size:.6rem;color:var(--muted);margin-top:.5rem;}
+.fc-a{font-size:.77rem;color:#e8e8e8;line-height:1.5;}
+/* QUIZ */
+.quiz-wrap{max-width:720px;margin:0 auto;}
+#q-prog{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.3s;}
+.q-dot.done{background:var(--accent);}.q-dot.cur{background:var(--primary);transform:scale(1.3);}.q-dot.bad{background:#c0392b;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;}
+.q-num{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.5;}
+.q-opts{display:flex;flex-direction:column;gap:.6rem;}
+.q-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;font-size:.88rem;cursor:pointer;transition:.2s;text-align:left;}
+.q-opt:hover:not([disabled]){background:rgba(231,76,60,.1);border-color:var(--primary);}
+.q-opt.ok{background:rgba(39,174,96,.15);border-color:var(--accent);color:#82e0aa;}
+.q-opt.no{background:rgba(231,76,60,.15);border-color:var(--primary);color:#f1948a;}
+.q-exp{margin-top:1rem;padding:.8rem 1rem;border-radius:10px;font-size:.82rem;line-height:1.6;display:none;}
+.q-exp.show{display:block;}
+.q-exp.ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#a9dfbf;}
+.q-exp.no{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#f5b7b1;}
+.q-nav{display:flex;justify-content:flex-end;margin-top:1rem;}
+#q-score{text-align:center;padding:2.5rem;display:none;}
+#q-score .sc-n{font-size:4rem;font-weight:900;color:var(--primary);}
+#q-score .sc-l{font-size:.8rem;color:var(--muted);margin-bottom:.8rem;}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">Ch7 · SQL Basics</span>
+  <a href="#intro">Intro</a>
+  <a href="#types">SQL Types</a>
+  <a href="#ddl">DDL</a>
+  <a href="#alter">ALTER</a>
+  <a href="#dml">DML</a>
+  <a href="#dql">SELECT</a>
+  <a href="#comparison">Comparison</a>
+  <a href="#cards">Flashcards</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+<div id="pb"></div>
+
+<!-- ═══════════════ HERO ═══════════════ -->
+<section id="intro" style="position:relative;padding-top:110px;min-height:90vh;display:flex;flex-direction:column;justify-content:center;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">UCS310 · Chapter 7</div>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:.6rem;">Structured Query<br>Language <span style="color:var(--primary);">(SQL)</span></h2>
+  <p style="font-size:1rem;color:#999;max-width:580px;margin:.4rem 0 1rem;">SQL is the standard language for creating, accessing, and manipulating database management systems — create, remove, alter databases and store, retrieve, update data.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">5</div><div class="l">SQL Sub-languages</div></div>
+    <div class="hs"><div class="n">20+</div><div class="l">Commands Covered</div></div>
+    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">15</div><div class="l">Quiz Questions</div></div>
+  </div>
+  <div class="btns"><a href="#types" class="btn">Start Learning →</a><a href="#quiz" class="btn btn-o">Take Quiz</a></div>
+
+  <div class="g2 fi" style="margin-top:2.5rem;">
+    <div class="hbox blue">
+      <strong>What is SQL?</strong>
+      <p style="margin-top:.4rem;">SQL stands for <strong style="color:#5dade2;">Structured Query Language</strong>. It is used to create, remove, alter the database and database objects, and to store, retrieve, update data in a database. It is the standard language for creating, accessing, and manipulating DBMS.</p>
+    </div>
+    <div class="hbox green">
+      <strong>Concept of SQL</strong>
+      <p style="margin-top:.4rem;">① User specifies a condition → ② Program searches all records in the database → ③ Selects records satisfying the condition → ④ Returns statistical information → ⑤ Result is stored in the form of a <strong style="color:var(--accent);">table</strong>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ SQL TYPES ═══════════════ -->
+<section id="types">
+  <div class="sec-label">Chapter 7 · Section 1</div>
+  <h2 class="fi">Types of SQL Commands</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">SQL commands are grouped into 5 categories based on their purpose. The most important distinction: DDL is <em>auto-committed</em>, DML is <em>not</em>.</p>
+
+  <div class="sql-grid fi">
+    <div class="stc stc-ddl">
+      <span class="s-tag t-ddl">DDL</span>
+      <h4>Data Definition Language</h4>
+      <span class="cmt cmt-yes">✓ Auto-committed</span>
+      <p style="font-size:.72rem;color:#aaa;margin:.3rem 0 .5rem;">Defines &amp; modifies database schema. Changes are <strong style="color:#f1948a;">permanent — cannot be rolled back.</strong></p>
+      <ul class="cmd-list">
+        <li>CREATE — create table/database</li>
+        <li>ALTER — modify table structure</li>
+        <li>TRUNCATE — delete all records</li>
+        <li>DROP — remove table/database</li>
+        <li>RENAME — rename a table</li>
+      </ul>
+    </div>
+    <div class="stc stc-dml">
+      <span class="s-tag t-dml">DML</span>
+      <h4>Data Manipulation Language</h4>
+      <span class="cmt cmt-no">✗ Not Auto-committed</span>
+      <p style="font-size:.72rem;color:#aaa;margin:.3rem 0 .5rem;">Manipulates data inside tables. Changes <strong style="color:#5dade2;">can be rolled back</strong> before COMMIT.</p>
+      <ul class="cmd-list">
+        <li>INSERT — insert a new row</li>
+        <li>UPDATE — update existing row</li>
+        <li>DELETE — delete a row</li>
+        <li>MERGE — merge two rows/tables</li>
+      </ul>
+    </div>
+    <div class="stc stc-dcl">
+      <span class="s-tag t-dcl">DCL</span>
+      <h4>Data Control Language</h4>
+      <span class="cmt cmt-yes">✓ Auto-committed</span>
+      <p style="font-size:.72rem;color:#aaa;margin:.3rem 0 .5rem;">Provides commands to <strong style="color:#c39bd3;">grant and take back</strong> user authority/permissions.</p>
+      <ul class="cmd-list">
+        <li>GRANT — grant permission</li>
+        <li>REVOKE — take back permission</li>
+      </ul>
+    </div>
+    <div class="stc stc-tcl">
+      <span class="s-tag t-tcl">TCL</span>
+      <h4>Transaction Control Language</h4>
+      <span class="cmt" style="background:rgba(230,126,34,.2);color:#f0b27a;">Manual control</span>
+      <p style="font-size:.72rem;color:#aaa;margin:.3rem 0 .5rem;">Keeps check on other commands. Can <strong style="color:#f0b27a;">annul changes by rolling back</strong> or make them permanent.</p>
+      <ul class="cmd-list">
+        <li>COMMIT — permanently save</li>
+        <li>ROLLBACK — undo change</li>
+        <li>SAVEPOINT — save temporarily</li>
+      </ul>
+    </div>
+    <div class="stc stc-dql">
+      <span class="s-tag t-dql">DQL</span>
+      <h4>Data Query Language</h4>
+      <span class="cmt" style="background:rgba(39,174,96,.2);color:#76d7c4;">Read-only</span>
+      <p style="font-size:.72rem;color:#aaa;margin:.3rem 0 .5rem;">Most commonly used. Retrieves data — complete tables or partial using WHERE clause.</p>
+      <ul class="cmd-list">
+        <li>SELECT — extract data</li>
+        <li>SELECT DISTINCT — unique values only</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="g2 fi" style="margin-top:1.5rem;">
+    <div class="hbox orange">
+      <strong>DDL — Auto-committed (Permanent)</strong>
+      <p style="margin-top:.3rem;">All DDL commands save changes permanently the moment they are executed. <strong style="color:var(--orange);">There is NO way to undo them with ROLLBACK.</strong> Once you DROP a table — it is gone forever.</p>
+    </div>
+    <div class="hbox blue">
+      <strong>DML — NOT Auto-committed (Reversible)</strong>
+      <p style="margin-top:.3rem;">DML changes are not permanent until you COMMIT. If you make a mistake with INSERT/UPDATE/DELETE, you can use <strong style="color:#5dade2;">ROLLBACK</strong> to undo. Flow: DML → ROLLBACK (undo) OR COMMIT (make permanent).</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ DDL ═══════════════ -->
+<section id="ddl">
+  <div class="sec-label">Chapter 7 · Section 2</div>
+  <h2 class="fi">Data Definition Language (DDL)</h2>
+  <p class="fi" style="margin:.5rem 0 1rem;">DDL commands define and modify the structure (schema) of database objects. All DDL commands are auto-committed.</p>
+
+  <!-- CREATE -->
+  <div class="fi">
+    <h3 style="font-size:1.1rem;">CREATE — Creating a Table</h3>
+    <p style="margin:.4rem 0 .8rem;color:#999;font-size:.85rem;">Used to create a new table. You define the table name, columns, and their data types.</p>
+    <div class="hbox blue">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">CREATE TABLE</span> <span class="tb">tablename</span> (
+  <span class="cl">column1</span>  <span class="fn">datatype</span>(size),
+  <span class="cl">column2</span>  <span class="fn">datatype</span>(size),
+  ...
+);</div>
+    </div>
+    <div class="hbox green">
+      <strong>Example — Customer Table (used in all SELECT examples):</strong>
+      <div class="code-block"><span class="kw">CREATE TABLE</span> <span class="tb">Customer</span> (
+  <span class="cl">CustomerID</span>    <span class="fn">number</span>,
+  <span class="cl">CustomerName</span>  <span class="fn">char</span>(20),
+  <span class="cl">ContactNo</span>     <span class="fn">number</span>,
+  <span class="cl">address</span>       <span class="fn">varchar</span>(20),
+  <span class="cl">city</span>          <span class="fn">char</span>(20),
+  <span class="cl">Postalcode</span>    <span class="fn">varchar</span>(20),
+  <span class="cl">country</span>       <span class="fn">char</span>(20)
+);</div>
+      <p style="font-size:.8rem;margin-top:.4rem;">Creates Customer table with 7 columns — this table is used throughout the chapter for examples.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ ALTER ═══════════════ -->
+<section id="alter">
+  <div class="sec-label">Chapter 7 · Section 3</div>
+  <h2 class="fi">ALTER Command</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">ALTER is used for alteration of existing table structures. It has 5 sub-operations — click each tab to explore.</p>
+
+  <div class="a-tabs fi">
+    <button class="a-tab on" onclick="showA('add',this)">➕ Add Column</button>
+    <button class="a-tab" onclick="showA('multi',this)">➕➕ Add Multiple</button>
+    <button class="a-tab" onclick="showA('def',this)">🔧 Add + Default</button>
+    <button class="a-tab" onclick="showA('mod',this)">✏️ Modify</button>
+    <button class="a-tab" onclick="showA('ren',this)">🔄 Rename Column</button>
+    <button class="a-tab" onclick="showA('drp',this)">🗑️ Drop Column</button>
+  </div>
+
+  <div id="ap-add" class="a-panel on fi">
+    <div class="hbox blue"><strong>To Add a Column to an Existing Table:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">ADD</span>(<span class="cl">column-name</span> <span class="fn">datatype</span>);</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Add an address column (varchar 50) to the Students table.</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">Students</span> <span class="kw">ADD</span>(<span class="cl">address</span> <span class="fn">varchar</span>(50));</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">This command adds a new column <strong style="color:#5dade2;">address</strong> to the Students table. Existing rows get NULL in this new column.</p>
+    </div>
+  </div>
+
+  <div id="ap-multi" class="a-panel fi">
+    <div class="hbox blue"><strong>To Add Multiple Columns at Once:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">ADD</span>(<span class="cl">col1</span> <span class="fn">type1</span>, <span class="cl">col2</span> <span class="fn">type2</span>);</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Add dob and city columns to students table in one command.</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">students</span> <span class="kw">ADD</span>(<span class="cl">dob</span> <span class="fn">number</span>(10), <span class="cl">city</span> <span class="fn">varchar</span>(10));</div>
+    </div>
+  </div>
+
+  <div id="ap-def" class="a-panel fi">
+    <div class="hbox orange"><strong>To Add a Column with a Default Value:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">ADD</span>(<span class="cl">col-name</span> <span class="fn">datatype</span> <span class="kw">DEFAULT</span> <span class="val">data</span>);</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Add a branch column with default value 'COE' to students.</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">students</span> <span class="kw">ADD</span>(<span class="cl">branch</span> <span class="fn">varchar</span>(10) <span class="kw">DEFAULT</span> <span class="val">'COE'</span>);</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">Any new row inserted without specifying branch will automatically get <strong style="color:#f0b27a;">'COE'</strong> as its branch value.</p>
+    </div>
+  </div>
+
+  <div id="ap-mod" class="a-panel fi">
+    <div class="hbox teal"><strong>To Modify Data Type / Size of an Existing Column:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">MODIFY</span>(<span class="cl">column-name</span> <span class="fn">datatype</span>);</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Change the address column from varchar(50) to char(30).</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">students</span> <span class="kw">MODIFY</span>(<span class="cl">address</span> <span class="fn">char</span>(30));</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">Modifies the address column data type in the Students table.</p>
+    </div>
+  </div>
+
+  <div id="ap-ren" class="a-panel fi">
+    <div class="hbox purple"><strong>To Rename an Existing Column:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">RENAME COLUMN</span> <span class="cl">old-name</span> <span class="kw">TO</span> <span class="cl">new-name</span>;</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Rename the address column to Location in Student table.</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">Student</span> <span class="kw">RENAME COLUMN</span> <span class="cl">address</span> <span class="kw">TO</span> <span class="cl">Location</span>;</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">The above command renames the address column to Location.</p>
+    </div>
+  </div>
+
+  <div id="ap-drp" class="a-panel fi">
+    <div class="hbox"><strong>To Drop (Remove) a Column:</strong>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">table-name</span> <span class="kw">DROP</span>(<span class="cl">column-name</span>);</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="eg-desc">Permanently remove the address column from Students table.</div>
+      <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="tb">Students</span> <span class="kw">DROP</span>(<span class="cl">address</span>);</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">This permanently removes the column and all its data.</p>
+    </div>
+  </div>
+
+  <!-- ALTER quick ref table -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>ALTER — Quick Reference Table</h3>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.6rem;">
+      <thead><tr><th>Operation</th><th>Keyword</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td>Add 1 column</td><td><code style="color:#e74c3c;">ADD(col type)</code></td><td><code>ALTER TABLE T ADD(age number);</code></td></tr>
+        <tr><td>Add multiple columns</td><td><code style="color:#e74c3c;">ADD(c1 t1, c2 t2)</code></td><td><code>ALTER TABLE T ADD(a number, b varchar(10));</code></td></tr>
+        <tr><td>Add with default</td><td><code style="color:#e74c3c;">ADD(col type DEFAULT v)</code></td><td><code>ALTER TABLE T ADD(x char(5) DEFAULT 'A');</code></td></tr>
+        <tr><td>Modify type/size</td><td><code style="color:#e74c3c;">MODIFY(col type)</code></td><td><code>ALTER TABLE T MODIFY(name char(40));</code></td></tr>
+        <tr><td>Rename column</td><td><code style="color:#e74c3c;">RENAME COLUMN old TO new</code></td><td><code>ALTER TABLE T RENAME COLUMN a TO b;</code></td></tr>
+        <tr><td>Drop column</td><td><code style="color:#e74c3c;">DROP(col)</code></td><td><code>ALTER TABLE T DROP(age);</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- TRUNCATE -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">TRUNCATE Command</h3>
+    <p style="margin:.4rem 0 .8rem;color:#999;font-size:.85rem;">TRUNCATE removes all records from a table but does <strong style="color:var(--orange);">NOT destroy the table structure</strong>. When applied, the Primary Key counter is also reset (re-initialized).</p>
+    <div class="hbox orange">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">TRUNCATE TABLE</span> <span class="tb">table-name</span>;</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="code-block"><span class="kw">TRUNCATE TABLE</span> <span class="tb">students</span>;</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">Deletes all records from students table. The table itself (columns, structure, constraints) remains intact and PK resets to start from 1.</p>
+    </div>
+  </div>
+
+  <!-- DROP -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3 style="font-size:1.1rem;">DROP Command</h3>
+    <p style="margin:.4rem 0 .8rem;color:#999;font-size:.85rem;">DROP completely removes a table (or database) including its structure, all data, and all associated constraints. This is irreversible.</p>
+    <div class="hbox">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">DROP TABLE</span> <span class="tb">table-name</span>;
+<span class="kw">DROP DATABASE</span> <span class="tb">database-name</span>;</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Examples</div>
+      <div class="code-block"><span class="kw">DROP TABLE</span> <span class="tb">students</span>;      <span class="cm">-- removes table completely</span>
+<span class="kw">DROP DATABASE</span> <span class="tb">Test</span>;      <span class="cm">-- removes database named Test</span></div>
+    </div>
+  </div>
+
+  <!-- TRUNCATE vs DROP vs DELETE -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>TRUNCATE vs DROP vs DELETE — Key Differences ⚡</h3>
+    <div class="tbl-wrap"><table class="diff-table" style="margin-top:.7rem;">
+      <thead><tr><th>Feature</th><th>TRUNCATE</th><th>DROP</th><th>DELETE</th></tr></thead>
+      <tbody>
+        <tr><td>Removes data (rows)</td><td style="color:var(--accent);">✓ All rows</td><td style="color:var(--accent);">✓ All rows</td><td style="color:var(--accent);">✓ Specific/All</td></tr>
+        <tr><td>Removes structure</td><td style="color:var(--primary);">✗ NO</td><td style="color:var(--accent);">✓ YES</td><td style="color:var(--primary);">✗ NO</td></tr>
+        <tr><td>Resets PK counter</td><td style="color:var(--accent);">✓ YES</td><td>— N/A</td><td style="color:var(--primary);">✗ NO</td></tr>
+        <tr><td>Category</td><td><span class="s-tag t-ddl" style="font-size:.65rem;">DDL</span></td><td><span class="s-tag t-ddl" style="font-size:.65rem;">DDL</span></td><td><span class="s-tag t-dml" style="font-size:.65rem;">DML</span></td></tr>
+        <tr><td>Can ROLLBACK?</td><td style="color:var(--primary);">✗ NO (auto-commit)</td><td style="color:var(--primary);">✗ NO (auto-commit)</td><td style="color:var(--accent);">✓ YES</td></tr>
+        <tr><td>Use WHERE clause?</td><td style="color:var(--primary);">✗ NO</td><td style="color:var(--primary);">✗ NO</td><td style="color:var(--accent);">✓ YES</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- RENAME -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3 style="font-size:1.1rem;">RENAME Command</h3>
+    <p style="margin:.4rem 0 .8rem;color:#999;font-size:.85rem;">Used to rename an entire table.</p>
+    <div class="hbox teal">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">RENAME</span> <span class="tb">old_table_name</span> <span class="kw">TO</span> <span class="tb">new_table_name</span>;</div>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example</div>
+      <div class="code-block"><span class="kw">RENAME</span> <span class="tb">students</span> <span class="kw">TO</span> <span class="tb">people</span>;</div>
+      <p style="font-size:.8rem;color:#999;margin-top:.3rem;">Renames the Students table to People.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ DML ═══════════════ -->
+<section id="dml">
+  <div class="sec-label">Chapter 7 · Section 4</div>
+  <h2 class="fi">Data Manipulation Language (DML)</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">DML commands deal with the manipulation of data present in the database. They are <strong style="color:#5dade2;">NOT auto-committed</strong> — changes can be rolled back.</p>
+  <div class="note fi">DML commands: INSERT, SELECT, SELECT DISTINCT, UPDATE, DELETE</div>
+
+  <!-- INSERT -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3 style="font-size:1.1rem;">1. INSERT Command</h3>
+    <p style="margin:.4rem 0 .7rem;color:#999;font-size:.85rem;">Used to insert data (new rows) into a table.</p>
+    <div class="hbox blue">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">INSERT INTO</span> <span class="tb">table-name</span> <span class="kw">VALUES</span>(<span class="val">data1</span>, <span class="val">data2</span>, ...);</div>
+    </div>
+
+    <div class="eg fi"><div class="eg-lbl">Example — Students Table (Roll, Name, Age)</div>
+      <div class="code-block"><span class="kw">INSERT INTO</span> <span class="tb">Students</span> <span class="kw">VALUES</span>(1, <span class="val">'mani'</span>, 22);
+<span class="kw">INSERT INTO</span> <span class="tb">Students</span> <span class="kw">VALUES</span>(2, <span class="val">'mahi'</span>, 24);
+<span class="kw">INSERT INTO</span> <span class="tb">Students</span> <span class="kw">VALUES</span>(3, <span class="val">'appy'</span>, 20);</div>
+    </div>
+
+    <div class="g2 fi" style="margin-top:1rem;">
+      <div class="hbox yellow">
+        <strong>Inserting NULL value:</strong>
+        <p style="margin-top:.3rem;">Use the keyword <code style="color:#f9e04b;">null</code> to explicitly insert a NULL into a column.</p>
+        <div class="code-block"><span class="kw">INSERT INTO</span> <span class="tb">students</span> <span class="kw">VALUES</span>(4, <span class="val">'padm'</span>, <span class="hl">null</span>);</div>
+        <p style="font-size:.78rem;margin-top:.3rem;">Row 4 will have NULL in the age column.</p>
+      </div>
+      <div class="hbox green">
+        <strong>Inserting DEFAULT value:</strong>
+        <p style="margin-top:.3rem;">Use the keyword <code style="color:#82e0aa;">default</code> to use the column's predefined default value.</p>
+        <div class="code-block"><span class="kw">INSERT INTO</span> <span class="tb">students</span> <span class="kw">VALUES</span>(5, <span class="val">'rahul'</span>, <span class="val">default</span>);</div>
+        <p style="font-size:.78rem;margin-top:.3rem;">If age has default 18 → row 5 gets age = 18.</p>
+      </div>
+    </div>
+
+    <div class="fi" style="margin-top:.8rem;">
+      <p style="font-size:.8rem;color:var(--muted);margin-bottom:.4rem;">Students table after all inserts:</p>
+      <table class="demo-table" style="max-width:320px;">
+        <thead><tr><th>ID</th><th>NAME</th><th>AGE</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>mani</td><td>22</td></tr>
+          <tr><td>2</td><td>mahi</td><td>24</td></tr>
+          <tr><td>3</td><td>appy</td><td>20</td></tr>
+          <tr><td>4</td><td>padm</td><td class="null-cell">NULL</td></tr>
+          <tr><td>5</td><td>rahul</td><td style="color:var(--accent);">18 (default)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="eg fi" style="margin-top:1rem;"><div class="eg-lbl">Example — Customer Table Insert</div>
+      <div class="code-block"><span class="kw">INSERT INTO</span> <span class="tb">customer</span> <span class="kw">VALUES</span>(1, <span class="val">'Aman Sharma'</span>, <span class="val">'Obere Str. 57'</span>, <span class="val">'Berlin'</span>, 12209, <span class="val">'Germany'</span>);</div>
+    </div>
+  </div>
+
+  <!-- UPDATE -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">2. UPDATE Command</h3>
+    <p style="margin:.4rem 0 .7rem;color:#999;font-size:.85rem;">Used to update/modify existing rows in a table. Always use WHERE clause to avoid updating ALL rows accidentally.</p>
+    <div class="hbox teal">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">UPDATE</span> <span class="tb">table_name</span> <span class="kw">SET</span> <span class="cl">column1</span>=<span class="val">value1</span>, <span class="cl">column2</span>=<span class="val">value2</span>, ..., <span class="cl">columnN</span>=<span class="val">valueN</span>
+<span class="kw">WHERE</span> [condition];</div>
+    </div>
+    <div class="g2 fi">
+      <div class="eg"><div class="eg-lbl">Update single column</div>
+        <div class="code-block"><span class="kw">UPDATE</span> <span class="tb">students</span> <span class="kw">SET</span> <span class="cl">age</span>=22 <span class="kw">WHERE</span> <span class="cl">id</span>=4;</div>
+        <p style="font-size:.78rem;color:#999;margin-top:.3rem;">Updates padm's age from NULL → 22</p>
+      </div>
+      <div class="eg"><div class="eg-lbl">Update multiple columns</div>
+        <div class="code-block"><span class="kw">UPDATE</span> <span class="tb">students</span> <span class="kw">SET</span> <span class="cl">name</span>=<span class="val">'pri'</span>, <span class="cl">age</span>=25 <span class="kw">WHERE</span> <span class="cl">id</span>=5;</div>
+        <p style="font-size:.78rem;color:#999;margin-top:.3rem;">Updates both name and age for id=5 in one query</p>
+      </div>
+    </div>
+    <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example — Update Customer Name</div>
+      <div class="eg-desc">Update CustomerName to 'abc' where City='Berlin.' AND Country='Germany'.</div>
+      <div class="code-block"><span class="kw">UPDATE</span> <span class="tb">Customer</span> <span class="kw">SET</span> <span class="cl">CustomerName</span>=<span class="val">'abc'</span>
+<span class="kw">WHERE</span> <span class="cl">City</span>=<span class="val">'Berlin.'</span> <span class="kw">AND</span> <span class="cl">Country</span>=<span class="val">'Germany'</span>;</div>
+      <div class="tbl-wrap"><table class="demo-table" style="margin-top:.5rem;">
+        <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+        <tbody><tr class="hl-row"><td>1</td><td style="color:#f9e04b;">abc ← updated</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- DELETE -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">3. DELETE Command</h3>
+    <p style="margin:.4rem 0 .7rem;color:#999;font-size:.85rem;">DELETE removes rows from a table. Can be used with or without WHERE clause. Unlike TRUNCATE, it is DML and can be rolled back.</p>
+    <div class="hbox">
+      <strong>Syntax:</strong>
+      <div class="code-block"><span class="kw">DELETE FROM</span> <span class="tb">table-name</span>;                        <span class="cm">-- deletes ALL rows</span>
+<span class="kw">DELETE FROM</span> <span class="tb">table-name</span> <span class="kw">WHERE</span> condition;       <span class="cm">-- deletes specific rows</span></div>
+    </div>
+    <div class="g2 fi">
+      <div class="eg"><div class="eg-lbl">Delete all records</div>
+        <div class="code-block"><span class="kw">DELETE FROM</span> <span class="tb">students</span>;</div>
+        <p style="font-size:.78rem;color:#999;margin-top:.3rem;">Deletes ALL records from students table. Table structure remains.</p>
+      </div>
+      <div class="eg"><div class="eg-lbl">Delete specific record</div>
+        <div class="code-block"><span class="kw">DELETE FROM</span> <span class="tb">students</span> <span class="kw">WHERE</span> <span class="cl">id</span>=5;</div>
+        <p style="font-size:.78rem;color:#999;margin-top:.3rem;">Deletes only the row where id = 5.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════ DQL / SELECT ═══════════════ -->
+<section id="dql">
+  <div class="sec-label">Chapter 7 · Section 5</div>
+  <h2 class="fi">Data Query Language — SELECT</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">SELECT is the most used SQL query. It retrieves data from tables — either complete tables or partial using WHERE clause.</p>
+
+  <!-- SQL Query Structure Table -->
+  <div class="fi" style="margin-top:1rem;">
+    <h3>Basic Structure of an SQL Query</h3>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.6rem;">
+      <thead><tr><th>Category</th><th>Commands / Clauses</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--primary);">General Structure</strong></td><td>DDL: Create, Drop, Alter · DML: Select, Select Distinct, Insert, Update, Delete</td></tr>
+        <tr><td><strong style="color:var(--orange);">Comparison</strong></td><td>IN, BETWEEN, LIKE "% _"</td></tr>
+        <tr><td><strong style="color:var(--accent);">Grouping</strong></td><td>GROUP BY, HAVING, COUNT(), SUM(), AVG(), MAX(), MIN()</td></tr>
+        <tr><td><strong style="color:var(--blue);">Display Order</strong></td><td>ORDER BY, ASC / DESC</td></tr>
+        <tr><td><strong style="color:var(--purple);">Logical Operators</strong></td><td>AND, OR, NOT</td></tr>
+        <tr><td><strong style="color:var(--teal);">Output</strong></td><td>INTO TABLE / CURSOR, TO FILE [ADDITIVE], TO PRINTER, TO SCREEN</td></tr>
+        <tr><td><strong style="color:#f9e04b;">Union</strong></td><td>UNION</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- SELECT Syntax -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>SELECT Statement Syntax</h3>
+    <div class="hbox blue" style="margin-top:.7rem;">
+      <strong>Full Syntax:</strong>
+      <div class="code-block"><span class="kw">SELECT</span> [* / <span class="kw">DISTINCT</span>] <span class="cl">expr1</span> [col1], <span class="cl">expr2</span> [col2]
+<span class="kw">FROM</span> <span class="tb">tablename</span>
+<span class="kw">WHERE</span> condition;</div>
+    </div>
+    <div class="g4 fi" style="margin-top:.8rem;">
+      <div class="card"><h3 style="color:#5dade2;font-size:.82rem;">* (Asterisk)</h3><p style="font-size:.76rem;margin-top:.3rem;">Extracts ALL columns including duplicate values.</p></div>
+      <div class="card"><h3 style="color:#c39bd3;font-size:.82rem;">DISTINCT</h3><p style="font-size:.76rem;margin-top:.3rem;">Extracts only unique values — removes duplicates.</p></div>
+      <div class="card"><h3 style="color:var(--accent);font-size:.82rem;">expr1, expr2</h3><p style="font-size:.76rem;margin-top:.3rem;">Column name or any function expression.</p></div>
+      <div class="card"><h3 style="color:var(--orange);font-size:.82rem;">WHERE clause</h3><p style="font-size:.76rem;margin-top:.3rem;">Filters rows based on a specific condition.</p></div>
+    </div>
+  </div>
+
+  <!-- Northwind Reference Table -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3>Reference Dataset — Northwind Customer Table</h3>
+    <p style="font-size:.8rem;color:#999;margin:.3rem 0 .6rem;">All SELECT/comparison examples use this table. 6 records, 7 columns.</p>
+    <div class="tbl-wrap"><table class="demo-table">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aman</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr>
+        <tr><td>2</td><td>Rohan</td><td>Garg</td><td>Avda. de la Constitución 2222</td><td>México D.F.</td><td>05021</td><td>Mexico</td></tr>
+        <tr><td>3</td><td>Mohan</td><td>Goel</td><td>Mataderos 2312</td><td>México D.F.</td><td>05023</td><td>Mexico</td></tr>
+        <tr><td>4</td><td>Sohan</td><td>wadhwa</td><td>120 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+        <tr><td>5</td><td>Kawal</td><td>Sahni</td><td>Berguvsvägen 8</td><td>Luleå</td><td>S-958 22</td><td>Sweden</td></tr>
+        <tr><td>6</td><td>Aarohan</td><td>Verma</td><td>125 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- SELECT Examples -->
+  <div class="fi" style="margin-top:2rem;"><h3>SELECT Examples (all using Customer table above)</h3></div>
+
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 1 — SELECT * (all columns, all rows)</div>
+    <div class="eg-desc">Extract all values from the Customer table.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin-top:.3rem;">Output: Returns all 6 rows and all 7 columns (same as reference table above).</p>
+  </div>
+
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 2 — SELECT DISTINCT (unique cities)</div>
+    <div class="eg-desc">Extract distinct city names from Customer table. The table has 6 rows but only 4 unique cities (London appears twice).</div>
+    <div class="code-block"><span class="kw">SELECT DISTINCT</span> <span class="cl">City</span> <span class="kw">FROM</span> <span class="tb">Customer</span>;</div>
+    <table class="demo-table" style="max-width:200px;margin-top:.5rem;">
+      <thead><tr><th>City</th></tr></thead>
+      <tbody><tr><td>Berlin</td></tr><tr><td>México D.F.</td></tr><tr><td>Luleå</td></tr><tr><td>London</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 3 — WHERE clause (Germany customers)</div>
+    <div class="eg-desc">Extract CustomerName and ContactName of customers from Germany.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">customerName</span>, <span class="cl">ContactName</span>
+<span class="kw">FROM</span> <span class="tb">Customer</span>
+<span class="kw">WHERE</span> <span class="cl">country</span> = <span class="val">'Germany'</span>;</div>
+    <table class="demo-table" style="max-width:360px;margin-top:.5rem;">
+      <thead><tr><th>CustomerName</th><th>ContactName</th><th>Country</th></tr></thead>
+      <tbody><tr><td>Aman</td><td>Sharma</td><td>Germany</td></tr></tbody>
+    </table>
+  </div>
+
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 4 — WHERE with specific ID</div>
+    <div class="eg-desc">Extract all values of customer where id = 1.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">id</span> = 1;</div>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.5rem;">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody><tr><td>1</td><td>Aman</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr></tbody>
+    </table></div>
+  </div>
+
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 5 — WHERE with AND (multiple conditions)</div>
+    <div class="eg-desc">Extract CustomerName, ContactName, PostalCode of Mexico D.F. city AND Mexico country customers.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">CustomerName</span>, <span class="cl">ContactName</span>, <span class="cl">PostalCode</span>
+<span class="kw">FROM</span> <span class="tb">Customer</span>
+<span class="kw">WHERE</span> <span class="cl">City</span>=<span class="val">'Mexico D.F.'</span> <span class="kw">AND</span> <span class="cl">Country</span>=<span class="val">'Mexico'</span>;</div>
+    <table class="demo-table" style="max-width:380px;margin-top:.5rem;">
+      <thead><tr><th>CustomerName</th><th>ContactName</th><th>PostalCode</th></tr></thead>
+      <tbody>
+        <tr><td>Rohan</td><td>Garg</td><td>05021</td></tr>
+        <tr><td>Mohan</td><td>Goel</td><td>05023</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ═══════════════ COMPARISON ═══════════════ -->
+<section id="comparison">
+  <div class="sec-label">Chapter 7 · Section 6</div>
+  <h2 class="fi">Comparison Operators</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">SQL provides powerful comparison operators to filter data in WHERE clauses: IN, BETWEEN, and LIKE.</p>
+
+  <div class="g3 fi">
+    <div class="cmp-card cmp-in">
+      <h4>IN Operator</h4>
+      <p style="font-size:.78rem;color:#999;margin-bottom:.5rem;">Allows specifying multiple values in a WHERE clause. Shorthand for <strong style="color:#5dade2;">multiple OR conditions</strong>.</p>
+      <div class="code-block" style="font-size:.72rem;"><span class="kw">SELECT</span> col <span class="kw">FROM</span> table
+<span class="kw">WHERE</span> col <span class="kw">IN</span> (val1, val2, val3);</div>
+    </div>
+    <div class="cmp-card cmp-bt">
+      <h4>BETWEEN Operator</h4>
+      <p style="font-size:.78rem;color:#999;margin-bottom:.5rem;">Selects values within a given range. Values can be <strong style="color:var(--orange);">numbers, text, or dates</strong>.</p>
+      <div class="code-block" style="font-size:.72rem;"><span class="kw">SELECT</span> col <span class="kw">FROM</span> table
+<span class="kw">WHERE</span> col <span class="kw">BETWEEN</span> val1 <span class="kw">AND</span> val2;</div>
+    </div>
+    <div class="cmp-card cmp-lk">
+      <h4>LIKE Operator</h4>
+      <p style="font-size:.78rem;color:#999;margin-bottom:.5rem;">Used to search for a <strong style="color:#c39bd3;">specified pattern</strong> in a column using wildcards % and _.</p>
+      <div class="code-block" style="font-size:.72rem;"><span class="kw">SELECT</span> col <span class="kw">FROM</span> table
+<span class="kw">WHERE</span> col <span class="kw">LIKE</span> <span class="val">'pattern'</span>;</div>
+    </div>
+  </div>
+
+  <!-- LIKE Wildcards -->
+  <div class="fi" style="margin-top:1.2rem;">
+    <h3>LIKE Wildcards</h3>
+    <table class="wc-table">
+      <thead><tr><th>Wildcard</th><th>Meaning</th><th>Example</th><th>Matches in Customer table</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:#c39bd3;">%</strong></td><td>Zero or more chars</td><td><code>LIKE '%n'</code></td><td>Names ending in 'n': Aman, Rohan, Mohan, Sohan, Aarohan</td></tr>
+        <tr><td><strong style="color:#c39bd3;">%</strong></td><td>Zero or more chars</td><td><code>LIKE 'A%'</code></td><td>Names starting with 'A': Aman, Aarohan</td></tr>
+        <tr><td><strong style="color:#c39bd3;">_</strong></td><td>Exactly 1 character</td><td><code>LIKE '_oel'</code></td><td>4-char words ending in 'oel': Goel</td></tr>
+        <tr><td><strong style="color:#c39bd3;">%</strong></td><td>Zero or more chars</td><td><code>LIKE '%an%'</code></td><td>Contains 'an' anywhere: Aman, Aarohan</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- IN Example -->
+  <div class="eg fi" style="margin-top:1.5rem;"><div class="eg-lbl">Example 1 — IN Operator</div>
+    <div class="eg-desc">Extract all values from customer table with id 1, 4 and 5.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">id</span> <span class="kw">IN</span> (1, 4, 5);</div>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.5rem;">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aman</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr>
+        <tr><td>4</td><td>Sohan</td><td>wadhwa</td><td>120 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+        <tr><td>5</td><td>Kawal</td><td>Sahni</td><td>Berguvsvägen 8</td><td>Luleå</td><td>S-958 22</td><td>Sweden</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- NOT IN Example -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 2 — NOT IN Operator</div>
+    <div class="eg-desc">Extract all customers NOT from London and Berlin.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">city</span> <span class="kw">NOT IN</span> (<span class="val">'London'</span>, <span class="val">'Berlin'</span>);</div>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.5rem;">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td>Rohan</td><td>Garg</td><td>Avda. de la Constitución 2222</td><td>México D.F.</td><td>05021</td><td>Mexico</td></tr>
+        <tr><td>3</td><td>Mohan</td><td>Goel</td><td>Mataderos 2312</td><td>México D.F.</td><td>05023</td><td>Mexico</td></tr>
+        <tr><td>5</td><td>Kawal</td><td>Sahni</td><td>Berguvsvägen 8</td><td>Luleå</td><td>S-958 22</td><td>Sweden</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- BETWEEN Example -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 3 — BETWEEN Operator</div>
+    <div class="eg-desc">Extract all values from customer table where CustomerID is between 2 and 5.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">CustomerID</span> <span class="kw">BETWEEN</span> 2 <span class="kw">AND</span> 5;</div>
+    <div class="note">As per the lecture example, the output shows IDs 3 and 4 only (exclusive of endpoints 2 and 5). Note: In standard SQL, BETWEEN is normally inclusive of both endpoints.</div>
+    <div class="tbl-wrap"><table class="demo-table" style="margin-top:.4rem;">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>3</td><td>Mohan</td><td>Goel</td><td>Mataderos 2312</td><td>México D.F.</td><td>05023</td><td>Mexico</td></tr>
+        <tr><td>4</td><td>Sohan</td><td>wadhwa</td><td>120 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- LIKE Example -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 4 — LIKE Operator</div>
+    <div class="eg-desc">Extract all customers with CustomerName ending with the letter 'n'. (% matches any chars before 'n')</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">CustomerName</span> <span class="kw">LIKE</span> <span class="val">'%n'</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .5rem;">Matches: Aman, Rohan, Mohan, Sohan, Aarohan (all end in 'n'). Kawal does NOT match.</p>
+    <div class="tbl-wrap"><table class="demo-table">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aman</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr>
+        <tr><td>2</td><td>Rohan</td><td>Garg</td><td>Avda. de la Constitución 2222</td><td>México D.F.</td><td>05021</td><td>Mexico</td></tr>
+        <tr><td>3</td><td>Mohan</td><td>Goel</td><td>Mataderos 2312</td><td>México D.F.</td><td>05023</td><td>Mexico</td></tr>
+        <tr><td>4</td><td>Sohan</td><td>wadhwa</td><td>120 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+        <tr><td>6</td><td>Aarohan</td><td>Verma</td><td>125 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ FLASHCARDS ═══════════════ -->
+<section id="cards">
+  <div class="sec-label">Chapter 7 · Review</div>
+  <h2 class="fi">Flashcards <span style="font-size:.75rem;color:var(--muted);font-weight:400;">— hover to flip</span></h2>
+  <p class="fi" style="margin:.3rem 0 .3rem;color:#999;font-size:.85rem;">25 cards covering all key concepts. Test yourself before the quiz!</p>
+  <div class="fc-grid">
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">SQL Basics</div><div class="fc-q">What does SQL stand for and what is it used for?</div><div class="fc-hint">hover to flip</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Structured Query Language</strong> — used to create/remove/alter databases and database objects, and to store/retrieve/update data.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">SQL Types</div><div class="fc-q">Name all 5 SQL sublanguages.</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>DDL</strong> — Data Definition Language<br><strong>DML</strong> — Data Manipulation Language<br><strong>DCL</strong> — Data Control Language<br><strong>TCL</strong> — Transaction Control Language<br><strong>DQL</strong> — Data Query Language</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DDL</div><div class="fc-q">What does "auto-committed" mean for DDL?</div></div>
+      <div class="fc-bk"><div class="fc-a">DDL changes are <strong>permanently saved immediately</strong> when executed. They <strong>cannot be undone with ROLLBACK</strong>. They are final.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DDL Commands</div><div class="fc-q">List all 5 DDL commands.</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>CREATE</strong> — create table/database<br><strong>ALTER</strong> — modify table structure<br><strong>TRUNCATE</strong> — delete all records<br><strong>DROP</strong> — remove table completely<br><strong>RENAME</strong> — rename a table</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DML</div><div class="fc-q">List all 4 DML commands and can they be rolled back?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>INSERT, UPDATE, DELETE, MERGE</strong><br><br>YES — DML is NOT auto-committed. Changes can be rolled back before COMMIT.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">TCL</div><div class="fc-q">What are the 3 TCL commands?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>COMMIT</strong> — permanently save changes<br><strong>ROLLBACK</strong> — undo changes (back to original)<br><strong>SAVEPOINT</strong> — save temporarily at a point</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DCL</div><div class="fc-q">What are the 2 DCL commands?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>GRANT</strong> — grant permission/rights to a user<br><strong>REVOKE</strong> — take back permission from a user</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">TRUNCATE vs DROP</div><div class="fc-q">Key difference between TRUNCATE and DROP?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>TRUNCATE:</strong> Removes all records, keeps table structure, resets PK counter<br><br><strong>DROP:</strong> Completely removes table including structure — everything gone</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALTER</div><div class="fc-q">Syntax: ALTER to ADD a column with default value?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.74rem;">ALTER TABLE tname<br>ADD(col type DEFAULT value);</code><br><br>Example:<br><code style="font-size:.72rem;">ALTER TABLE students ADD(branch varchar(10) DEFAULT 'COE');</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALTER</div><div class="fc-q">Syntax: ALTER to RENAME a column?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.74rem;">ALTER TABLE tname RENAME COLUMN old TO new;</code><br><br>Example:<br><code style="font-size:.72rem;">ALTER TABLE Student RENAME COLUMN address TO Location;</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALTER</div><div class="fc-q">Syntax: ALTER to MODIFY a column's data type?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.74rem;">ALTER TABLE tname MODIFY(col datatype);</code><br><br>Example:<br><code style="font-size:.72rem;">ALTER TABLE students MODIFY(address char(30));</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">ALTER</div><div class="fc-q">Syntax: ALTER to DROP a column?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.74rem;">ALTER TABLE tname DROP(column-name);</code><br><br>Example:<br><code style="font-size:.72rem;">ALTER TABLE Students DROP(address);</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">INSERT</div><div class="fc-q">How do you insert NULL and DEFAULT values?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>NULL:</strong> <code style="font-size:.74rem;">INSERT INTO s VALUES(4,'padm',null);</code><br><br><strong>DEFAULT:</strong> <code style="font-size:.74rem;">INSERT INTO s VALUES(5,'rahul',default);</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">SELECT</div><div class="fc-q">Difference between SELECT * and SELECT DISTINCT?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>SELECT *</strong> → returns ALL columns with duplicate values<br><br><strong>SELECT DISTINCT col</strong> → returns only UNIQUE values for that column</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">IN Operator</div><div class="fc-q">What is IN equivalent to?</div></div>
+      <div class="fc-bk"><div class="fc-a">IN is shorthand for <strong>multiple OR conditions</strong>.<br><br><code>WHERE id IN (1,4,5)</code><br>≡<br><code>WHERE id=1 OR id=4 OR id=5</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">LIKE</div><div class="fc-q">What do % and _ wildcards mean in LIKE?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>%</strong> = zero or more characters<br>e.g., <code>'%n'</code> = ends with n<br><br><strong>_</strong> = exactly one character<br>e.g., <code>'_oel'</code> = 4-char ending with oel</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">BETWEEN</div><div class="fc-q">What types can BETWEEN be used with?</div></div>
+      <div class="fc-bk"><div class="fc-a">BETWEEN can be used with:<br><strong>numbers, text, or dates</strong><br><br>Syntax: <code>WHERE col BETWEEN val1 AND val2</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">UPDATE</div><div class="fc-q">Syntax to update multiple columns at once?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.73rem;">UPDATE tname SET col1=v1, col2=v2 WHERE cond;</code><br><br>Example:<br><code style="font-size:.72rem;">UPDATE students SET name='pri', age=25 WHERE id=5;</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DELETE</div><div class="fc-q">DELETE vs TRUNCATE — which can be rolled back?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>DELETE</strong> is DML → can be rolled back<br><strong>TRUNCATE</strong> is DDL → auto-committed, cannot be rolled back<br><br>Also: DELETE supports WHERE clause, TRUNCATE does not.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">RENAME</div><div class="fc-q">Syntax to rename an entire table?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.78rem;">RENAME old_name TO new_name;</code><br><br>Example:<br><code style="font-size:.75rem;">RENAME students TO people;</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">SQL Concept</div><div class="fc-q">Where is the result of an SQL query stored?</div></div>
+      <div class="fc-bk"><div class="fc-a">The result of a query is stored in the form of a <strong>table</strong> (called a result set).<br><br>SQL searches all records → selects matching ones → returns them as a table.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">DQL</div><div class="fc-q">What is DQL and why is it important?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>Data Query Language</strong> — primary command is <strong>SELECT</strong>. It is the most frequently used SQL command. Can retrieve complete tables or partial data using WHERE clause.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">NOT IN</div><div class="fc-q">Syntax for NOT IN — what does it return?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.75rem;">WHERE col NOT IN ('v1','v2')</code><br><br>Returns all rows where col value is <strong>NOT in the given list</strong>. Opposite of IN.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">CREATE</div><div class="fc-q">Syntax to create a table in SQL?</div></div>
+      <div class="fc-bk"><div class="fc-a"><code style="font-size:.72rem;">CREATE TABLE tablename (<br>  col1 datatype(size),<br>  col2 datatype(size),<br>  ...<br>);</code></div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">TRUNCATE</div><div class="fc-q">What happens to the PK when TRUNCATE is run?</div></div>
+      <div class="fc-bk"><div class="fc-a">The Primary Key counter is <strong>re-initialized (reset)</strong>. So the next inserted row will get PK starting from 1 again.<br><br>DROP TABLE also removes PK — but removes everything.</div></div>
+    </div></div>
+  </div>
+</section>
+
+<!-- ═══════════════ QUIZ ═══════════════ -->
+<section id="quiz">
+  <div class="sec-label">Chapter 7 · Test Yourself</div>
+  <h2 class="fi">Quiz — SQL Basics</h2>
+  <p class="fi" style="margin:.5rem 0 1.5rem;color:#999;">15 questions covering all topics. Select an answer to see the explanation.</p>
+  <div class="quiz-wrap">
+    <div id="q-prog"></div>
+    <div class="q-card" id="q-card">
+      <div class="q-num" id="q-num"></div>
+      <div class="q-text" id="q-text"></div>
+      <div class="q-opts" id="q-opts"></div>
+      <div class="q-exp" id="q-exp"></div>
+      <div class="q-nav"><button class="btn" id="q-next" style="display:none;">Next Question →</button></div>
+    </div>
+    <div id="q-score">
+      <div class="sc-n" id="sc-val"></div>
+      <div class="sc-l">out of 15</div>
+      <p style="color:#999;margin-top:.8rem;" id="sc-msg"></p>
+      <button class="btn" style="margin-top:1.2rem;" onclick="initQ()">Retake Quiz</button>
+    </div>
+  </div>
+</section>
+
+<script>
+// PROGRESS BAR
+window.addEventListener('scroll',()=>{
+  const d=document.documentElement;
+  document.getElementById('pb').style.width=(d.scrollTop/(d.scrollHeight-d.clientHeight)*100)+'%';
+});
+
+// FADE IN
+const observer=new IntersectionObserver(e=>e.forEach(x=>{if(x.isIntersecting)x.target.classList.add('v')}),{threshold:.1});
+document.querySelectorAll('.fi').forEach(el=>observer.observe(el));
+
+// ALTER TABS
+function showA(id,btn){
+  document.querySelectorAll('.a-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('ap-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// QUIZ
+const QS=[
+  {q:"What does DDL stand for?",o:["Data Display Language","Data Definition Language","Dynamic Definition Layer","Data Distribution Language"],a:1,e:"DDL = Data Definition Language. It consists of CREATE, ALTER, TRUNCATE, DROP, RENAME — commands that define and modify database schema."},
+  {q:"DDL commands are auto-committed. What does this mean?",o:["Changes can be rolled back","Changes need explicit COMMIT","Changes are permanent and cannot be undone","Changes are temporary"],a:2,e:"Auto-committed means DDL changes are permanently saved immediately upon execution. They CANNOT be rolled back unlike DML commands."},
+  {q:"Which of the following is NOT a DDL command?",o:["CREATE","ALTER","INSERT","TRUNCATE"],a:2,e:"INSERT is a DML (Data Manipulation Language) command. DDL commands are: CREATE, ALTER, TRUNCATE, DROP, RENAME."},
+  {q:"TRUNCATE vs DROP: which one keeps the table structure?",o:["DROP keeps structure","TRUNCATE keeps structure","Both keep structure","Neither keeps structure"],a:1,e:"TRUNCATE removes all records but KEEPS the table structure (columns, constraints). It also resets the Primary Key counter. DROP removes everything including structure."},
+  {q:"What is the correct syntax to add a column 'age number' to table 'students'?",o:["ALTER TABLE students ADD(age number);","ALTER TABLE students INSERT(age number);","ALTER students ADD COLUMN age number;","MODIFY TABLE students ADD(age number);"],a:0,e:"Syntax: ALTER TABLE table-name ADD(column-name datatype); Example: ALTER TABLE students ADD(age number);"},
+  {q:"SELECT DISTINCT City FROM Customer — what does DISTINCT do?",o:["Selects all cities including duplicates","Selects only unique city values","Orders cities alphabetically","Counts the cities"],a:1,e:"DISTINCT extracts only unique values, eliminating duplicates. In the Customer table with 6 rows, there are only 4 distinct cities (London appears twice for IDs 4 and 6)."},
+  {q:"The IN operator is a shorthand for which logical operation?",o:["Multiple AND conditions","Multiple NOT conditions","Multiple OR conditions","Multiple BETWEEN conditions"],a:2,e:"IN is shorthand for multiple OR conditions. WHERE id IN (1,4,5) is equivalent to WHERE id=1 OR id=4 OR id=5."},
+  {q:"In the LIKE operator, which wildcard matches exactly ONE character?",o:["%","*","_","?"],a:2,e:"The underscore (_) matches exactly one character. The percent (%) matches zero or more characters. Example: '_oel' matches exactly 4-character words ending with 'oel'."},
+  {q:"Which SQL category does the SELECT command belong to?",o:["DDL","DML","DCL","DQL"],a:3,e:"SELECT belongs to DQL (Data Query Language). It is the most commonly used SQL command for retrieving data from tables."},
+  {q:"How do you insert a NULL value into the age column?",o:["INSERT INTO s VALUES(4,'name','NULL');","INSERT INTO s VALUES(4,'name',0);","INSERT INTO s VALUES(4,'name',null);","INSERT INTO s VALUES(4,'name',empty);"],a:2,e:"Use the keyword 'null' (without quotes): INSERT INTO students VALUES(4,'padm',null); This stores a NULL value in the age column."},
+  {q:"Which ALTER operation changes the data type of an existing column?",o:["ADD","RENAME","MODIFY","DROP"],a:2,e:"MODIFY changes the data type of an existing column. Syntax: ALTER TABLE tname MODIFY(col-name datatype); Example: ALTER TABLE students MODIFY(address char(30));"},
+  {q:"What does 'SELECT * FROM Customer WHERE city NOT IN (London, Berlin)' return?",o:["All customers from London and Berlin","All customers NOT from London and Berlin","Only customers from Mexico and Sweden","Customers from Germany only"],a:1,e:"NOT IN returns all rows where the city is NOT in the given list. So it excludes London (IDs 4,6) and Berlin (ID 1), returning IDs 2,3,5 — Mexico and Sweden customers."},
+  {q:"Which command renames an entire table?",o:["ALTER TABLE old RENAME TO new;","RENAME old TO new;","RENAME TABLE old new;","ALTER TABLE old TO new;"],a:1,e:"Syntax: RENAME old_table_name TO new_table_name; Example: RENAME students TO people; This renames the Students table to People."},
+  {q:"DCL (Data Control Language) commands are used for:",o:["Defining table structure","Manipulating rows in tables","Granting and revoking user permissions","Managing transactions (commit/rollback)"],a:2,e:"DCL provides commands to grant and take back authority/permissions. Commands: GRANT (give permission) and REVOKE (take back permission). DCL is auto-committed."},
+  {q:"Using the LIKE operator, 'SELECT * FROM Customer WHERE CustomerName LIKE %n' returns customers named:",o:["Starting with n","Containing exactly 'n' anywhere","Ending with the letter 'n'","Having 'n' as second character"],a:2,e:"The pattern '%n' means ANY characters followed by 'n' at the end. So it matches names ENDING with 'n': Aman, Rohan, Mohan, Sohan, Aarohan. Kawal does NOT match."}
+];
+
+let cur=0,score=0,answered=false;
+
+function initQ(){
+  cur=0;score=0;answered=false;
+  document.getElementById('q-score').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  const q=QS[cur];
+  document.getElementById('q-num').textContent=`Question ${cur+1} of ${QS.length}`;
+  document.getElementById('q-text').textContent=q.q;
+  const opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.o.forEach((o,i)=>{
+    const b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=()=>answer(i);
+    opts.appendChild(b);
+  });
+  document.getElementById('q-exp').className='q-exp';
+  document.getElementById('q-exp').textContent='';
+  document.getElementById('q-next').style.display='none';
+  answered=false;
+  // dots
+  const prog=document.getElementById('q-prog');
+  prog.innerHTML='';
+  QS.forEach((_,i)=>{
+    const d=document.createElement('div');
+    d.className='q-dot'+(i===cur?' cur':'');
+    prog.appendChild(d);
+  });
+}
+
+function answer(i){
+  if(answered)return;
+  answered=true;
+  const q=QS[cur];
+  const btns=document.querySelectorAll('.q-opt');
+  btns.forEach(b=>b.disabled=true);
+  if(i===q.a){score++;btns[i].classList.add('ok');}
+  else{btns[i].classList.add('no');btns[q.a].classList.add('ok');}
+  const exp=document.getElementById('q-exp');
+  exp.textContent=q.e;
+  exp.className='q-exp show '+(i===q.a?'ok':'no');
+  document.getElementById('q-next').style.display='block';
+  const dots=document.querySelectorAll('.q-dot');
+  dots[cur].classList.add(i===q.a?'done':'bad');
+}
+
+document.getElementById('q-next').onclick=()=>{
+  cur++;
+  if(cur>=QS.length){
+    document.getElementById('q-card').style.display='none';
+    const sc=document.getElementById('q-score');
+    sc.style.display='block';
+    document.getElementById('sc-val').textContent=score;
+    const p=score/QS.length;
+    const msgs=['Keep studying — review the notes!','Getting there — re-read the DDL section.','Decent! Focus on the tricky parts.','Good work! Almost there.','Great job! Solid understanding.','Excellent! Nearly perfect.','Perfect score! Outstanding!'];
+    document.getElementById('sc-msg').textContent=msgs[Math.min(Math.floor(p*6),6)];
+  } else {renderQ();}
+};
+
+initQ();
+</script>
+</body>
+</html>
