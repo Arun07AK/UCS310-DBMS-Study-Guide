@@ -157,6 +157,8 @@ p{line-height:1.75;color:#b8b8b8;}
   <a href="#state">Relation State</a>
   <a href="#ordering">Tuple Ordering</a>
   <a href="#characteristics">Characteristics</a>
+  <a href="#interpretation">Interpretation</a>
+  <a href="#notation">Notation</a>
   <a href="#flashcards">Flashcards</a>
   <a href="#quiz">Quiz</a>
   <a href="#cheatsheet">Cheat Sheet</a>
@@ -173,9 +175,9 @@ p{line-height:1.75;color:#b8b8b8;}
     <a href="#quiz" class="btn btn-o">Take Quiz</a>
   </div>
   <div class="hero-stats fi">
-    <div class="hs"><div class="n">4</div><div class="l">Core Concepts</div></div>
+    <div class="hs"><div class="n">6</div><div class="l">Core Concepts</div></div>
     <div class="hs"><div class="n">6</div><div class="l">Characteristics</div></div>
-    <div class="hs"><div class="n">8</div><div class="l">Domain Examples</div></div>
+    <div class="hs"><div class="n">9</div><div class="l">Domain Examples</div></div>
     <div class="hs"><div class="n">12</div><div class="l">Quiz Questions</div></div>
   </div>
 </section>
@@ -324,6 +326,10 @@ p{line-height:1.75;color:#b8b8b8;}
     </div>
   </div>
 
+  <div class="hbox orange fi" style="margin-top:1.2rem;">
+    <p><strong>Additional domain info:</strong> A domain can also carry <strong>additional information</strong> such as <strong>units of measurement</strong>. Example: <strong>Person_weights</strong> domain — its values are numeric, but the unit could be pounds or kilograms. The unit of measurement <strong>must be specified</strong> as part of the domain definition to avoid ambiguity.</p>
+  </div>
+
   <div class="hbox green fi" style="margin-top:1.2rem;">
     <p><strong>Key note:</strong> Multiple attributes can share the same domain! In STUDENT, both HomePhone and OfficePhone use the domain Local_phone_numbers — but they play different ROLES. The domain plays the role of HomePhone for one attribute and OfficePhone for another.</p>
   </div>
@@ -447,6 +453,23 @@ p{line-height:1.75;color:#b8b8b8;}
     </div>
   </div>
 
+  <!-- Self-Describing Tuple Example -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Self-Describing Tuples (Alternative Notation)</h3>
+  <div class="hbox blue fi" style="margin-top:.8rem;">
+    <p>Under the alternative definition, each tuple is <strong>self-describing</strong> — it carries <strong>attribute-value pairs</strong> rather than just values. When attributes are named, <strong>order does not matter</strong>.</p>
+  </div>
+  <div class="fi" style="margin-top:.8rem;">
+    <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.8rem 1rem;margin:.5rem 0;font-family:monospace;font-size:.78rem;color:#c39bd3;overflow-x:auto;line-height:1.9;">
+      <span style="color:var(--muted);">/* Tuple 1 — one ordering */</span><br>
+      t = &lt; (Name, Dick Davidson), (SSN, 422-11-2320), (HomePhone, <span style="color:#f1948a;">null</span>),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Address, 3452 Elgin Road), (OfficePhone, 749-1253), (Age, 25), (GPA, 3.53) &gt;<br><br>
+      <span style="color:var(--muted);">/* Tuple 2 — different ordering, SAME tuple */</span><br>
+      t = &lt; (Address, 3452 Elgin Road), (Name, Dick Davidson), (SSN, 422-11-2320),<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(Age, 25), (OfficePhone, 749-1253), (GPA, 3.53), (HomePhone, <span style="color:#f1948a;">null</span>) &gt;
+    </div>
+    <p style="font-size:.8rem;color:var(--muted);margin-top:.4rem;">Both tuples above represent the <strong style="color:#e0e0e0;">same fact</strong> — ordering is irrelevant when each value is paired with its attribute name.</p>
+  </div>
+
   <div class="hbox green fi" style="margin-top:1rem;">
     <p><strong>Exam Point:</strong> "Tuples in a relation have no particular order" — this is one of the key characteristics that distinguishes a relation from a file (where records have physical order on disk).</p>
   </div>
@@ -503,6 +526,31 @@ p{line-height:1.75;color:#b8b8b8;}
       <div class="char-title">All Values are Atomic</div>
       <div class="char-desc">Each value in a tuple must be an atomic (indivisible) value from its domain. Multi-valued attributes are NOT allowed — this is 1NF (First Normal Form).</div>
     </div>
+  </div>
+
+  <!-- Expanded 1NF Rules -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Values in Tuples — Detailed 1NF Rules</h3>
+  <div class="hbox fi" style="margin-top:.8rem;">
+    <p><strong>First Normal Form (1NF) assumption:</strong> Every value in a tuple is <strong>atomic (indivisible)</strong>. This fundamental constraint shapes how the relational model represents data:</p>
+  </div>
+  <div class="g2 fi" style="margin-top:.8rem;">
+    <div class="card" style="border-left:3px solid var(--red);">
+      <h3 style="color:var(--red);">NOT Allowed</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li><strong style="color:#f1948a;">Composite attributes</strong> are NOT allowed in the basic relational model</li>
+        <li><strong style="color:#f1948a;">Multivalued attributes</strong> cannot be stored directly in a tuple</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent);">
+      <h3 style="color:var(--accent);">How to Handle Them</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>Composite attributes are represented only by their <strong style="color:#a0e0b0;">simple component attributes</strong> (e.g., Name → FirstName, LastName)</li>
+        <li>Multivalued attributes must be represented by <strong style="color:#a0e0b0;">separate relations</strong> (separate tables)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="char-grid fi" style="margin-top:1.2rem;">
     <div class="char-card">
       <div class="char-num">Characteristic 05</div>
       <div class="char-title">NULL Values Allowed</div>
@@ -516,9 +564,113 @@ p{line-height:1.75;color:#b8b8b8;}
   </div>
 </section>
 
+<!-- INTERPRETATION OF A RELATION -->
+<section id="interpretation">
+  <div class="sec-label">Section 08</div>
+  <h2 class="fi">Interpretation of a Relation</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">A relation schema has a deeper meaning — it can be read as a <strong style="color:#e0e0e0;">declaration</strong> about the real world.</p>
+
+  <div class="g2 fi">
+    <div class="card" style="border-left:3px solid var(--primary);">
+      <h3>Schema as Declaration / Assertion</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>A relation schema R can be interpreted as a <strong style="color:var(--primary);">declaration</strong> or <strong style="color:var(--primary);">assertion</strong></li>
+        <li>Example: the STUDENT schema <strong style="color:#e0e0e0;">asserts</strong> that, in general, a student entity has a Name, SSN, HomePhone, Address, OfficePhone, Age, and GPA</li>
+        <li>Each <strong style="color:var(--primary);">tuple</strong> in the relation is then a <strong style="color:#e0e0e0;">fact</strong> or a <strong style="color:#e0e0e0;">particular instance</strong> of that assertion</li>
+      </ul>
+    </div>
+    <div class="card" style="border-left:3px solid var(--accent);">
+      <h3 style="color:var(--accent);">Tuples as Facts</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li>The first tuple in STUDENT asserts the <strong style="color:#a0e0b0;">fact</strong>: there is a STUDENT named <strong style="color:#e0e0e0;">Benjamin Bayer</strong> with SSN 305-61-2435, Age 19, GPA 3.21, etc.</li>
+        <li>Each row is one concrete instance of the general declaration made by the schema</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Entities vs Relationships — Both Are Relations</h3>
+  <div class="g2 fi">
+    <div class="card">
+      <div class="ib ipurple">📦</div>
+      <h3>Relations as Entity Facts</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">Some relations represent facts about <strong style="color:var(--primary);">entities</strong>. Example: the STUDENT relation — each tuple represents a real-world student entity with its properties.</p>
+    </div>
+    <div class="card">
+      <div class="ib iblue">🔗</div>
+      <h3 style="color:#5dade2;">Relations as Relationship Facts</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">Other relations represent facts about <strong style="color:#5dade2;">relationships</strong> between entities.</p>
+      <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:.8rem 1rem;margin:.8rem 0;font-family:monospace;font-size:.8rem;color:#c39bd3;">
+        MAJORS(StudentSSN, DepartmentCode)
+      </div>
+      <p style="font-size:.82rem;color:#b8b8b8;">This asserts that students <strong style="color:#e0e0e0;">major in</strong> academic departments. Each tuple is a fact linking a student to a department.</p>
+    </div>
+  </div>
+
+  <div class="hbox green fi" style="margin-top:1rem;">
+    <p><strong>Key point:</strong> The relational model represents <strong>both entities and relationships uniformly as relations</strong>. There is no structural difference between a relation that holds entity facts and one that holds relationship facts — both are simply sets of tuples conforming to a schema.</p>
+  </div>
+</section>
+
+<!-- RELATIONAL MODEL NOTATION -->
+<section id="notation">
+  <div class="sec-label">Section 09</div>
+  <h2 class="fi">Relational Model Notation</h2>
+  <p class="fi" style="margin-top:.4rem;max-width:640px;">A complete reference of the formal notation used throughout the relational model.</p>
+
+  <div class="fi" style="overflow-x:auto;margin-top:1rem;">
+    <table class="term-table">
+      <thead><tr><th>Notation</th><th>Meaning</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td style="font-family:monospace;color:#c39bd3;">R(A₁, A₂, ..., Aₙ)</td><td class="highlight-term">Relation schema</td><td style="color:#c0c0d0;">STUDENT(Name, SSN, ..., GPA)</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">t = &lt;v₁, v₂, ..., vₙ&gt;</td><td class="highlight-term">n-tuple (ordered list of values)</td><td style="color:#c0c0d0;">&lt;'Barbara Benson', '533-69-1238', ...&gt;</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">t[Aᵢ] or t.Aᵢ</td><td class="highlight-term">Value of attribute Aᵢ in tuple t</td><td style="color:#c0c0d0;">t[Name] = 'Barbara Benson'</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">t[Au, Aw, ..., Az]</td><td class="highlight-term">Subtuple of t (selected attributes only)</td><td style="color:#c0c0d0;">t[SSN, GPA, Age] = &lt;'533-69-1238', 3.25, 19&gt;</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">Q, R, S</td><td class="highlight-term">Relation names (convention)</td><td style="color:#c0c0d0;">STUDENT, EMPLOYEE, DEPARTMENT</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">q, r, s</td><td class="highlight-term">Relation states (convention)</td><td style="color:#c0c0d0;">r(STUDENT) = the current set of tuples</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">t, u, v</td><td class="highlight-term">Tuples (convention)</td><td style="color:#c0c0d0;">t = first row of STUDENT</td></tr>
+        <tr><td style="font-family:monospace;color:#c39bd3;">R.A (dot notation)</td><td class="highlight-term">Qualify attribute A of relation R</td><td style="color:#c0c0d0;">STUDENT.Name, STUDENT.Age</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="g2 fi" style="margin-top:1.2rem;">
+    <div class="card">
+      <h3>Schema Name vs State Name</h3>
+      <ul style="margin-top:.6rem;font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+        <li><strong style="color:var(--primary);">STUDENT</strong> alone refers to the <strong style="color:#e0e0e0;">current relation state</strong> (extension)</li>
+        <li><strong style="color:var(--primary);">STUDENT(Name, SSN, ...)</strong> refers to the <strong style="color:#e0e0e0;">relation schema</strong> (intension)</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3 style="color:#5dade2;">Why Dot Notation?</h3>
+      <p style="margin-top:.5rem;font-size:.84rem;">Dot notation <strong style="color:#5dade2;">R.A</strong> is needed when the <strong style="color:#e0e0e0;">same attribute name appears in different relations</strong>. E.g., both STUDENT and EMPLOYEE may have a <em>Name</em> attribute — use <strong style="color:#5dade2;">STUDENT.Name</strong> and <strong style="color:#5dade2;">EMPLOYEE.Name</strong> to distinguish them.</p>
+      <div class="hbox blue" style="margin-top:.8rem;">
+        <p style="font-size:.82rem;"><strong>Rule:</strong> All attribute names <strong>within a single relation</strong> must be distinct. But across different relations, the same name can appear.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Worked Example -->
+  <h3 class="fi" style="color:#fff;font-weight:600;margin-top:1.5rem;">Worked Example — Extracting Values from a Tuple</h3>
+  <div class="fi" style="margin-top:.8rem;">
+    <div style="background:#111;border:1px solid rgba(255,255,255,.08);border-radius:8px;padding:1rem 1.2rem;font-family:monospace;font-size:.8rem;color:#c39bd3;overflow-x:auto;line-height:2;">
+      <span style="color:var(--muted);">/* Given the STUDENT tuple for Barbara Benson */</span><br>
+      t = &lt;<span style="color:#a0e0b0;">'Barbara Benson'</span>, <span style="color:#a0e0b0;">'533-69-1238'</span>, <span style="color:#a0e0b0;">'839-8461'</span>, <span style="color:#a0e0b0;">'7384 Fontana Lane'</span>, <span style="color:#f1948a;">null</span>, <span style="color:#f0c040;">19</span>, <span style="color:#f0c040;">3.25</span>&gt;<br><br>
+      <span style="color:var(--muted);">/* Extract a single attribute value */</span><br>
+      t[Name] = <span style="color:#a0e0b0;">'Barbara Benson'</span><br><br>
+      <span style="color:var(--muted);">/* Extract a subtuple (multiple attributes) */</span><br>
+      t[SSN, GPA, Age] = &lt;<span style="color:#a0e0b0;">'533-69-1238'</span>, <span style="color:#f0c040;">3.25</span>, <span style="color:#f0c040;">19</span>&gt;
+    </div>
+  </div>
+
+  <div class="hbox fi" style="margin-top:1rem;">
+    <p><strong>Note on subtuple:</strong> t[SSN, GPA, Age] returns a <strong>subtuple</strong> containing only the selected attribute values, preserving the order in which you listed the attributes.</p>
+  </div>
+</section>
+
 <!-- FLASHCARDS -->
 <section id="flashcards">
-  <div class="sec-label">Section 08</div>
+  <div class="sec-label">Section 10</div>
   <h2 class="fi">Flashcards</h2>
   <div class="fc-grid fi">
     <div class="fc"><div class="fc-in">
@@ -558,7 +710,7 @@ p{line-height:1.75;color:#b8b8b8;}
 
 <!-- QUIZ -->
 <section id="quiz">
-  <div class="sec-label">Section 09</div>
+  <div class="sec-label">Section 11</div>
   <h2 class="fi">Quiz</h2>
   <div style="margin-top:1.5rem;">
     <div class="q-dots" id="dots"></div>
@@ -583,7 +735,7 @@ p{line-height:1.75;color:#b8b8b8;}
 
 <!-- CHEAT SHEET -->
 <section id="cheatsheet">
-  <div class="sec-label">Section 10</div>
+  <div class="sec-label">Section 12</div>
   <h2 class="fi">Cheat Sheet</h2>
   <div class="cheat-grid fi">
     <div class="cheat-item"><div class="ck">4 Key Terms</div><div class="cv">Table=Relation, Row=Tuple, Column Header=Attribute, Column Data Type=Domain</div></div>
@@ -595,6 +747,10 @@ p{line-height:1.75;color:#b8b8b8;}
     <div class="cheat-item"><div class="ck">NULL</div><div class="cv">Unknown or not applicable. ≠ 0 or empty string. Allowed in any domain.</div></div>
     <div class="cheat-item"><div class="ck">Atomic</div><div class="cv">Each value must be indivisible (atomic). Multi-valued NOT allowed. This is 1NF.</div></div>
     <div class="cheat-item"><div class="ck">Degree 7 Example</div><div class="cv">STUDENT(Name, SSN, HomePhone, Address, OfficePhone, Age, GPA). HomePhone &amp; OfficePhone share same domain.</div></div>
+    <div class="cheat-item"><div class="ck">Interpretation</div><div class="cv">Schema = declaration/assertion about entities. Each tuple = a fact (particular instance). Relations represent both entities &amp; relationships uniformly.</div></div>
+    <div class="cheat-item"><div class="ck">Notation</div><div class="cv">t[Aᵢ] = value of Aᵢ. t[A, B] = subtuple. R.A = dot notation. Q,R,S = relations. q,r,s = states. t,u,v = tuples.</div></div>
+    <div class="cheat-item"><div class="ck">1NF Rules</div><div class="cv">Values must be atomic. No composite attributes. No multivalued attributes — use separate relations. Composite → simple components only.</div></div>
+    <div class="cheat-item"><div class="ck">Self-Describing Tuple</div><div class="cv">Attribute-value pairs: &lt;(Name, X), (SSN, Y)&gt;. Order irrelevant when attributes are named. Alternative definition of a tuple.</div></div>
   </div>
 </section>
 

@@ -146,6 +146,9 @@ p{line-height:1.75;color:#b8b8b8;}
   <a href="#dml">DML</a>
   <a href="#dql">SELECT</a>
   <a href="#comparison">Comparison</a>
+  <a href="#logical">Logical Ops</a>
+  <a href="#setops">Set Ops</a>
+  <a href="#grouping">Grouping</a>
   <a href="#cards">Flashcards</a>
   <a href="#quiz">Quiz</a>
 </nav>
@@ -159,9 +162,9 @@ p{line-height:1.75;color:#b8b8b8;}
   <p style="font-size:1rem;color:#999;max-width:580px;margin:.4rem 0 1rem;">SQL is the standard language for creating, accessing, and manipulating database management systems — create, remove, alter databases and store, retrieve, update data.</p>
   <div class="hero-stats">
     <div class="hs"><div class="n">5</div><div class="l">SQL Sub-languages</div></div>
-    <div class="hs"><div class="n">20+</div><div class="l">Commands Covered</div></div>
-    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
-    <div class="hs"><div class="n">15</div><div class="l">Quiz Questions</div></div>
+    <div class="hs"><div class="n">30+</div><div class="l">Commands Covered</div></div>
+    <div class="hs"><div class="n">31</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">21</div><div class="l">Quiz Questions</div></div>
   </div>
   <div class="btns"><a href="#types" class="btn">Start Learning →</a><a href="#quiz" class="btn btn-o">Take Quiz</a></div>
 
@@ -761,13 +764,603 @@ p{line-height:1.75;color:#b8b8b8;}
       </tbody>
     </table></div>
   </div>
+
+  <!-- LIKE 'a%' Example -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 5 — LIKE 'a%' (starts with 'a')</div>
+    <div class="eg-desc">Extract all customers whose name starts with the letter 'a'.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">CustomerName</span> <span class="kw">LIKE</span> <span class="val">'a%'</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .5rem;">Matches: Aman, Aarohan (names starting with 'a'). Case-insensitive match.</p>
+    <div class="tbl-wrap"><table class="demo-table">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>Aman</td><td>Sharma</td><td>Obere Str. 57</td><td>Berlin</td><td>12209</td><td>Germany</td></tr>
+        <tr><td>6</td><td>Aarohan</td><td>Verma</td><td>125 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- LIKE '%ha%' Example -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 6 — LIKE '%ha%' (contains 'ha')</div>
+    <div class="eg-desc">Extract all customers whose name contains 'ha' anywhere.</div>
+    <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Customer</span> <span class="kw">WHERE</span> <span class="cl">CustomerName</span> <span class="kw">LIKE</span> <span class="val">'%ha%'</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .5rem;">Matches: Rohan, Mohan, Sohan, Aarohan (all contain 'ha').</p>
+    <div class="tbl-wrap"><table class="demo-table">
+      <thead><tr><th>CustomerID</th><th>CustomerName</th><th>ContactName</th><th>Address</th><th>City</th><th>PostalCode</th><th>Country</th></tr></thead>
+      <tbody>
+        <tr><td>2</td><td>Rohan</td><td>Garg</td><td>Avda. de la Constitucion 2222</td><td>Mexico D.F.</td><td>05021</td><td>Mexico</td></tr>
+        <tr><td>3</td><td>Mohan</td><td>Goel</td><td>Mataderos 2312</td><td>Mexico D.F.</td><td>05023</td><td>Mexico</td></tr>
+        <tr><td>4</td><td>Sohan</td><td>wadhwa</td><td>120 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+        <tr><td>6</td><td>Aarohan</td><td>Verma</td><td>125 Hanover Sq.</td><td>London</td><td>WA1 1DP</td><td>UK</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ LOGICAL OPERATORS ═══════════════ -->
+<section id="logical">
+  <div class="sec-label">Chapter 7 · Section 7</div>
+  <h2 class="fi">Logical Operators — AND, OR, NOT</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">Logical operators combine multiple conditions in WHERE clauses to filter rows more precisely.</p>
+
+  <!-- Employee Reference Table -->
+  <div class="fi" style="margin-top:1rem;">
+    <h3>Reference Dataset — Employee Table</h3>
+    <p style="font-size:.8rem;color:#999;margin:.3rem 0 .6rem;">All logical operator examples use this table. 10 records, 5 columns.</p>
+    <div class="tbl-wrap"><table class="demo-table">
+      <thead><tr><th>ID</th><th>Dept_Id</th><th>Name</th><th>City</th><th>Salary</th></tr></thead>
+      <tbody>
+        <tr><td>1</td><td>1001</td><td>Ravi</td><td>Delhi</td><td>50000</td></tr>
+        <tr><td>2</td><td>1002</td><td>Ajay</td><td>Bangalore</td><td>30000</td></tr>
+        <tr><td>3</td><td>1003</td><td>Vijay</td><td>Mumbai</td><td>45000</td></tr>
+        <tr><td>4</td><td>1001</td><td>Anjali</td><td>Bangalore</td><td>58000</td></tr>
+        <tr><td>5</td><td>1002</td><td>Priya</td><td>Delhi</td><td>35000</td></tr>
+        <tr><td>6</td><td>1003</td><td>Rahul</td><td>Mumbai</td><td>40000</td></tr>
+        <tr><td>7</td><td>1001</td><td>Suresh</td><td>Bangalore</td><td>52000</td></tr>
+        <tr><td>8</td><td>1004</td><td>Geeta</td><td>Delhi</td><td>48000</td></tr>
+        <tr><td>9</td><td>1004</td><td>Mohan</td><td>Chennai</td><td>42000</td></tr>
+        <tr><td>10</td><td>1002</td><td>Neha</td><td>Chennai</td><td>33000</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <!-- AND -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">AND Operator</h3>
+    <div class="hbox green">
+      <strong>Definition:</strong>
+      <p style="margin-top:.3rem;">The AND operator displays a record if <strong style="color:var(--accent);">ALL conditions</strong> separated by AND are TRUE.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — AND</div>
+      <div class="eg-desc">Select Dept_Id and Salary where Name is 'Anjali' AND City is 'Bangalore'.</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="cl">Salary</span> <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">WHERE</span> <span class="cl">Name</span> = <span class="val">'Anjali'</span> <span class="kw">AND</span> <span class="cl">City</span> = <span class="val">'Bangalore'</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Both conditions must be true. Only Anjali (ID 4) is named 'Anjali' AND lives in 'Bangalore'.</p>
+      <table class="demo-table" style="max-width:280px;">
+        <thead><tr><th>Dept_Id</th><th>Salary</th></tr></thead>
+        <tbody><tr><td>1001</td><td>58000</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- OR -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">OR Operator</h3>
+    <div class="hbox blue">
+      <strong>Definition:</strong>
+      <p style="margin-top:.3rem;">The OR operator displays a record if <strong style="color:#5dade2;">ANY of the conditions</strong> separated by OR is TRUE.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — OR</div>
+      <div class="eg-desc">Select Dept_Id and Salary where Name is 'Anjali' OR City is 'Bangalore'.</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="cl">Salary</span> <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">WHERE</span> <span class="cl">Name</span> = <span class="val">'Anjali'</span> <span class="kw">OR</span> <span class="cl">City</span> = <span class="val">'Bangalore'</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Either condition can be true. Ajay (Bangalore), Anjali (named Anjali AND Bangalore), Suresh (Bangalore).</p>
+      <table class="demo-table" style="max-width:280px;">
+        <thead><tr><th>Dept_Id</th><th>Salary</th></tr></thead>
+        <tbody>
+          <tr><td>1002</td><td>30000</td></tr>
+          <tr><td>1001</td><td>58000</td></tr>
+          <tr><td>1001</td><td>52000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NOT -->
+  <div class="fi" style="margin-top:2rem;">
+    <h3 style="font-size:1.1rem;">NOT Operator</h3>
+    <div class="hbox orange">
+      <strong>Definition:</strong>
+      <p style="margin-top:.3rem;">The NOT operator displays a record if the condition(s) is <strong style="color:var(--orange);">NOT TRUE</strong>.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — NOT (using &lt;&gt;)</div>
+      <div class="eg-desc">Select Dept_Id and Salary where City is NOT 'Bangalore'.</div>
+      <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="cl">Salary</span> <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">WHERE</span> <span class="cl">City</span> &lt;&gt; <span class="val">'Bangalore'</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Returns all employees NOT in Bangalore. Excludes Ajay (ID 2), Anjali (ID 4), Suresh (ID 7).</p>
+      <table class="demo-table" style="max-width:280px;">
+        <thead><tr><th>Dept_Id</th><th>Salary</th></tr></thead>
+        <tbody>
+          <tr><td>1001</td><td>50000</td></tr>
+          <tr><td>1003</td><td>45000</td></tr>
+          <tr><td>1002</td><td>35000</td></tr>
+          <tr><td>1003</td><td>40000</td></tr>
+          <tr><td>1004</td><td>48000</td></tr>
+          <tr><td>1004</td><td>42000</td></tr>
+          <tr><td>1002</td><td>33000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- AND vs OR vs NOT Quick Ref -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>AND vs OR vs NOT — Quick Reference</h3>
+    <div class="tbl-wrap"><table class="diff-table" style="margin-top:.7rem;">
+      <thead><tr><th>Operator</th><th>Returns row when...</th><th>Example</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--accent);">AND</strong></td><td>ALL conditions are TRUE</td><td><code>WHERE A=1 AND B=2</code></td></tr>
+        <tr><td><strong style="color:#5dade2;">OR</strong></td><td>ANY condition is TRUE</td><td><code>WHERE A=1 OR B=2</code></td></tr>
+        <tr><td><strong style="color:var(--orange);">NOT / &lt;&gt;</strong></td><td>Condition is NOT TRUE</td><td><code>WHERE City &lt;&gt; 'X'</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ SET OPERATIONS ═══════════════ -->
+<section id="setops">
+  <div class="sec-label">Chapter 7 · Section 8</div>
+  <h2 class="fi">Set Operations in SQL</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">SQL provides 4 set operations to combine or compare results from two SELECT statements: <strong style="color:var(--primary);">UNION, UNION ALL, INTERSECT, MINUS</strong>. Both SELECTs must have the same number of columns with compatible data types.</p>
+
+  <!-- Two small reference tables -->
+  <div class="g2 fi" style="margin-top:1.2rem;">
+    <div>
+      <h3 style="font-size:.9rem;color:var(--orange);">Table1 (ID, Name)</h3>
+      <table class="demo-table" style="max-width:200px;margin-top:.4rem;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>abhi</td></tr>
+          <tr><td>2</td><td>adam</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h3 style="font-size:.9rem;color:var(--blue);">Table2 (ID, Name)</h3>
+      <table class="demo-table" style="max-width:200px;margin-top:.4rem;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>adam</td></tr>
+          <tr><td>3</td><td>chester</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Set ops tabs -->
+  <div class="a-tabs fi" style="margin-top:1.5rem;">
+    <button class="a-tab on" onclick="showSet('union',this)">UNION</button>
+    <button class="a-tab" onclick="showSet('unionall',this)">UNION ALL</button>
+    <button class="a-tab" onclick="showSet('intersect',this)">INTERSECT</button>
+    <button class="a-tab" onclick="showSet('minus',this)">MINUS</button>
+  </div>
+
+  <div id="sp-union" class="a-panel on fi">
+    <div class="hbox green">
+      <strong>UNION:</strong>
+      <p style="margin-top:.3rem;">Combines results from two SELECTs and <strong style="color:var(--accent);">eliminates duplicate rows</strong>. Columns and data types must match.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — UNION</div>
+      <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table1</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table2</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Duplicate (2, adam) appears only once in the result.</p>
+      <table class="demo-table" style="max-width:200px;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>abhi</td></tr>
+          <tr><td>2</td><td>adam</td></tr>
+          <tr><td>3</td><td>chester</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="sp-unionall" class="a-panel fi">
+    <div class="hbox blue">
+      <strong>UNION ALL:</strong>
+      <p style="margin-top:.3rem;">Same as UNION but <strong style="color:#5dade2;">keeps all duplicates</strong>. Every row from both SELECTs is included.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — UNION ALL</div>
+      <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table1</span>
+<span class="kw">UNION ALL</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table2</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Duplicate (2, adam) appears twice — once from each table.</p>
+      <table class="demo-table" style="max-width:200px;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>abhi</td></tr>
+          <tr><td>2</td><td>adam</td></tr>
+          <tr><td>2</td><td>adam</td></tr>
+          <tr><td>3</td><td>chester</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="sp-intersect" class="a-panel fi">
+    <div class="hbox purple">
+      <strong>INTERSECT:</strong>
+      <p style="margin-top:.3rem;">Returns only records that are <strong style="color:#c39bd3;">common to both</strong> SELECT statements.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — INTERSECT</div>
+      <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table1</span>
+<span class="kw">INTERSECT</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table2</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Only (2, adam) exists in both tables.</p>
+      <table class="demo-table" style="max-width:200px;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>2</td><td>adam</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="sp-minus" class="a-panel fi">
+    <div class="hbox">
+      <strong>MINUS (Difference):</strong>
+      <p style="margin-top:.3rem;">Returns rows from the <strong style="color:var(--primary);">first SELECT that are NOT in the second</strong> SELECT.</p>
+    </div>
+    <div class="eg"><div class="eg-lbl">Example — MINUS</div>
+      <div class="code-block"><span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table1</span>
+<span class="kw">MINUS</span>
+<span class="kw">SELECT</span> * <span class="kw">FROM</span> <span class="tb">Table2</span>;</div>
+      <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Row (1, abhi) is in Table1 but NOT in Table2.</p>
+      <table class="demo-table" style="max-width:200px;">
+        <thead><tr><th>ID</th><th>Name</th></tr></thead>
+        <tbody>
+          <tr><td>1</td><td>abhi</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Extended Set Op Examples with Customer + Employee -->
+  <div class="fi" style="margin-top:2.5rem;">
+    <h3>Extended Set Operations — Customer & Employee Tables</h3>
+    <p style="font-size:.8rem;color:#999;margin:.3rem 0 .8rem;">Larger example showing all 4 set operations with name-based tables.</p>
+
+    <div class="g2">
+      <div>
+        <h3 style="font-size:.9rem;color:var(--orange);">Customer Table</h3>
+        <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+          <thead><tr><th>First_Name</th><th>Last_Name</th></tr></thead>
+          <tbody>
+            <tr><td>Stephen</td><td>Jones</td></tr>
+            <tr><td>Mark</td><td>Smith</td></tr>
+            <tr><td>Denise</td><td>King</td></tr>
+            <tr><td>Paula</td><td>Johnson</td></tr>
+            <tr><td>Richard</td><td>Archer</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <h3 style="font-size:.9rem;color:var(--blue);">Employee Table</h3>
+        <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+          <thead><tr><th>First_Name</th><th>Last_Name</th></tr></thead>
+          <tbody>
+            <tr><td>Christina</td><td>Jones</td></tr>
+            <tr><td>Michael</td><td>McDonald</td></tr>
+            <tr><td>Paula</td><td>Johnson</td></tr>
+            <tr><td>Stephen</td><td>Jones</td></tr>
+            <tr><td>Richard</td><td>Smith</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNION of Customer + Employee -->
+  <div class="eg fi" style="margin-top:1rem;"><div class="eg-lbl">UNION — Customer + Employee</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Customer</span>
+<span class="kw">UNION</span>
+<span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Employee</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">8 unique rows — duplicates (Stephen/Jones, Paula/Johnson) removed.</p>
+    <table class="demo-table" style="max-width:280px;">
+      <thead><tr><th>First_Name</th><th>Last_Name</th></tr></thead>
+      <tbody>
+        <tr><td>Stephen</td><td>Jones</td></tr>
+        <tr><td>Mark</td><td>Smith</td></tr>
+        <tr><td>Denise</td><td>King</td></tr>
+        <tr><td>Paula</td><td>Johnson</td></tr>
+        <tr><td>Richard</td><td>Archer</td></tr>
+        <tr><td>Christina</td><td>Jones</td></tr>
+        <tr><td>Michael</td><td>McDonald</td></tr>
+        <tr><td>Richard</td><td>Smith</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- INTERSECT of Customer + Employee -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">INTERSECT — Customer + Employee</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Customer</span>
+<span class="kw">INTERSECT</span>
+<span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Employee</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">2 rows common to both tables.</p>
+    <table class="demo-table" style="max-width:280px;">
+      <thead><tr><th>First_Name</th><th>Last_Name</th></tr></thead>
+      <tbody>
+        <tr><td>Paula</td><td>Johnson</td></tr>
+        <tr><td>Stephen</td><td>Jones</td></tr>
+      </tbody>
+    </table>
+    <div class="note">You can also use <strong>IN</strong> to find intersection: <code>WHERE (First_Name, Last_Name) IN (SELECT First_Name, Last_Name FROM Employee)</code></div>
+  </div>
+
+  <!-- MINUS of Customer - Employee -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">MINUS — Customer MINUS Employee</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Customer</span>
+<span class="kw">MINUS</span>
+<span class="kw">SELECT</span> <span class="cl">First_Name</span>, <span class="cl">Last_Name</span> <span class="kw">FROM</span> <span class="tb">Employee</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">3 rows in Customer that are NOT in Employee.</p>
+    <table class="demo-table" style="max-width:280px;">
+      <thead><tr><th>First_Name</th><th>Last_Name</th></tr></thead>
+      <tbody>
+        <tr><td>Denise</td><td>King</td></tr>
+        <tr><td>Mark</td><td>Smith</td></tr>
+        <tr><td>Richard</td><td>Archer</td></tr>
+      </tbody>
+    </table>
+    <div class="note">You can also use <strong>NOT IN</strong> to find difference: <code>WHERE (First_Name, Last_Name) NOT IN (SELECT First_Name, Last_Name FROM Employee)</code></div>
+  </div>
+
+  <!-- Set Ops Quick Ref -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>Set Operations — Quick Reference</h3>
+    <div class="tbl-wrap"><table class="diff-table" style="margin-top:.7rem;">
+      <thead><tr><th>Operation</th><th>Duplicates</th><th>Returns</th></tr></thead>
+      <tbody>
+        <tr><td><strong style="color:var(--accent);">UNION</strong></td><td style="color:var(--primary);">Removed</td><td>All unique rows from both SELECTs</td></tr>
+        <tr><td><strong style="color:#5dade2;">UNION ALL</strong></td><td style="color:var(--accent);">Kept</td><td>All rows from both SELECTs (with duplicates)</td></tr>
+        <tr><td><strong style="color:#c39bd3;">INTERSECT</strong></td><td style="color:var(--primary);">Removed</td><td>Only rows common to both SELECTs</td></tr>
+        <tr><td><strong style="color:var(--orange);">MINUS</strong></td><td style="color:var(--primary);">Removed</td><td>Rows in first SELECT but NOT in second</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</section>
+
+<!-- ═══════════════ GROUPING & AGGREGATES ═══════════════ -->
+<section id="grouping">
+  <div class="sec-label">Chapter 7 · Section 9</div>
+  <h2 class="fi">Grouping & Aggregate Functions</h2>
+  <p class="fi" style="margin:.5rem 0 .8rem;">GROUP BY groups rows that share values in specified columns, then aggregate functions (COUNT, MAX, MIN, SUM, AVG) compute a single value per group.</p>
+
+  <!-- Intro visual with Student table -->
+  <div class="fi" style="margin-top:1.2rem;">
+    <h3>Visual Example — GROUP BY with Student Table</h3>
+    <div class="g2" style="margin-top:.6rem;">
+      <div>
+        <p style="font-size:.8rem;color:#999;margin-bottom:.4rem;">Student table (raw data):</p>
+        <table class="demo-table" style="max-width:240px;">
+          <thead><tr><th>Class</th><th>Math_Test</th></tr></thead>
+          <tbody>
+            <tr><td>1A</td><td>78</td></tr>
+            <tr><td>1A</td><td>90</td></tr>
+            <tr><td>1B</td><td>67</td></tr>
+            <tr><td>1B</td><td>88</td></tr>
+            <tr><td>1C</td><td>92</td></tr>
+            <tr><td>1C</td><td>75</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div>
+        <div class="eg" style="margin-top:0;">
+          <div class="eg-lbl">GROUP BY with COUNT</div>
+          <div class="code-block"><span class="kw">SELECT</span> <span class="cl">class</span>, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="tb">student</span> <span class="kw">GROUP BY</span> <span class="cl">class</span>;</div>
+          <table class="demo-table" style="max-width:200px;margin-top:.4rem;">
+            <thead><tr><th>Class</th><th>COUNT(*)</th></tr></thead>
+            <tbody>
+              <tr><td>1A</td><td>2</td></tr>
+              <tr><td>1B</td><td>2</td></tr>
+              <tr><td>1C</td><td>2</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="eg">
+          <div class="eg-lbl">GROUP BY with AVG</div>
+          <div class="code-block"><span class="kw">SELECT</span> <span class="cl">class</span>, <span class="fn">AVG</span>(<span class="cl">math_test</span>) <span class="kw">FROM</span> <span class="tb">student</span> <span class="kw">GROUP BY</span> <span class="cl">class</span>;</div>
+          <table class="demo-table" style="max-width:200px;margin-top:.4rem;">
+            <thead><tr><th>Class</th><th>AVG(Math_Test)</th></tr></thead>
+            <tbody>
+              <tr><td>1A</td><td>84</td></tr>
+              <tr><td>1B</td><td>77.5</td></tr>
+              <tr><td>1C</td><td>83.5</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GROUP BY Definition -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <div class="hbox blue">
+      <strong>GROUP BY — Definition:</strong>
+      <p style="margin-top:.3rem;">GROUP BY is used with aggregate functions (<span class="fn" style="color:#3498db;">COUNT, MAX, MIN, SUM, AVG</span>) to group the result set by one or more columns. It collapses multiple rows with the same value(s) into a single summary row.</p>
+    </div>
+  </div>
+
+  <!-- WHERE vs HAVING -->
+  <div class="fi" style="margin-top:1rem;">
+    <div class="g2">
+      <div class="hbox orange">
+        <strong>WHERE — filters rows BEFORE grouping</strong>
+        <p style="margin-top:.3rem;">WHERE clause filters individual rows before they are grouped. It <strong style="color:var(--orange);">cannot</strong> use aggregate functions.</p>
+      </div>
+      <div class="hbox green">
+        <strong>HAVING — filters groups AFTER grouping</strong>
+        <p style="margin-top:.3rem;">HAVING clause filters groups after GROUP BY has been applied. It <strong style="color:var(--accent);">can</strong> use aggregate functions like COUNT(), SUM(), etc.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Employee Ref reminder -->
+  <div class="note fi" style="margin-top:1.2rem;">The following 9 examples use the <strong>Employee table</strong> (10 rows) from the Logical Operators section above.</div>
+
+  <!-- Example 1: AVG(Salary) GROUP BY Dept_Id -->
+  <div class="eg fi" style="margin-top:1rem;"><div class="eg-lbl">Example 1 — AVG(Salary) GROUP BY Dept_Id</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="fn">AVG</span>(<span class="cl">Salary</span>) <span class="kw">FROM</span> <span class="tb">Employee</span> <span class="kw">GROUP BY</span> <span class="cl">Dept_Id</span>;</div>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>Dept_Id</th><th>AVG(Salary)</th></tr></thead>
+      <tbody>
+        <tr><td>1001</td><td>53333.33</td></tr>
+        <tr><td>1002</td><td>32666.67</td></tr>
+        <tr><td>1003</td><td>42500</td></tr>
+        <tr><td>1004</td><td>45000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 2: COUNT(City) GROUP BY City -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 2 — COUNT(City) GROUP BY City</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">City</span>, <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">FROM</span> <span class="tb">Employee</span> <span class="kw">GROUP BY</span> <span class="cl">City</span>;</div>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>City</th><th>COUNT(City)</th></tr></thead>
+      <tbody>
+        <tr><td>Delhi</td><td>3</td></tr>
+        <tr><td>Bangalore</td><td>3</td></tr>
+        <tr><td>Mumbai</td><td>2</td></tr>
+        <tr><td>Chennai</td><td>2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 3: ORDER BY COUNT(City) ASC -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 3 — ORDER BY COUNT(City) ASC</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">City</span>, <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">GROUP BY</span> <span class="cl">City</span> <span class="kw">ORDER BY</span> <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">ASC</span>;</div>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>City</th><th>COUNT(City)</th></tr></thead>
+      <tbody>
+        <tr><td>Mumbai</td><td>2</td></tr>
+        <tr><td>Chennai</td><td>2</td></tr>
+        <tr><td>Delhi</td><td>3</td></tr>
+        <tr><td>Bangalore</td><td>3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 4: ORDER BY COUNT(City) DESC -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 4 — ORDER BY COUNT(City) DESC</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">City</span>, <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">GROUP BY</span> <span class="cl">City</span> <span class="kw">ORDER BY</span> <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">DESC</span>;</div>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>City</th><th>COUNT(City)</th></tr></thead>
+      <tbody>
+        <tr><td>Delhi</td><td>3</td></tr>
+        <tr><td>Bangalore</td><td>3</td></tr>
+        <tr><td>Mumbai</td><td>2</td></tr>
+        <tr><td>Chennai</td><td>2</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 5: MAX(Salary) WHERE Dept_ID > 1003 -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 5 — MAX(Salary) WHERE Dept_Id > 1003</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="fn">MAX</span>(<span class="cl">Salary</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">WHERE</span> <span class="cl">Dept_Id</span> &gt; 1003 <span class="kw">GROUP BY</span> <span class="cl">Dept_Id</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Only Dept_Id 1004 qualifies (> 1003). Max salary among Geeta (48000) and Mohan (42000) is 48000.</p>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>Dept_Id</th><th>MAX(Salary)</th></tr></thead>
+      <tbody>
+        <tr><td>1004</td><td>48000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 6: MIN(Salary) WHERE Dept_ID > 1003 -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 6 — MIN(Salary) WHERE Dept_Id > 1003</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">Dept_Id</span>, <span class="fn">MIN</span>(<span class="cl">Salary</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">WHERE</span> <span class="cl">Dept_Id</span> &gt; 1003 <span class="kw">GROUP BY</span> <span class="cl">Dept_Id</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Only Dept_Id 1004 qualifies. Min salary among Geeta (48000) and Mohan (42000) is 42000.</p>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>Dept_Id</th><th>MIN(Salary)</th></tr></thead>
+      <tbody>
+        <tr><td>1004</td><td>42000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 7: COUNT + SUM -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 7 — COUNT + SUM (no GROUP BY)</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="fn">COUNT</span>(<span class="cl">Dept_Id</span>), <span class="fn">SUM</span>(<span class="cl">Salary</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>;</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Without GROUP BY, aggregates apply to the entire table.</p>
+    <table class="demo-table" style="max-width:320px;margin-top:.4rem;">
+      <thead><tr><th>COUNT(Dept_Id)</th><th>SUM(Salary)</th></tr></thead>
+      <tbody>
+        <tr><td>10</td><td>433000</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 8: Multi-column GROUP BY -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 8 — Multi-column GROUP BY</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">City</span>, <span class="cl">Dept_Id</span>, <span class="fn">COUNT</span>(*) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">GROUP BY</span> <span class="cl">City</span>, <span class="cl">Dept_Id</span> <span class="kw">ORDER BY</span> <span class="fn">COUNT</span>(*);</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">Groups by unique combination of City + Dept_Id, sorted by count ascending.</p>
+    <table class="demo-table" style="max-width:350px;margin-top:.4rem;">
+      <thead><tr><th>City</th><th>Dept_Id</th><th>COUNT(*)</th></tr></thead>
+      <tbody>
+        <tr><td>Delhi</td><td>1001</td><td>1</td></tr>
+        <tr><td>Delhi</td><td>1002</td><td>1</td></tr>
+        <tr><td>Delhi</td><td>1004</td><td>1</td></tr>
+        <tr><td>Mumbai</td><td>1003</td><td>2</td></tr>
+        <tr><td>Chennai</td><td>1004</td><td>1</td></tr>
+        <tr><td>Chennai</td><td>1002</td><td>1</td></tr>
+        <tr><td>Bangalore</td><td>1001</td><td>2</td></tr>
+        <tr><td>Bangalore</td><td>1002</td><td>1</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Example 9: HAVING -->
+  <div class="eg fi" style="margin-top:.8rem;"><div class="eg-lbl">Example 9 — HAVING (filter groups)</div>
+    <div class="eg-desc">Show cities that have more than 1 employee, ordered by count.</div>
+    <div class="code-block"><span class="kw">SELECT</span> <span class="cl">City</span>, <span class="fn">COUNT</span>(<span class="cl">City</span>) <span class="kw">FROM</span> <span class="tb">Employee</span>
+<span class="kw">GROUP BY</span> <span class="cl">City</span> <span class="kw">HAVING</span> <span class="fn">COUNT</span>(<span class="cl">City</span>) &gt; 1
+<span class="kw">ORDER BY</span> <span class="fn">COUNT</span>(<span class="cl">City</span>);</div>
+    <p style="font-size:.78rem;color:#999;margin:.3rem 0 .4rem;">All 4 cities have count >= 2, so all pass the HAVING filter. Sorted ascending by count.</p>
+    <table class="demo-table" style="max-width:280px;margin-top:.4rem;">
+      <thead><tr><th>City</th><th>COUNT(City)</th></tr></thead>
+      <tbody>
+        <tr><td>Mumbai</td><td>2</td></tr>
+        <tr><td>Chennai</td><td>2</td></tr>
+        <tr><td>Delhi</td><td>3</td></tr>
+        <tr><td>Bangalore</td><td>3</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- WHERE vs HAVING quick ref -->
+  <div class="fi" style="margin-top:1.5rem;">
+    <h3>WHERE vs HAVING — Comparison</h3>
+    <div class="tbl-wrap"><table class="diff-table" style="margin-top:.7rem;">
+      <thead><tr><th>Feature</th><th>WHERE</th><th>HAVING</th></tr></thead>
+      <tbody>
+        <tr><td>Filters</td><td>Individual rows</td><td>Groups (after GROUP BY)</td></tr>
+        <tr><td>Timing</td><td>Before grouping</td><td>After grouping</td></tr>
+        <tr><td>Aggregates allowed?</td><td style="color:var(--primary);">No</td><td style="color:var(--accent);">Yes (COUNT, SUM, etc.)</td></tr>
+        <tr><td>Example</td><td><code>WHERE Dept_Id > 1003</code></td><td><code>HAVING COUNT(City) > 1</code></td></tr>
+      </tbody>
+    </table></div>
+  </div>
 </section>
 
 <!-- ═══════════════ FLASHCARDS ═══════════════ -->
 <section id="cards">
   <div class="sec-label">Chapter 7 · Review</div>
   <h2 class="fi">Flashcards <span style="font-size:.75rem;color:var(--muted);font-weight:400;">— hover to flip</span></h2>
-  <p class="fi" style="margin:.3rem 0 .3rem;color:#999;font-size:.85rem;">25 cards covering all key concepts. Test yourself before the quiz!</p>
+  <p class="fi" style="margin:.3rem 0 .3rem;color:#999;font-size:.85rem;">31 cards covering all key concepts. Test yourself before the quiz!</p>
   <div class="fc-grid">
     <div class="fc"><div class="fc-in">
       <div class="fc-fr"><div class="fc-tag">SQL Basics</div><div class="fc-q">What does SQL stand for and what is it used for?</div><div class="fc-hint">hover to flip</div></div>
@@ -893,6 +1486,36 @@ p{line-height:1.75;color:#b8b8b8;}
       <div class="fc-fr"><div class="fc-tag">TRUNCATE</div><div class="fc-q">What happens to the PK when TRUNCATE is run?</div></div>
       <div class="fc-bk"><div class="fc-a">The Primary Key counter is <strong>re-initialized (reset)</strong>. So the next inserted row will get PK starting from 1 again.<br><br>DROP TABLE also removes PK — but removes everything.</div></div>
     </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">AND Operator</div><div class="fc-q">When does AND return a row?</div></div>
+      <div class="fc-bk"><div class="fc-a">AND returns a row only when <strong>ALL conditions</strong> are TRUE.<br><br>Example: <code style="font-size:.72rem;">WHERE Name='Anjali' AND City='Bangalore'</code> — both must match.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">OR Operator</div><div class="fc-q">When does OR return a row?</div></div>
+      <div class="fc-bk"><div class="fc-a">OR returns a row when <strong>ANY one condition</strong> is TRUE.<br><br>Example: <code style="font-size:.72rem;">WHERE Name='Anjali' OR City='Bangalore'</code> — either can match.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">Set Operations</div><div class="fc-q">What are the 4 SQL set operations?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>UNION</strong> — combine, remove duplicates<br><strong>UNION ALL</strong> — combine, keep duplicates<br><strong>INTERSECT</strong> — common rows only<br><strong>MINUS</strong> — rows in first but not second</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">UNION vs UNION ALL</div><div class="fc-q">What is the difference between UNION and UNION ALL?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>UNION</strong> removes duplicate rows from the combined result.<br><br><strong>UNION ALL</strong> keeps all rows including duplicates. UNION ALL is faster since it skips the dedup step.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">GROUP BY</div><div class="fc-q">What is GROUP BY used with?</div></div>
+      <div class="fc-bk"><div class="fc-a">GROUP BY is used with <strong>aggregate functions</strong>: COUNT, MAX, MIN, SUM, AVG.<br><br>It groups rows sharing the same value(s) into summary rows.</div></div>
+    </div></div>
+
+    <div class="fc"><div class="fc-in">
+      <div class="fc-fr"><div class="fc-tag">WHERE vs HAVING</div><div class="fc-q">What is the difference between WHERE and HAVING?</div></div>
+      <div class="fc-bk"><div class="fc-a"><strong>WHERE</strong> filters individual rows BEFORE grouping. Cannot use aggregates.<br><br><strong>HAVING</strong> filters groups AFTER GROUP BY. Can use COUNT, SUM, etc.</div></div>
+    </div></div>
   </div>
 </section>
 
@@ -900,7 +1523,7 @@ p{line-height:1.75;color:#b8b8b8;}
 <section id="quiz">
   <div class="sec-label">Chapter 7 · Test Yourself</div>
   <h2 class="fi">Quiz — SQL Basics</h2>
-  <p class="fi" style="margin:.5rem 0 1.5rem;color:#999;">15 questions covering all topics. Select an answer to see the explanation.</p>
+  <p class="fi" style="margin:.5rem 0 1.5rem;color:#999;">21 questions covering all topics. Select an answer to see the explanation.</p>
   <div class="quiz-wrap">
     <div id="q-prog"></div>
     <div class="q-card" id="q-card">
@@ -912,7 +1535,7 @@ p{line-height:1.75;color:#b8b8b8;}
     </div>
     <div id="q-score">
       <div class="sc-n" id="sc-val"></div>
-      <div class="sc-l">out of 15</div>
+      <div class="sc-l">out of 21</div>
       <p style="color:#999;margin-top:.8rem;" id="sc-msg"></p>
       <button class="btn" style="margin-top:1.2rem;" onclick="initQ()">Retake Quiz</button>
     </div>
@@ -932,9 +1555,19 @@ document.querySelectorAll('.fi').forEach(el=>observer.observe(el));
 
 // ALTER TABS
 function showA(id,btn){
-  document.querySelectorAll('.a-panel').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
+  const sec=btn.closest('section');
+  sec.querySelectorAll('.a-panel').forEach(p=>p.classList.remove('on'));
+  sec.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
   document.getElementById('ap-'+id).classList.add('on');
+  btn.classList.add('on');
+}
+
+// SET OPS TABS
+function showSet(id,btn){
+  const sec=btn.closest('section');
+  sec.querySelectorAll('.a-panel').forEach(p=>p.classList.remove('on'));
+  sec.querySelectorAll('.a-tab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('sp-'+id).classList.add('on');
   btn.classList.add('on');
 }
 
@@ -954,7 +1587,13 @@ const QS=[
   {q:"What does 'SELECT * FROM Customer WHERE city NOT IN (London, Berlin)' return?",o:["All customers from London and Berlin","All customers NOT from London and Berlin","Only customers from Mexico and Sweden","Customers from Germany only"],a:1,e:"NOT IN returns all rows where the city is NOT in the given list. So it excludes London (IDs 4,6) and Berlin (ID 1), returning IDs 2,3,5 — Mexico and Sweden customers."},
   {q:"Which command renames an entire table?",o:["ALTER TABLE old RENAME TO new;","RENAME old TO new;","RENAME TABLE old new;","ALTER TABLE old TO new;"],a:1,e:"Syntax: RENAME old_table_name TO new_table_name; Example: RENAME students TO people; This renames the Students table to People."},
   {q:"DCL (Data Control Language) commands are used for:",o:["Defining table structure","Manipulating rows in tables","Granting and revoking user permissions","Managing transactions (commit/rollback)"],a:2,e:"DCL provides commands to grant and take back authority/permissions. Commands: GRANT (give permission) and REVOKE (take back permission). DCL is auto-committed."},
-  {q:"Using the LIKE operator, 'SELECT * FROM Customer WHERE CustomerName LIKE %n' returns customers named:",o:["Starting with n","Containing exactly 'n' anywhere","Ending with the letter 'n'","Having 'n' as second character"],a:2,e:"The pattern '%n' means ANY characters followed by 'n' at the end. So it matches names ENDING with 'n': Aman, Rohan, Mohan, Sohan, Aarohan. Kawal does NOT match."}
+  {q:"Using the LIKE operator, 'SELECT * FROM Customer WHERE CustomerName LIKE %n' returns customers named:",o:["Starting with n","Containing exactly 'n' anywhere","Ending with the letter 'n'","Having 'n' as second character"],a:2,e:"The pattern '%n' means ANY characters followed by 'n' at the end. So it matches names ENDING with 'n': Aman, Rohan, Mohan, Sohan, Aarohan. Kawal does NOT match."},
+  {q:"The AND operator returns a row when:",o:["Any one condition is TRUE","All conditions are TRUE","No conditions are TRUE","At least two conditions are TRUE"],a:1,e:"The AND operator displays a record only if ALL conditions separated by AND are TRUE. If even one condition fails, the row is excluded."},
+  {q:"Which operator displays a row if ANY condition is TRUE?",o:["AND","NOT","OR","BETWEEN"],a:2,e:"OR displays a record if ANY of the conditions separated by OR is TRUE. Unlike AND (which requires all), OR only needs one condition to match."},
+  {q:"What does UNION do compared to UNION ALL?",o:["UNION keeps duplicates, UNION ALL removes them","UNION removes duplicates, UNION ALL keeps them","Both remove duplicates","Both keep duplicates"],a:1,e:"UNION combines results and REMOVES duplicate rows. UNION ALL combines results and KEEPS all duplicates. UNION ALL is faster because it skips the deduplication step."},
+  {q:"INTERSECT returns:",o:["All rows from both SELECTs","Rows in first SELECT not in second","Only rows common to both SELECTs","Only rows unique to the first SELECT"],a:2,e:"INTERSECT returns only the rows that appear in BOTH SELECT statements — the common/shared rows. It is the set intersection operation."},
+  {q:"Which clause filters groups AFTER GROUP BY?",o:["WHERE","HAVING","ORDER BY","DISTINCT"],a:1,e:"HAVING filters groups after GROUP BY has been applied. WHERE filters individual rows BEFORE grouping. HAVING can use aggregate functions (COUNT, SUM, etc.) but WHERE cannot."},
+  {q:"SELECT City, COUNT(City) FROM Employee GROUP BY City HAVING COUNT(City) > 2 — what does this return?",o:["All cities","Cities with exactly 2 employees","Cities with more than 2 employees","Cities with fewer than 2 employees"],a:2,e:"HAVING COUNT(City) > 2 filters out groups (cities) where the count is 2 or less. Only cities with MORE THAN 2 employees are returned (e.g., Delhi with 3, Bangalore with 3)."}
 ];
 
 let cur=0,score=0,answered=false;

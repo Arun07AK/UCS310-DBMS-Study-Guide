@@ -315,6 +315,15 @@ MODIFY SALARY DECIMAL(18,2) NOT NULL;</span></div>
   CONSTRAINT RNO_Class_Unique
     <span class="kw">UNIQUE</span>(Roll_Number, Class)
 );</div>
+        <p style="font-size:.78rem;color:var(--muted);margin:.4rem 0;font-weight:700;text-transform:uppercase;">CUSTOMERS — AGE as UNIQUE:</p>
+        <div class="code-block"><span class="kw">CREATE TABLE</span> CUSTOMERS (
+  ID <span class="val">INT</span> <span class="kw">NOT NULL</span>,
+  NAME <span class="val">VARCHAR</span>(20) <span class="kw">NOT NULL</span>,
+  AGE <span class="val">INT</span> <span class="kw">NOT NULL</span> <span class="kw">UNIQUE</span>,
+  ADDRESS <span class="val">CHAR</span>(25),
+  SALARY <span class="val">DECIMAL</span>(18,2)
+);</div>
+        <p style="font-size:.78rem;color:var(--muted);margin:.3rem 0;">AGE column is set to UNIQUE — no two customers can have the same age.</p>
         <p style="font-size:.78rem;color:var(--muted);margin:.4rem 0;font-weight:700;text-transform:uppercase;">Add/Drop UNIQUE:</p>
         <div class="code-block"><span class="hl">ALTER TABLE CUSTOMERS ADD CONSTRAINT myUnique UNIQUE(AGE, SALARY);</span>
 
@@ -406,6 +415,17 @@ MODIFY SALARY DECIMAL(18,2) NOT NULL;</span></div>
   DOI <span class="val">Date</span>, DOR <span class="val">Date</span>,
   CONSTRAINT Date_Check <span class="kw">CHECK</span>(DOR > DOI)
 );</div>
+        <p style="font-size:.78rem;color:var(--muted);margin:.6rem 0 .3rem;font-weight:700;text-transform:uppercase;">CHECK Demo — class IN ('BE','ME','MCA'):</p>
+        <table class="demo-table" style="max-width:380px;">
+          <thead><tr><th>Name</th><th>Class</th><th>Marks</th><th>Result</th></tr></thead>
+          <tbody>
+            <tr><td>Ram</td><td>BE</td><td>60</td><td style="color:#82e0aa;font-weight:700;">PASS</td></tr>
+            <tr><td>Rajesh</td><td>MCA</td><td>70</td><td style="color:#82e0aa;font-weight:700;">PASS</td></tr>
+            <tr><td>Surinder</td><td>ME</td><td>78</td><td style="color:#82e0aa;font-weight:700;">PASS</td></tr>
+            <tr><td style="color:#f1948a;">Rahat</td><td style="color:#f1948a;">MBA</td><td style="color:#f1948a;">76</td><td style="color:#f1948a;font-weight:700;">REJECTED</td></tr>
+          </tbody>
+        </table>
+        <p style="font-size:.76rem;color:#f1948a;margin:.3rem 0 .6rem;">Rahat's class = 'MBA' is NOT in the allowed list ('BE','ME','MCA') — INSERT rejected!</p>
         <p style="font-size:.78rem;color:var(--muted);margin:.4rem 0;font-weight:700;text-transform:uppercase;">CUSTOMERS (AGE≥18):</p>
         <div class="code-block"><span class="hl">AGE INT NOT NULL CHECK(AGE >= 18),</span>
 <span class="cm">-- Alter:</span>
@@ -506,11 +526,70 @@ DROP CONSTRAINT myCheckConstraint;</span></div>
       <div class="code-block" style="margin-top:.5rem;font-size:.74rem;"><span class="val">deptno number(2) REFERENCES department(deptno)</span>
 <span class="kw">ON DELETE CASCADE</span>;</div>
     </div>
+    <div class="od-card od-cascade" style="grid-column:1/-1;">
+      <div style="font-size:.72rem;font-weight:700;color:#f0b27a;text-transform:uppercase;margin-bottom:.5rem;">After DELETE dept 30 with ON DELETE CASCADE:</div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start;">
+        <div>
+          <p style="font-size:.65rem;color:#76d7c4;font-weight:700;text-transform:uppercase;margin-bottom:.2rem;">Employee (After)</p>
+          <table class="demo-table" style="max-width:220px;">
+            <thead><tr><th>Eno</th><th>Ename</th><th>Deptno</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Ram</td><td>10</td></tr>
+              <tr><td>2</td><td>Rajesh</td><td>20</td></tr>
+              <tr><td>4</td><td>Suresh</td><td>10</td></tr>
+              <tr><td>5</td><td>Ramesh</td><td>20</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:.72rem;color:#f0b27a;margin-top:.2rem;">Surinder (dept 30) — removed</p>
+        </div>
+        <div>
+          <p style="font-size:.65rem;color:#f1948a;font-weight:700;text-transform:uppercase;margin-bottom:.2rem;">Department (After)</p>
+          <table class="demo-table" style="max-width:160px;">
+            <thead><tr><th>Deptno</th><th>Dname</th></tr></thead>
+            <tbody>
+              <tr><td>10</td><td>Computer</td></tr>
+              <tr><td>20</td><td>Chemical</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:.72rem;color:#f0b27a;margin-top:.2rem;">Dept 30 — removed</p>
+        </div>
+      </div>
+    </div>
     <div class="od-card od-null">
       <div style="font-size:.8rem;font-weight:800;color:#5dade2;margin-bottom:.4rem;">ON DELETE SET NULL</div>
       <p style="font-size:.8rem;color:#b0b8c0;">Delete parent → child records <strong style="color:#5dade2">remain but FK set to NULL</strong>. Dept 30 deleted, Surinder stays but his Deptno becomes NULL.</p>
       <div class="code-block" style="margin-top:.5rem;font-size:.74rem;"><span class="val">deptno number(2) REFERENCES department(deptno)</span>
 <span class="kw">ON DELETE SET NULL</span>;</div>
+    </div>
+    <div class="od-card od-null" style="grid-column:1/-1;">
+      <div style="font-size:.72rem;font-weight:700;color:#5dade2;text-transform:uppercase;margin-bottom:.5rem;">After DELETE dept 30 with ON DELETE SET NULL:</div>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;align-items:flex-start;">
+        <div>
+          <p style="font-size:.65rem;color:#76d7c4;font-weight:700;text-transform:uppercase;margin-bottom:.2rem;">Employee (After)</p>
+          <table class="demo-table" style="max-width:220px;">
+            <thead><tr><th>Eno</th><th>Ename</th><th>Deptno</th></tr></thead>
+            <tbody>
+              <tr><td>1</td><td>Ram</td><td>10</td></tr>
+              <tr><td>2</td><td>Rajesh</td><td>20</td></tr>
+              <tr><td>5</td><td>Surinder</td><td style="color:#f1948a;font-style:italic;">NULL</td></tr>
+              <tr><td>4</td><td>Suresh</td><td>10</td></tr>
+              <tr><td>5</td><td>Ramesh</td><td>20</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:.72rem;color:#5dade2;margin-top:.2rem;">Surinder stays — Deptno set to NULL</p>
+        </div>
+        <div>
+          <p style="font-size:.65rem;color:#f1948a;font-weight:700;text-transform:uppercase;margin-bottom:.2rem;">Department (After)</p>
+          <table class="demo-table" style="max-width:160px;">
+            <thead><tr><th>Deptno</th><th>Dname</th></tr></thead>
+            <tbody>
+              <tr><td>10</td><td>Computer</td></tr>
+              <tr><td>20</td><td>Chemical</td></tr>
+            </tbody>
+          </table>
+          <p style="font-size:.72rem;color:#5dade2;margin-top:.2rem;">Dept 30 — removed</p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -623,6 +702,51 @@ MODIFY column_name DEFAULT NULL;</span></div>
     <p style="font-size:.78rem;color:var(--muted);margin-top:.3rem;">This adds a self-referencing FK — a manager must already exist as a valid employee.</p>
   </div>
 
+  <!-- CASCADE CONSTRAINTS with DROP COLUMN -->
+  <div class="card fi" style="margin-top:1.2rem;">
+    <h3 style="margin-bottom:.6rem;">Cascading Constraints with DROP COLUMN</h3>
+    <div class="hbox orange">
+      <p style="font-size:.82rem;"><strong>Important:</strong> This is DIFFERENT from <code style="color:#f9e04b;">ON DELETE CASCADE</code>. The <code style="color:#f9e04b;">CASCADE CONSTRAINTS</code> clause is used with <code style="color:#f9e04b;">ALTER TABLE ... DROP COLUMN</code>.</p>
+    </div>
+    <ul style="font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;margin-top:.6rem;">
+      <li>Drops <strong style="color:#e0e0e0">ALL referential integrity constraints</strong> that refer to the primary and unique keys defined on the dropped columns</li>
+      <li>Also drops all <strong style="color:#e0e0e0">multicolumn constraints</strong> defined on the dropped columns</li>
+      <li>Use when the column being dropped is referenced by other constraints</li>
+    </ul>
+    <p style="font-size:.82rem;font-weight:700;color:#e0e0e0;margin-top:.8rem;">Syntax:</p>
+    <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="fn">table_name</span>
+<span class="kw">DROP COLUMN</span> <span class="fn">column_name</span> <span class="kw">CASCADE CONSTRAINTS</span>;</div>
+  </div>
+
+  <!-- DISABLING CONSTRAINTS -->
+  <div class="card fi" style="margin-top:1.2rem;">
+    <h3 style="margin-bottom:.6rem;">Disabling Constraints</h3>
+    <ul style="font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+      <li>Use the <strong style="color:#e0e0e0">DISABLE clause</strong> of the ALTER TABLE statement</li>
+      <li>The <strong style="color:#e0e0e0">CASCADE</strong> option disables <strong style="color:#e0e0e0">dependent integrity constraints</strong></li>
+      <li>When a constraint is disabled, the data is <strong style="color:#f1948a">not checked</strong> against the constraint</li>
+    </ul>
+    <p style="font-size:.82rem;font-weight:700;color:#e0e0e0;margin-top:.8rem;">Syntax &amp; Example:</p>
+    <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="fn">employees</span>
+<span class="kw">DISABLE CONSTRAINT</span> <span class="val">emp_emp_id_pk</span> <span class="kw">CASCADE</span>;</div>
+    <p style="font-size:.78rem;color:var(--muted);margin-top:.4rem;">Disables the <code style="color:#f9e04b;">emp_emp_id_pk</code> constraint and any constraints that depend on it.</p>
+  </div>
+
+  <!-- ENABLING CONSTRAINTS -->
+  <div class="card fi" style="margin-top:1.2rem;">
+    <h3 style="margin-bottom:.6rem;">Enabling Constraints</h3>
+    <ul style="font-size:.84rem;color:#b8b8b8;padding-left:1.2rem;line-height:2.1;">
+      <li>Use the <strong style="color:#e0e0e0">ENABLE clause</strong> of the ALTER TABLE statement</li>
+      <li>When enabled, all data in the table is <strong style="color:#e0e0e0">checked against the constraint</strong></li>
+    </ul>
+    <p style="font-size:.82rem;font-weight:700;color:#e0e0e0;margin-top:.8rem;">Syntax &amp; Example:</p>
+    <div class="code-block"><span class="kw">ALTER TABLE</span> <span class="fn">employees</span>
+<span class="kw">ENABLE CONSTRAINT</span> <span class="val">emp_emp_id_pk</span>;</div>
+    <div class="hbox green" style="margin-top:.6rem;">
+      <p style="font-size:.82rem;"><strong>Note:</strong> A UNIQUE or PRIMARY KEY index is <strong>automatically created</strong> if you enable a UNIQUE key or PRIMARY KEY constraint.</p>
+    </div>
+  </div>
+
   <!-- USER_CONSTRAINTS -->
   <div class="card fi" style="margin-top:1.2rem;">
     <h3 style="margin-bottom:.6rem;">Viewing Constraints — USER_CONSTRAINTS Table</h3>
@@ -633,10 +757,30 @@ MODIFY column_name DEFAULT NULL;</span></div>
 <span class="kw">SELECT</span> constraint_name, constraint_type, search_condition
 <span class="kw">FROM</span> user_constraints
 <span class="kw">WHERE</span> table_name = <span class="val">'EMPLOYEES'</span>;</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:.6rem 0 .3rem;font-weight:700;text-transform:uppercase;">Result:</p>
+    <table class="demo-table" style="max-width:520px;">
+      <thead><tr><th>CONSTRAINT_NAME</th><th>C (Type)</th><th>SEARCH_CONDITION</th></tr></thead>
+      <tbody>
+        <tr><td>EMP_LAST_NAME_NN</td><td>C</td><td style="color:#82e0aa;">last_name IS NOT NULL</td></tr>
+        <tr><td>EMP_EMAIL_NN</td><td>C</td><td style="color:#82e0aa;">email IS NOT NULL</td></tr>
+        <tr><td>EMP_HIRE_DATE_NN</td><td>C</td><td style="color:#82e0aa;">hire_date IS NOT NULL</td></tr>
+        <tr><td>EMP_EMAIL_UK</td><td>U</td><td></td></tr>
+      </tbody>
+    </table>
     <p style="font-size:.84rem;margin-top:.8rem;font-weight:700;color:#e0e0e0;">To view columns associated with constraints:</p>
     <div class="code-block"><span class="kw">SELECT</span> constraint_name, column_name
 <span class="kw">FROM</span> user_cons_columns
 <span class="kw">WHERE</span> table_name = <span class="val">'EMPLOYEES'</span>;</div>
+    <p style="font-size:.78rem;color:var(--muted);margin:.6rem 0 .3rem;font-weight:700;text-transform:uppercase;">Result:</p>
+    <table class="demo-table" style="max-width:380px;">
+      <thead><tr><th>CONSTRAINT_NAME</th><th>COLUMN_NAME</th></tr></thead>
+      <tbody>
+        <tr><td>EMP_DEPT_FK</td><td>DEPARTMENT_ID</td></tr>
+        <tr><td>EMP_EMAIL_NN</td><td>EMAIL</td></tr>
+        <tr><td>EMP_EMAIL_UK</td><td>EMAIL</td></tr>
+        <tr><td>EMP_EMP_ID_PK</td><td>EMPLOYEE_ID</td></tr>
+      </tbody>
+    </table>
     <p style="font-size:.78rem;color:var(--muted);margin-top:.4rem;">Constraint type codes: C = Check/Not Null, P = Primary Key, U = Unique, R = Referential (FK)</p>
   </div>
 </section>

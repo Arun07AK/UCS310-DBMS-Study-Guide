@@ -401,6 +401,8 @@ p{line-height:1.75;color:#b8b8b8;}
         <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Name</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(20), Offset=6</td></tr>
         <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Address</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(40), Offset=26</td></tr>
         <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Book Number</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(6), Offset=66</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Date of Issue</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(8), Offset=72</td></tr>
+        <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Date of Return</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(8), Offset=80</td></tr>
         <tr><td style="padding:.2rem .5rem;color:#c0c0d0;">Fee</td><td style="padding:.2rem .5rem;color:#f1948a;font-family:monospace;">Type=Byte(8), Offset=88</td></tr>
       </table>
     </div>
@@ -485,9 +487,13 @@ p{line-height:1.75;color:#b8b8b8;}
   <div class="fi" style="margin-top:1.2rem;">
     <h3 style="color:#58d68d;margin-bottom:.6rem;">Conceptual Schema (What data is stored)</h3>
     <div class="code-block">
-<span class="kw">student</span> (st_id: <span class="type">string</span>, name: <span class="type">string</span>, birthdate: <span class="type">date</span>, gender: <span class="type">char</span>, pa_l1: <span class="type">char</span>, pa_l2: <span class="type">char</span>, la_l1: <span class="type">char</span>, cugp: <span class="type">integer</span>, cgpa: <span class="type">real</span>)
+<span class="kw">student</span> (st_id: <span class="type">string</span>, name: <span class="type">string</span>, birthdate: <span class="type">date</span>, gender: <span class="type">character</span>,
+         pa_l1: <span class="type">character</span>, pa_l2: <span class="type">character</span>, pa_l3: <span class="type">character</span>,
+         la_l1: <span class="type">character</span>, la_l2: <span class="type">character</span>, la_l3: <span class="type">character</span>,
+         cugp: <span class="type">integer</span>, cup: <span class="type">integer</span>, cgpa: <span class="type">real</span>)
 <span class="kw">course</span> (courseno: <span class="type">string</span>, cname: <span class="type">string</span>, credits: <span class="type">integer</span>, lect_h: <span class="type">integer</span>, tut_h: <span class="type">integer</span>, pract_h: <span class="type">integer</span>)
-<span class="kw">instructor</span> (instructor_id: <span class="type">string</span>, name: <span class="type">string</span>, design: <span class="type">string</span>, specialization: <span class="type">string</span>, chamber_no: <span class="type">string</span>, tel_no: <span class="type">integer</span>)
+<span class="kw">instructor</span> (instructor_id: <span class="type">string</span>, name: <span class="type">string</span>, design: <span class="type">string</span>, group: <span class="type">string</span>,
+         specialization: <span class="type">string</span>, chamber_no: <span class="type">string</span>, tel_no: <span class="type">integer</span>)
 <span class="kw">course_info</span> (course_no: <span class="type">string</span>, enrollment: <span class="type">integer</span>, sections: <span class="type">integer</span>)
 <span class="kw">st_course_reg</span> (stid: <span class="type">string</span>, course_no: <span class="type">string</span>, section: <span class="type">integer</span>, sem: <span class="type">integer</span>, year: <span class="type">string</span>, grade: <span class="type">string</span>)
 <span class="kw">inst_course_reg</span> (instructor_id: <span class="type">string</span>, courseno: <span class="type">string</span>, section: <span class="type">integer</span>, sem: <span class="type">integer</span>, year: <span class="type">string</span>)</div>

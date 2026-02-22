@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-S3TP56CG3X"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-S3TP56CG3X');</script>
+<title>ER Visual Guide — ER Model &amp; Table Mapping</title>
+<style>
+:root{--primary:#e74c3c;--accent:#27ae60;--blue:#2980b9;--orange:#e67e22;--purple:#8e44ad;--teal:#16a085;--dark:#0d0d0d;--card:#1a1a1a;--card2:#1e1e1e;--text:#e8e8e8;--muted:#999;--border:rgba(231,76,60,.22);--glow:0 0 30px rgba(231,76,60,.25);}
+*{margin:0;padding:0;box-sizing:border-box;}html{scroll-behavior:smooth;}
+body{background:var(--dark);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;overflow-x:hidden;}
+::-webkit-scrollbar{width:6px;}::-webkit-scrollbar-track{background:var(--dark);}::-webkit-scrollbar-thumb{background:var(--primary);border-radius:3px;}
+button{cursor:pointer;border:none;background:none;color:inherit;font:inherit;}
+nav{position:fixed;top:0;left:0;right:0;z-index:1000;background:rgba(13,13,13,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);height:54px;display:flex;align-items:center;padding:0 1.5rem;gap:.45rem;overflow-x:auto;}
+nav::-webkit-scrollbar{height:0;}.logo{color:var(--primary);font-size:.9rem;font-weight:800;margin-right:auto;white-space:nowrap;}
+nav a{color:var(--muted);text-decoration:none;font-size:.66rem;font-weight:600;letter-spacing:.04em;text-transform:uppercase;white-space:nowrap;padding:.25rem .5rem;border-radius:6px;transition:.2s;}
+nav a:hover{color:#fff;background:rgba(231,76,60,.18);}
+#pb{position:fixed;top:54px;left:0;height:3px;background:linear-gradient(90deg,var(--primary),var(--orange));width:0%;z-index:999;transition:width .1s;}
+section{padding:90px 2rem 70px;max-width:1100px;margin:0 auto;}
+.sec-label{font-size:.65rem;letter-spacing:.15em;text-transform:uppercase;color:var(--primary);font-weight:700;margin-bottom:.4rem;}
+.part-label{text-align:center;font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--orange);font-weight:800;margin-bottom:.6rem;}
+h2{font-size:clamp(1.2rem,3vw,1.8rem);font-weight:700;}h3{font-size:.95rem;font-weight:700;color:var(--primary);}
+p{line-height:1.75;color:#b8b8b8;}
+.fi{opacity:0;transform:translateY(20px);transition:opacity .6s,transform .6s;}.fi.v{opacity:1;transform:translateY(0);}
+.badge{display:inline-flex;align-items:center;gap:.5rem;background:rgba(231,76,60,.12);border:1px solid var(--border);color:var(--primary);padding:.35rem 1rem;border-radius:999px;font-size:.76rem;font-weight:600;margin-bottom:1.5rem;}
+.blob{position:absolute;border-radius:50%;filter:blur(80px);pointer-events:none;z-index:-1;}
+.b1{width:400px;height:400px;background:rgba(231,76,60,.07);top:-100px;right:-80px;animation:float 8s ease-in-out infinite;}
+.b2{width:300px;height:300px;background:rgba(39,174,96,.05);bottom:60px;left:-80px;animation:float 10s ease-in-out infinite reverse;}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
+.btns{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:1.5rem;}
+.btn{display:inline-flex;align-items:center;gap:.5rem;background:var(--primary);color:#fff;padding:.65rem 1.4rem;border-radius:10px;font-weight:700;font-size:.88rem;cursor:pointer;transition:transform .2s,box-shadow .2s;text-decoration:none;border:none;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(231,76,60,.4);}
+.btn-o{background:transparent;border:2px solid var(--primary);color:var(--primary);}
+.btn-o:hover{background:var(--primary);color:#fff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;transform:none !important;box-shadow:none !important;}
+.hero-stats{display:flex;gap:2rem;flex-wrap:wrap;margin-top:2rem;}
+.hs .n{font-size:1.8rem;font-weight:800;color:var(--primary);}.hs .l{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.5rem;transition:transform .25s,box-shadow .25s;}
+.card:hover{transform:translateY(-3px);box-shadow:var(--glow);}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1.5rem;margin-top:1.5rem;}
+.g3{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:1.2rem;margin-top:1.2rem;}
+.hbox{background:rgba(231,76,60,.08);border:1px solid rgba(231,76,60,.3);border-radius:12px;padding:1.1rem 1.3rem;margin:.8rem 0;}
+.hbox.green{background:rgba(39,174,96,.08);border-color:rgba(39,174,96,.3);}
+.hbox.blue{background:rgba(41,128,185,.08);border-color:rgba(41,128,185,.3);}
+.hbox.orange{background:rgba(230,126,34,.08);border-color:rgba(230,126,34,.3);}
+.hbox.purple{background:rgba(142,68,173,.08);border-color:rgba(142,68,173,.3);}
+.hbox.teal{background:rgba(22,160,133,.08);border-color:rgba(22,160,133,.3);}
+.hbox.yellow{background:rgba(241,196,15,.06);border-color:rgba(241,196,15,.3);}
+.hbox p,.hbox li{color:#d0d0e0;}.hbox strong{color:var(--primary);}
+.hbox.green strong{color:var(--accent);}.hbox.blue strong{color:#5dade2;}.hbox.orange strong{color:var(--orange);}
+.hbox.purple strong{color:#c39bd3;}.hbox.teal strong{color:#48c9b0;}.hbox.yellow strong{color:#f9e04b;}
+.diff-table{width:100%;border-collapse:collapse;font-size:.8rem;}
+.diff-table th{padding:.5rem .8rem;text-align:left;background:rgba(231,76,60,.1);color:var(--primary);font-size:.7rem;text-transform:uppercase;}
+.diff-table td{padding:.45rem .8rem;border-bottom:1px solid rgba(255,255,255,.04);color:#c0c0d0;}
+.diff-table tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.tbl-wrap{overflow-x:auto;margin:.5rem 0;}
+.a-tabs{display:flex;gap:.4rem;flex-wrap:wrap;margin:1rem 0 .5rem;}
+.a-tab{padding:.35rem .85rem;border-radius:8px;font-size:.72rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;}
+.a-tab.on,.a-tab:hover{background:var(--primary);color:#fff;border-color:var(--primary);}
+.a-panel{display:none;}.a-panel.on{display:block;}
+.eg{background:var(--card2);border-radius:12px;padding:1.2rem 1.4rem;margin:.8rem 0;border:1px solid rgba(255,255,255,.06);}
+.eg-lbl{font-size:.6rem;text-transform:uppercase;letter-spacing:.1em;color:var(--orange);font-weight:700;margin-bottom:.3rem;}
+.eg-desc{font-size:.82rem;color:#b8b8b8;margin-bottom:.6rem;line-height:1.5;}
+.note{background:rgba(241,196,15,.06);border:1px solid rgba(241,196,15,.2);border-left:3px solid #f9e04b;border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f9e04b;margin:.6rem 0;line-height:1.5;}
+.gotcha{background:rgba(231,76,60,.06);border:1px solid rgba(231,76,60,.25);border-left:3px solid var(--primary);border-radius:8px;padding:.7rem 1rem;font-size:.79rem;color:#f5b7b1;margin:.6rem 0;line-height:1.5;}
+.gotcha strong{color:var(--primary);}
+.pto{background:var(--card);border:2px dashed rgba(231,76,60,.3);border-radius:16px;padding:1.5rem;margin:1rem 0;}
+.pto-badge{display:inline-block;background:rgba(231,76,60,.2);color:var(--primary);font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.1em;padding:.2rem .7rem;border-radius:999px;margin-bottom:.8rem;}
+.pto-q{font-size:.92rem;font-weight:600;margin-bottom:.6rem;color:var(--text);}
+.pto-reveal{display:none;margin-top:1rem;padding:1rem;background:rgba(39,174,96,.08);border:1px solid rgba(39,174,96,.3);border-radius:10px;}
+.pto-reveal.show{display:block;}
+.pto-btn{background:var(--accent);color:#fff;padding:.5rem 1.2rem;border-radius:8px;font-weight:700;font-size:.78rem;cursor:pointer;transition:.2s;border:none;margin-top:.5rem;}
+.pto-btn:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(39,174,96,.4);}
+.pto-btn.revealed{background:var(--muted);cursor:default;}
+.schema{background:#111;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:.7rem 1rem;font-family:'Courier New',monospace;font-size:.8rem;color:#87ceeb;margin:.5rem 0;line-height:2;}
+.schema .tn{color:#f39c12;font-weight:700;}.schema .pk{text-decoration:underline;color:#e74c3c;font-weight:700;}.schema .fk{color:#3498db;font-style:italic;}.schema .attr{color:#ddd;}
+.rule-num{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:var(--primary);color:#fff;font-weight:800;font-size:.75rem;margin-right:.6rem;flex-shrink:0;}
+.step-box{background:var(--card2);border-radius:12px;padding:1rem;margin:.5rem 0;border-left:3px solid var(--teal);}
+.step-num{display:inline-block;background:var(--teal);color:#fff;width:22px;height:22px;border-radius:50%;text-align:center;line-height:22px;font-size:.68rem;font-weight:800;margin-right:.5rem;}
+.step-box p{font-size:.82rem;margin-top:.3rem;}
+/* SVG ER Diagram */
+.er-svg{width:100%;max-width:680px;margin:1rem auto;display:block;background:var(--card2);border-radius:12px;border:1px solid rgba(255,255,255,.06);padding:.5rem;}
+.er-svg text{font-family:'Segoe UI',system-ui,sans-serif;font-size:12px;fill:#e8e8e8;}
+.er-svg .ent{fill:rgba(231,76,60,.1);stroke:#e74c3c;stroke-width:2;}
+.er-svg .ent-weak{fill:rgba(231,76,60,.1);stroke:#e74c3c;stroke-width:2;}
+.er-svg .rel{fill:rgba(39,174,96,.1);stroke:#27ae60;stroke-width:2;}
+.er-svg .rel-ident{fill:rgba(39,174,96,.1);stroke:#27ae60;stroke-width:3;}
+.er-svg .att{fill:rgba(41,128,185,.08);stroke:#2980b9;stroke-width:1.5;}
+.er-svg .att-m{fill:rgba(41,128,185,.08);stroke:#2980b9;stroke-width:1.5;}
+.er-svg .att-d{fill:rgba(41,128,185,.08);stroke:#2980b9;stroke-width:1.5;stroke-dasharray:5,3;}
+.er-svg .conn{stroke:rgba(255,255,255,.3);stroke-width:1.5;fill:none;}
+.er-svg .conn-t{stroke:rgba(255,255,255,.5);stroke-width:4;}
+.er-svg .isa{fill:rgba(142,68,173,.2);stroke:#8e44ad;stroke-width:2;}
+.er-svg .aggr{fill:none;stroke:#e67e22;stroke-width:1.5;stroke-dasharray:6,3;}
+.er-svg .lbl{font-size:10px;fill:#999;}
+.er-svg .hl-active{filter:drop-shadow(0 0 10px rgba(241,196,15,.8));}
+.er-svg .hl-active rect,.er-svg .hl-active ellipse,.er-svg .hl-active polygon,.er-svg .hl-active circle{stroke:#f1c40f !important;stroke-width:2.5 !important;}
+.er-svg .hl-active text{fill:#f1c40f !important;}
+.er-svg .hl-dim{opacity:.25;}
+/* Transform Animator */
+.tf-selector{display:flex;gap:.4rem;flex-wrap:wrap;margin-bottom:1rem;}
+.tf-tab{padding:.4rem .9rem;border-radius:8px;font-size:.7rem;font-weight:700;cursor:pointer;border:1px solid rgba(255,255,255,.1);color:var(--muted);transition:.2s;background:none;}
+.tf-tab.on{background:var(--primary);color:#fff;border-color:var(--primary);}
+.tf-split{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;min-height:300px;}
+.tf-left{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1rem;display:flex;align-items:center;justify-content:center;overflow:hidden;}
+.tf-left .er-svg{background:none;border:none;padding:0;margin:0;}
+.tf-right{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.2rem;overflow-y:auto;}
+.tf-right .schema{transition:opacity .4s,max-height .4s;opacity:0;max-height:0;overflow:hidden;margin:.3rem 0;}
+.tf-right .schema.vis{opacity:1;max-height:100px;}
+.tf-right h3{margin-bottom:.5rem;}
+.tf-desc{background:var(--card2);border:1px solid rgba(255,255,255,.06);border-radius:10px;padding:.8rem 1rem;font-size:.85rem;color:#b8b8b8;min-height:50px;margin:1rem 0 .8rem;line-height:1.6;}
+.tf-nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;}
+.tf-step-info{font-size:.75rem;color:var(--muted);font-weight:600;min-width:80px;text-align:center;}
+.tf-panel{display:none;}.tf-panel.active{display:block;}
+/* Bridge */
+.bridge{text-align:center;padding:60px 2rem;max-width:800px;margin:0 auto;}
+.bridge h2{font-size:clamp(1.4rem,4vw,2.2rem);margin-bottom:1rem;}
+.bridge-arrow{font-size:3rem;color:var(--primary);margin:1rem 0;animation:float 3s ease-in-out infinite;}
+/* Flashcards */
+.fc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.2rem;margin-top:1.5rem;}
+.fc{height:175px;perspective:900px;cursor:pointer;}
+.fc-in{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform .55s cubic-bezier(.4,0,.2,1);}
+.fc.flipped .fc-in{transform:rotateY(180deg);}
+.fc-fr,.fc-bk{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;padding:1rem;display:flex;flex-direction:column;justify-content:center;}
+.fc-fr{background:var(--card2);border:1px solid var(--border);}
+.fc-bk{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);transform:rotateY(180deg);}
+.fc-tag{font-size:.6rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--primary);margin-bottom:.4rem;}
+.fc-q{font-size:.82rem;font-weight:700;color:var(--text);line-height:1.4;}
+.fc-hint{font-size:.6rem;color:var(--muted);margin-top:.5rem;}
+.fc-a{font-size:.77rem;color:#e8e8e8;line-height:1.5;}
+/* Quiz */
+.quiz-wrap{max-width:720px;margin:0 auto;}
+#q-prog{display:flex;gap:.3rem;flex-wrap:wrap;margin-bottom:1.5rem;}
+.q-dot{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.12);transition:.3s;}
+.q-dot.done{background:var(--accent);}.q-dot.cur{background:var(--primary);transform:scale(1.3);}.q-dot.bad{background:#c0392b;}
+.q-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:1.8rem;}
+.q-num{font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:.5rem;}
+.q-text{font-size:1rem;font-weight:600;margin-bottom:1.2rem;line-height:1.5;}
+.q-opts{display:flex;flex-direction:column;gap:.6rem;}
+.q-opt{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:10px;padding:.75rem 1rem;font-size:.88rem;cursor:pointer;transition:.2s;text-align:left;}
+.q-opt:hover:not([disabled]){background:rgba(231,76,60,.1);border-color:var(--primary);}
+.q-opt.ok{background:rgba(39,174,96,.15);border-color:var(--accent);color:#82e0aa;}
+.q-opt.no{background:rgba(231,76,60,.15);border-color:var(--primary);color:#f1948a;}
+.q-exp{margin-top:1rem;padding:.8rem 1rem;border-radius:10px;font-size:.82rem;line-height:1.6;display:none;}
+.q-exp.show{display:block;}
+.q-exp.ok{background:rgba(39,174,96,.1);border:1px solid rgba(39,174,96,.3);color:#a9dfbf;}
+.q-exp.no{background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#f5b7b1;}
+.q-nav{display:flex;justify-content:flex-end;margin-top:1rem;}
+#q-score{text-align:center;padding:2.5rem;display:none;}
+#q-score .sc-n{font-size:4rem;font-weight:900;color:var(--primary);}
+#q-score .sc-l{font-size:.8rem;color:var(--muted);margin-bottom:.8rem;}
+.pyq-badge{display:inline-block;background:rgba(241,196,15,.15);color:#f9e04b;font-size:.55rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;padding:.15rem .6rem;border-radius:999px;margin-left:.5rem;vertical-align:middle;}
+footer{text-align:center;padding:2rem;color:var(--muted);font-size:.72rem;border-top:1px solid var(--border);}
+@media(max-width:768px){.tf-split{grid-template-columns:1fr;}.tf-left{min-height:220px;}}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="logo">ER Visual Guide</span>
+  <a href="#basics">Basics</a>
+  <a href="#attrs">Attrs</a>
+  <a href="#rels">Rels</a>
+  <a href="#card">Card</a>
+  <a href="#part">Partic</a>
+  <a href="#weak">Weak</a>
+  <a href="#genspec">ISA</a>
+  <a href="#aggr">Aggr</a>
+  <a href="#mapping">Mapping</a>
+  <a href="#transform">Transforms</a>
+  <a href="#cards">Cards</a>
+  <a href="#quiz">Quiz</a>
+</nav>
+<div id="pb"></div>
+
+<!-- HERO -->
+<section id="intro" style="position:relative;padding-top:110px;min-height:90vh;display:flex;flex-direction:column;justify-content:center;">
+  <div class="blob b1"></div><div class="blob b2"></div>
+  <div class="badge">UCS310 · Ch10 + Ch11 Combined</div>
+  <h2 style="font-size:clamp(2rem,6vw,3.5rem);font-weight:900;line-height:1.1;margin-bottom:.6rem;">ER Model &amp; Table Mapping <span style="color:var(--primary);">Visual Guide</span></h2>
+  <p style="font-size:1rem;color:#999;max-width:620px;margin:.4rem 0 1rem;">Master ER diagrams and learn to convert them into relational tables — with <strong style="color:var(--text);">SVG-based diagrams</strong>, interactive step-by-step transform animations, flashcards, and quizzes.</p>
+  <div class="hero-stats">
+    <div class="hs"><div class="n">7</div><div class="l">Attr Types</div></div>
+    <div class="hs"><div class="n">7</div><div class="l">Mapping Rules</div></div>
+    <div class="hs"><div class="n">7</div><div class="l">Transforms</div></div>
+    <div class="hs"><div class="n">25</div><div class="l">Flashcards</div></div>
+    <div class="hs"><div class="n">20</div><div class="l">Quiz MCQs</div></div>
+  </div>
+  <div class="btns">
+    <a href="#basics" class="btn">Start Learning</a>
+    <a href="#transform" class="btn btn-o">Transforms</a>
+    <a href="#cards" class="btn btn-o">Flashcards</a>
+    <a href="#quiz" class="btn btn-o">Take Quiz</a>
+  </div>
+</section>
+
+<!-- ═══════════ PART A — ER CONCEPTS ═══════════ -->
+
+<!-- BASICS -->
+<section id="basics">
+  <div class="fi">
+    <div class="part-label">Part A — ER Concepts</div>
+    <div class="sec-label">Foundation</div>
+    <h2>Entities, Entity Sets &amp; Types</h2>
+    <p style="margin:.6rem 0 1rem;">The three building blocks of the ER model: <strong style="color:var(--text);">Entity Sets</strong>, <strong style="color:var(--text);">Relationship Sets</strong>, and <strong style="color:var(--text);">Attributes</strong>.</p>
+  </div>
+  <div class="fi">
+    <div class="hbox">
+      <p>An <strong>Entity</strong> is a distinguishable real-world object — person, place, event, or concept. Represented by a <strong>rectangle</strong>.</p>
+    </div>
+    <div class="g2">
+      <div class="card"><h3 style="color:var(--accent);">Tangible Entity</h3><p style="font-size:.85rem;margin-top:.3rem;">Has <strong style="color:var(--accent);">physical existence</strong> — Person, Car, House</p></div>
+      <div class="card"><h3 style="color:var(--blue);">Intangible Entity</h3><p style="font-size:.85rem;margin-top:.3rem;">Has <strong style="color:#5dade2;">logical/conceptual existence</strong> — Bank Account, Course</p></div>
+    </div>
+  </div>
+  <div class="fi">
+    <h3>Entity Set</h3>
+    <div class="hbox green">
+      <p>An <strong>Entity Set</strong> is a collection of entities of the <strong>same type</strong> sharing the same properties. Think: entity set = table, individual entities = rows.</p>
+    </div>
+    <svg class="er-svg" viewBox="0 0 500 80">
+      <rect class="ent" x="30" y="20" width="120" height="40" rx="4"/><text x="90" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Student</text>
+      <rect class="ent" x="190" y="20" width="120" height="40" rx="4"/><text x="250" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Course</text>
+      <rect class="ent" x="350" y="20" width="120" height="40" rx="4"/><text x="410" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Department</text>
+      <text class="lbl" x="250" y="75" text-anchor="middle">Entity sets represented as rectangles</text>
+    </svg>
+  </div>
+</section>
+
+<!-- ATTRIBUTES -->
+<section id="attrs">
+  <div class="fi">
+    <div class="sec-label">Properties</div>
+    <h2>Attributes &amp; Their 7 Types</h2>
+    <p style="margin:.6rem 0;">Attributes describe an entity. Represented by <strong style="color:var(--text);">ovals</strong> connected to the entity rectangle.</p>
+  </div>
+  <div class="fi">
+    <div class="g2">
+      <div class="hbox blue"><p><strong>Simple</strong> — cannot be divided. Examples: RollNo, Age</p></div>
+      <div class="hbox orange"><p><strong>Composite</strong> — can be subdivided. Name → First + Last</p></div>
+    </div>
+    <div class="g2">
+      <div class="hbox teal"><p><strong>Single-Valued</strong> — one value per entity. RollNo (normal oval)</p></div>
+      <div class="hbox purple"><p><strong>Multi-Valued</strong> — multiple values. Phone_No (<strong>double oval</strong>)</p></div>
+    </div>
+    <div class="g2">
+      <div class="hbox green"><p><strong>Stored</strong> — physically stored. Birth_Date (normal oval)</p></div>
+      <div class="hbox"><p><strong>Derived</strong> — calculated. Age from DOB (<strong>dashed oval</strong>)</p></div>
+    </div>
+    <div class="hbox yellow"><p><strong>Key Attribute</strong> — uniquely identifies each entity. Shown with <strong>underlined text</strong>. Example: <u>Roll_No</u></p></div>
+    <div class="hbox blue"><p><strong>Descriptive Attribute</strong> — belongs to a <strong>relationship</strong>, not an entity. Example: Issue_Date on Issue relationship.</p></div>
+  </div>
+  <div class="fi">
+    <h3>Complete Student Entity — All Attribute Types</h3>
+    <svg class="er-svg" viewBox="0 0 600 260">
+      <!-- Entity -->
+      <rect class="ent" x="230" y="110" width="140" height="40" rx="4"/><text x="300" y="135" text-anchor="middle" font-weight="700" fill="#e74c3c">Student</text>
+      <!-- Key: RollNo -->
+      <ellipse class="att" cx="100" cy="50" rx="48" ry="18"/><text x="100" y="55" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-weight="700">RollNo</text>
+      <line class="conn" x1="148" y1="50" x2="230" y2="120"/>
+      <!-- Simple: Branch -->
+      <ellipse class="att" cx="220" cy="50" rx="40" ry="18"/><text x="220" y="55" text-anchor="middle" fill="#2980b9">Branch</text>
+      <line class="conn" x1="220" y1="68" x2="270" y2="110"/>
+      <!-- Simple: Semester -->
+      <ellipse class="att" cx="340" cy="50" rx="48" ry="18"/><text x="340" y="55" text-anchor="middle" fill="#2980b9">Semester</text>
+      <line class="conn" x1="340" y1="68" x2="320" y2="110"/>
+      <!-- Derived: Age -->
+      <ellipse class="att-d" cx="480" cy="50" rx="35" ry="18"/><text x="480" y="55" text-anchor="middle" fill="#2980b9" font-style="italic">Age</text>
+      <line class="conn" x1="445" y1="55" x2="370" y2="115"/>
+      <!-- Multi-valued: Phone_No -->
+      <ellipse class="att-m" cx="500" cy="130" rx="48" ry="18"/><ellipse class="att-m" cx="500" cy="130" rx="42" ry="14" style="fill:none"/>
+      <text x="500" y="135" text-anchor="middle" fill="#2980b9">Phone_No</text>
+      <line class="conn" x1="452" y1="130" x2="370" y2="130"/>
+      <!-- Stored: Birth_Date -->
+      <ellipse class="att" cx="100" cy="170" rx="52" ry="18"/><text x="100" y="175" text-anchor="middle" fill="#2980b9">Birth_Date</text>
+      <line class="conn" x1="152" y1="170" x2="230" y2="140"/>
+      <!-- Composite: Name -->
+      <ellipse class="att" cx="300" cy="200" rx="38" ry="18"/><text x="300" y="205" text-anchor="middle" fill="#2980b9">Name</text>
+      <line class="conn" x1="300" y1="182" x2="300" y2="150"/>
+      <!-- Sub-parts of Name -->
+      <ellipse class="att" cx="220" cy="245" rx="32" ry="14"/><text x="220" y="249" text-anchor="middle" fill="#2980b9" font-size="10">First</text>
+      <line class="conn" x1="248" y1="240" x2="278" y2="215"/>
+      <ellipse class="att" cx="300" cy="245" rx="35" ry="14"/><text x="300" y="249" text-anchor="middle" fill="#2980b9" font-size="10">Middle</text>
+      <line class="conn" x1="300" y1="231" x2="300" y2="218"/>
+      <ellipse class="att" cx="380" cy="245" rx="28" ry="14"/><text x="380" y="249" text-anchor="middle" fill="#2980b9" font-size="10">Last</text>
+      <line class="conn" x1="356" y1="240" x2="322" y2="215"/>
+      <text class="lbl" x="300" y="12" text-anchor="middle">Key(underline) · Simple · Derived(dashed) · Multi-valued(double) · Composite(sub-ovals)</text>
+    </svg>
+  </div>
+</section>
+
+<!-- RELATIONSHIPS -->
+<section id="rels">
+  <div class="fi">
+    <div class="sec-label">Associations</div>
+    <h2>Relationships &amp; Degree</h2>
+    <div class="hbox green"><p>A <strong>Relationship</strong> is an association between two or more entities. Represented by a <strong>diamond</strong> shape.</p></div>
+  </div>
+  <div class="fi">
+    <svg class="er-svg" viewBox="0 0 520 120">
+      <rect class="ent" x="20" y="35" width="110" height="40" rx="4"/><text x="75" y="60" text-anchor="middle" font-weight="700" fill="#e74c3c">Student</text>
+      <line class="conn" x1="130" y1="55" x2="200" y2="55"/>
+      <!-- Descriptive attr on relationship -->
+      <ellipse class="att" cx="250" cy="15" rx="48" ry="14"/><text x="250" y="19" text-anchor="middle" fill="#e67e22" font-size="10">Issue_Date</text>
+      <line class="conn" x1="250" y1="29" x2="250" y2="40"/>
+      <!-- Diamond -->
+      <polygon class="rel" points="250,35 290,55 250,75 210,55"/>
+      <text x="250" y="59" text-anchor="middle" font-size="11" font-weight="700" fill="#27ae60">Issue</text>
+      <line class="conn" x1="290" y1="55" x2="370" y2="55"/>
+      <rect class="ent" x="370" y="35" width="110" height="40" rx="4"/><text x="425" y="60" text-anchor="middle" font-weight="700" fill="#e74c3c">Book</text>
+      <text class="lbl" x="250" y="105" text-anchor="middle">Issue_Date is a descriptive attribute — belongs to the relationship, not to Student or Book</text>
+    </svg>
+  </div>
+  <div class="fi">
+    <h3>Degree of a Relationship</h3>
+    <div class="g3">
+      <div class="card"><h3 style="color:var(--accent);">Binary (Degree 2)</h3><p style="font-size:.78rem;margin-top:.3rem;">Two entities. Student — Enroll — Course</p></div>
+      <div class="card"><h3 style="color:var(--orange);">Ternary (Degree 3)</h3><p style="font-size:.78rem;margin-top:.3rem;">Three entities. Faculty — Guide — Student — Project</p></div>
+      <div class="card"><h3 style="color:var(--purple);">Recursive (Unary)</h3><p style="font-size:.78rem;margin-top:.3rem;">Entity related to itself. Employee manages Employee</p></div>
+    </div>
+    <div class="gotcha"><strong>Gotcha:</strong> A recursive relationship is still binary (degree 2) — both participants come from the same entity set.</div>
+  </div>
+</section>
+
+<!-- CARDINALITY -->
+<section id="card">
+  <div class="fi">
+    <div class="sec-label">Constraints</div>
+    <h2>Mapping Cardinality</h2>
+    <p style="margin:.5rem 0;">Cardinality defines <strong style="color:var(--text);">how many entities</strong> from one set can associate with entities in another.</p>
+  </div>
+  <div class="fi">
+    <div class="a-tabs" data-group="card">
+      <button class="a-tab on" onclick="tabSwitch(this,'card')">1 : 1</button>
+      <button class="a-tab" onclick="tabSwitch(this,'card')">1 : N</button>
+      <button class="a-tab" onclick="tabSwitch(this,'card')">M : N</button>
+    </div>
+    <div class="a-panel on" data-group="card">
+      <div class="hbox"><p><strong>One-to-One (1:1)</strong> — Each entity in A maps to exactly one in B, and vice versa. ER: arrows on both sides.</p></div>
+      <svg class="er-svg" viewBox="0 0 460 80">
+        <rect class="ent" x="10" y="20" width="110" height="40" rx="4"/><text x="65" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Customer</text>
+        <line class="conn" x1="120" y1="40" x2="170" y2="40"/><polygon points="165,36 175,40 165,44" fill="rgba(255,255,255,.4)"/>
+        <polygon class="rel" points="220,20 260,40 220,60 180,40"/><text x="220" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#27ae60">Borrow</text>
+        <line class="conn" x1="260" y1="40" x2="310" y2="40"/><polygon points="305,36 315,40 305,44" fill="rgba(255,255,255,.4)"/>
+        <rect class="ent" x="310" y="20" width="110" height="40" rx="4"/><text x="365" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text>
+        <text class="lbl" x="220" y="75" text-anchor="middle">Arrows on BOTH sides → 1:1</text>
+      </svg>
+    </div>
+    <div class="a-panel" data-group="card">
+      <div class="hbox green"><p><strong>One-to-Many (1:N)</strong> — One entity in A maps to multiple in B, but each B maps to only one A. Arrow toward "one" side.</p></div>
+      <svg class="er-svg" viewBox="0 0 460 80">
+        <rect class="ent" x="10" y="20" width="110" height="40" rx="4"/><text x="65" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Customer</text>
+        <line class="conn" x1="120" y1="40" x2="170" y2="40"/><polygon points="165,36 175,40 165,44" fill="rgba(255,255,255,.4)"/>
+        <polygon class="rel" points="220,20 260,40 220,60 180,40"/><text x="220" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#27ae60">Borrow</text>
+        <line class="conn" x1="260" y1="40" x2="310" y2="40"/>
+        <rect class="ent" x="310" y="20" width="110" height="40" rx="4"/><text x="365" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text>
+        <text class="lbl" x="220" y="75" text-anchor="middle">Arrow toward Customer (one), line toward Loan (many) → 1:N</text>
+      </svg>
+    </div>
+    <div class="a-panel" data-group="card">
+      <div class="hbox purple"><p><strong>Many-to-Many (M:N)</strong> — Entities in A map to multiple in B, and vice versa. No arrows — lines on both sides.</p></div>
+      <svg class="er-svg" viewBox="0 0 460 80">
+        <rect class="ent" x="10" y="20" width="110" height="40" rx="4"/><text x="65" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Customer</text>
+        <line class="conn" x1="120" y1="40" x2="180" y2="40"/>
+        <polygon class="rel" points="220,20 260,40 220,60 180,40"/><text x="220" y="44" text-anchor="middle" font-size="10" font-weight="700" fill="#27ae60">Borrow</text>
+        <line class="conn" x1="260" y1="40" x2="310" y2="40"/>
+        <rect class="ent" x="310" y="20" width="110" height="40" rx="4"/><text x="365" y="45" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text>
+        <text class="lbl" x="220" y="75" text-anchor="middle">No arrows (lines both sides) → M:N</text>
+      </svg>
+    </div>
+  </div>
+  <div class="fi">
+    <div class="note"><strong>Arrow Rule:</strong> Directed arrow (→) points to the "one" side. Undirected line (—) on the "many" side. 1:1 = arrows both sides. M:N = no arrows.</div>
+  </div>
+</section>
+
+<!-- PARTICIPATION -->
+<section id="part">
+  <div class="fi">
+    <div class="sec-label">Constraints</div>
+    <h2>Participation &amp; Min-Max</h2>
+  </div>
+  <div class="fi">
+    <div class="g2">
+      <div class="hbox"><p><strong>Total Participation</strong> (double line ═══) — Every entity MUST participate. Min ≥ 1.</p></div>
+      <div class="hbox blue"><p><strong>Partial Participation</strong> (single line ───) — Some entities may NOT participate. Min = 0.</p></div>
+    </div>
+    <svg class="er-svg" viewBox="0 0 500 90">
+      <rect class="ent" x="20" y="25" width="120" height="40" rx="4"/><text x="80" y="50" text-anchor="middle" font-weight="700" fill="#e74c3c">Customer</text>
+      <line class="conn" x1="140" y1="45" x2="185" y2="45"/>
+      <polygon class="rel" points="230,25 270,45 230,65 190,45"/><text x="230" y="49" text-anchor="middle" font-size="10" font-weight="700" fill="#27ae60">Borrower</text>
+      <line class="conn-t" x1="270" y1="45" x2="340" y2="45"/>
+      <rect class="ent" x="340" y="25" width="120" height="40" rx="4"/><text x="400" y="50" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text>
+      <text class="lbl" x="250" y="82" text-anchor="middle">Customer = partial (thin line) · Loan = total (thick line) — every loan MUST have a borrower</text>
+    </svg>
+    <div class="hbox green" style="margin-top:1rem;">
+      <p><strong>Min-Max (l..h):</strong> min=0 → partial, min=1 → total, max=1 → at most one, max=* → unlimited.<br>Example: Loan side <strong style="color:var(--primary);">1..1</strong> (total, exactly one). Customer side <strong style="color:#5dade2;">0..*</strong> (partial, unlimited).</p>
+    </div>
+  </div>
+</section>
+
+<!-- WEAK ENTITY -->
+<section id="weak">
+  <div class="fi">
+    <div class="sec-label">Special Entities</div>
+    <h2>Weak Entity Sets</h2>
+    <div class="hbox"><p>A <strong>Weak Entity</strong> has no sufficient PK on its own. It depends on a strong entity. Shown as <strong>double rectangle</strong>, connected via <strong>double diamond</strong> (identifying relationship).</p></div>
+    <div class="hbox teal"><p><strong>PK of Weak Entity</strong> = Strong Entity PK + <strong>Discriminator (Partial Key)</strong> (dashed underline)</p></div>
+  </div>
+  <div class="fi">
+    <svg class="er-svg" viewBox="0 0 560 130">
+      <!-- Loan (strong) -->
+      <ellipse class="att" cx="60" cy="25" rx="45" ry="16"/><text x="60" y="30" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-weight="700" font-size="11">Loan_No</text>
+      <line class="conn" x1="60" y1="41" x2="100" y2="55"/>
+      <rect class="ent" x="60" y="45" width="110" height="38" rx="4"/><text x="115" y="68" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text>
+      <!-- Identifying relationship (double diamond) -->
+      <line class="conn-t" x1="170" y1="64" x2="215" y2="64"/>
+      <polygon class="rel-ident" points="260,44 295,64 260,84 225,64"/><text x="260" y="68" text-anchor="middle" font-size="10" font-weight="700" fill="#27ae60">L_P</text>
+      <!-- Payment (weak - double rect) -->
+      <line class="conn-t" x1="295" y1="64" x2="340" y2="64"/>
+      <rect class="ent-weak" x="340" y="45" width="130" height="38" rx="4"/><rect class="ent-weak" x="344" y="49" width="122" height="30" rx="3" style="fill:none"/>
+      <text x="405" y="68" text-anchor="middle" font-weight="700" fill="#e74c3c">Payment</text>
+      <!-- Discriminator -->
+      <ellipse class="att-d" cx="490" cy="25" rx="42" ry="16"/><text x="490" y="30" text-anchor="middle" fill="#2980b9" font-size="11" text-decoration="underline" style="text-decoration-style:dashed;">Pay_No</text>
+      <line class="conn" x1="490" y1="41" x2="440" y2="50"/>
+      <text class="lbl" x="280" y="118" text-anchor="middle">Loan(strong, single rect) ═══ L_P(identifying, double diamond) ═══ Payment(weak, double rect)</text>
+    </svg>
+    <div class="gotcha"><strong>Gotcha:</strong> Both lines from a weak entity to its identifying relationship are <strong>double lines</strong> (total participation).</div>
+  </div>
+</section>
+
+<!-- GENERALIZATION / SPECIALIZATION -->
+<section id="genspec">
+  <div class="fi">
+    <div class="sec-label">Hierarchy</div>
+    <h2>Generalization &amp; Specialization</h2>
+  </div>
+  <div class="fi">
+    <div class="g2">
+      <div class="card"><h3 style="color:var(--accent);">Generalization ↑</h3><p style="font-size:.82rem;margin-top:.3rem;"><strong style="color:var(--accent);">Bottom-Up</strong> — combine entities sharing common attrs into a superclass.</p></div>
+      <div class="card"><h3 style="color:var(--blue);">Specialization ↓</h3><p style="font-size:.82rem;margin-top:.3rem;"><strong style="color:#5dade2;">Top-Down</strong> — create subclasses from a higher-level entity.</p></div>
+    </div>
+    <svg class="er-svg" viewBox="0 0 440 180">
+      <rect class="ent" x="160" y="10" width="120" height="36" rx="4"/><text x="220" y="33" text-anchor="middle" font-weight="700" fill="#e74c3c">Account</text>
+      <line class="conn" x1="220" y1="46" x2="220" y2="65"/>
+      <polygon class="isa" points="220,65 250,100 190,100"/><text x="220" y="92" text-anchor="middle" font-size="10" font-weight="700" fill="#8e44ad">ISA</text>
+      <line class="conn" x1="205" y1="100" x2="110" y2="125"/>
+      <line class="conn" x1="235" y1="100" x2="330" y2="125"/>
+      <rect class="ent" x="40" y="125" width="140" height="36" rx="4"/><text x="110" y="148" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Saving_Account</text>
+      <rect class="ent" x="260" y="125" width="140" height="36" rx="4"/><text x="330" y="148" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Current_Account</text>
+      <text class="lbl" x="220" y="175" text-anchor="middle">ISA triangle connects superclass to subclasses</text>
+    </svg>
+  </div>
+</section>
+
+<!-- AGGREGATION -->
+<section id="aggr">
+  <div class="fi">
+    <div class="sec-label">Advanced</div>
+    <h2>Aggregation</h2>
+    <div class="hbox orange"><p><strong>Problem:</strong> Basic ER can't express <strong>relationships among relationships</strong>.<br><strong>Solution:</strong> Treat a relationship + its entities as a higher-level abstract entity (dashed rectangle).</p></div>
+  </div>
+  <div class="fi">
+    <svg class="er-svg" viewBox="0 0 600 120">
+      <!-- Aggregation box -->
+      <rect class="aggr" x="15" y="10" width="340" height="80" rx="6"/>
+      <rect class="ent" x="25" y="30" width="100" height="36" rx="4"/><text x="75" y="52" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Employee</text>
+      <line class="conn" x1="125" y1="48" x2="155" y2="48"/>
+      <polygon class="rel" points="195,28 225,48 195,68 165,48"/><text x="195" y="52" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">work_on</text>
+      <line class="conn" x1="225" y1="48" x2="250" y2="48"/>
+      <rect class="ent" x="250" y="30" width="95" height="36" rx="4"/><text x="298" y="52" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Branch</text>
+      <!-- Manages relationship -->
+      <line class="conn" x1="355" y1="50" x2="400" y2="50"/>
+      <polygon class="rel" points="440,30 470,50 440,70 410,50"/><text x="440" y="54" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">Manages</text>
+      <line class="conn" x1="470" y1="50" x2="500" y2="50"/>
+      <rect class="ent" x="500" y="32" width="90" height="36" rx="4"/><text x="545" y="54" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Manager</text>
+      <text class="lbl" x="300" y="110" text-anchor="middle">Dashed box = aggregation — work_on treated as abstract entity that Manager "Manages"</text>
+    </svg>
+  </div>
+</section>
+
+<!-- NOTATION REFERENCE -->
+<section id="notation">
+  <div class="fi">
+    <div class="sec-label">Reference</div>
+    <h2>ER Notation — Symbol Chart</h2>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Symbol</th><th>Name</th><th>Meaning</th></tr>
+        <tr><td style="color:var(--primary);font-weight:700;">▭ Rectangle</td><td>Entity</td><td>A real-world object</td></tr>
+        <tr><td style="color:var(--primary);font-weight:700;">╔═▭═╗ Double Rect</td><td>Weak Entity</td><td>No sufficient PK (depends on strong entity)</td></tr>
+        <tr><td style="color:var(--accent);font-weight:700;">◇ Diamond</td><td>Relationship</td><td>Association between entities</td></tr>
+        <tr><td style="color:var(--accent);font-weight:700;">◈ Double Diamond</td><td>Identifying Rel</td><td>Connects weak to strong entity</td></tr>
+        <tr><td style="color:var(--blue);font-weight:700;">○ Oval</td><td>Attribute</td><td>Property of an entity/relationship</td></tr>
+        <tr><td style="color:var(--blue);font-weight:700;">◎ Double Oval</td><td>Multi-valued</td><td>Multiple values (e.g., Phone_No)</td></tr>
+        <tr><td style="color:var(--blue);font-weight:700;">◌ Dashed Oval</td><td>Derived</td><td>Calculated from stored attr</td></tr>
+        <tr><td style="text-decoration:underline;font-weight:700;">Underline</td><td>Key Attr</td><td>Uniquely identifies entity</td></tr>
+        <tr><td style="font-weight:700;">═══ Double Line</td><td>Total</td><td>Every entity must participate</td></tr>
+        <tr><td style="color:var(--muted);font-weight:700;">─── Single Line</td><td>Partial</td><td>Some entities may not participate</td></tr>
+        <tr><td style="color:var(--purple);font-weight:700;">▽ Triangle</td><td>ISA</td><td>Generalization/specialization</td></tr>
+        <tr><td style="color:var(--orange);font-weight:700;">┊ ┊ Dashed Rect</td><td>Aggregation</td><td>Relationship as abstract entity</td></tr>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ BRIDGE ═══════════ -->
+<section class="bridge">
+  <div class="fi">
+    <div class="bridge-arrow">↓</div>
+    <h2>You know ER diagrams.<br>Now let's <span style="color:var(--primary);">convert them to tables.</span></h2>
+    <p style="margin-top:.8rem;">No DBMS supports ER models directly — we must map every ER construct into relational tables.</p>
+  </div>
+</section>
+
+<!-- ═══════════ PART B — MAPPING RULES ═══════════ -->
+
+<section id="mapping">
+  <div class="fi">
+    <div class="part-label">Part B — Mapping Rules</div>
+    <div class="sec-label">Rules 1–7</div>
+    <h2>ER-to-Table Mapping Rules</h2>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">1</span>Simple Attributes → 1 Table</h3>
+    <div class="hbox green"><p>Strong entity + simple attrs = <strong>1 table</strong>. PK = key attribute. <strong>Derived attrs removed.</strong></p></div>
+    <div class="schema"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">gpa</span>, <span class="attr">date_of_birth</span>) <span style="color:#555;">— age is derived → removed</span></div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">2</span>Composite Attributes → 1 Table (Flatten)</h3>
+    <div class="hbox blue"><p>Composite attrs still = <strong>1 table</strong>. Only leaf-level sub-parts become columns.</p></div>
+    <div class="schema"><span class="tn">Student</span>(<span class="pk">Roll_no</span>, <span class="attr">First_name</span>, <span class="attr">Last_name</span>, <span class="attr">House_no</span>, <span class="attr">Street</span>, <span class="attr">City</span>)</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">3</span>Multivalued Attributes → 1 + N Tables</h3>
+    <div class="hbox orange"><p>Each <strong>multivalued attr</strong> gets its own table: entity PK (as FK) + the multivalued attr = composite PK.</p></div>
+    <div class="schema"><span class="tn">Student</span>(<span class="pk">Roll_no</span>, <span class="attr">City</span>)
+<span class="tn">Student_Mobile</span>(<span class="pk fk">Roll_No</span>, <span class="pk">Mobile_No</span>)</div>
+    <div class="note"><strong>Formula:</strong> Tables = 1 (main) + number of multivalued attributes.</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">4</span>Weak Entity → 2 Tables</h3>
+    <div class="hbox purple"><p>Strong entity table + weak entity table. Weak table includes strong PK as FK. <strong>PK = strong PK + discriminator.</strong> Identifying relationship absorbed (no separate table).</p></div>
+    <div class="schema"><span class="tn">Loan</span>(<span class="pk">Loan_No</span>, <span class="attr">Amount</span>)
+<span class="tn">Payment</span>(<span class="pk fk">Loan_No</span>, <span class="pk">Pay_No</span>, <span class="attr">Date</span>, <span class="attr">Amount</span>)</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">5</span>M:N Relationship → 3 Tables</h3>
+    <div class="hbox"><p>One table per entity + one for the relationship. Relationship table PK = <strong>composite of both entity PKs</strong>.</p></div>
+    <div class="schema"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">gpa</span>)
+<span class="tn">Enrolls</span>(<span class="pk fk">sid</span>, <span class="pk fk">cid</span>, <span class="attr">enrollment_date</span>)
+<span class="tn">Course</span>(<span class="pk">cid</span>, <span class="attr">name</span>, <span class="attr">credit</span>)</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">6</span>1:M Relationship → 2 Tables</h3>
+    <div class="hbox green"><p><strong>"Many side consumes the relationship."</strong> PK of "one" side → FK on "many" side. Relationship attrs also go to many side.</p></div>
+    <div class="schema"><span class="tn">Teacher</span>(<span class="pk">tid</span>, <span class="attr">name</span>, <span class="attr">salary</span>)
+<span class="tn">Subject</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">credit</span>, <span class="fk">teacherId</span>)</div>
+    <div class="gotcha"><strong>Gotcha:</strong> FK goes on the MANY side, not the one side!</div>
+  </div>
+
+  <div class="fi">
+    <h3><span class="rule-num">7</span>1:1 Relationship → Depends on Participation</h3>
+    <div class="a-tabs" data-group="oo">
+      <button class="a-tab on" onclick="tabSwitch(this,'oo')">Partial + Partial</button>
+      <button class="a-tab" onclick="tabSwitch(this,'oo')">Both Total</button>
+      <button class="a-tab" onclick="tabSwitch(this,'oo')">One Total</button>
+    </div>
+    <div class="a-panel on" data-group="oo">
+      <div class="hbox"><p><strong>2 tables.</strong> Combine R with either entity. FK must be <strong>UNIQUE</strong>.</p></div>
+      <div class="schema"><span class="tn">Male</span>(<span class="pk">M_ID</span>, <span class="fk">F_ID</span> <span style="color:#e74c3c;">UNIQUE</span>)
+<span class="tn">Female</span>(<span class="pk">F_ID</span>)</div>
+    </div>
+    <div class="a-panel" data-group="oo">
+      <div class="hbox green"><p><strong>1 table!</strong> Merge both entities + relationship into a single table.</p></div>
+      <div class="schema"><span class="tn">ARB</span>(<span class="pk">a1</span>, <span class="attr">a2</span>, <span class="attr">b1</span> <span style="color:#e74c3c;">UNIQUE NOT NULL</span>, <span class="attr">b2</span>)</div>
+    </div>
+    <div class="a-panel" data-group="oo">
+      <div class="hbox blue"><p><strong>2 tables.</strong> Merge R into entity with <strong>total participation</strong>. FK = UNIQUE.</p></div>
+      <div class="schema"><span class="tn">Person</span>(<span class="pk">Per_ID</span>, <span class="attr">Name</span>, <span class="fk">Pass_No</span> <span style="color:#e74c3c;">UNIQUE</span>, <span class="attr">Passport_Attrs...</span>)
+<span class="tn">Passport</span>(<span class="pk">Pass_No</span>)</div>
+    </div>
+  </div>
+</section>
+
+<!-- CHEAT SHEET -->
+<section id="cheat">
+  <div class="fi">
+    <div class="sec-label">Reference</div>
+    <h2>Minimum Tables — Cheat Sheet</h2>
+    <div class="tbl-wrap">
+      <table class="diff-table">
+        <tr><th>Construct</th><th>Min Tables</th><th>Rule</th></tr>
+        <tr><td><strong style="color:var(--primary);">M:N</strong></td><td><strong>3</strong></td><td>Separate table for relationship</td></tr>
+        <tr><td><strong style="color:var(--orange);">1:M / M:1</strong></td><td><strong>2</strong></td><td>FK on many side</td></tr>
+        <tr><td><strong style="color:var(--purple);">1:1 (partial)</strong></td><td><strong>2</strong></td><td>FK UNIQUE in either entity</td></tr>
+        <tr><td><strong style="color:var(--teal);">1:1 (total both)</strong></td><td><strong>1</strong></td><td>Merge everything</td></tr>
+        <tr><td><strong style="color:var(--muted);">No cardinality</strong></td><td><strong>3</strong></td><td>Treated as M:N</td></tr>
+        <tr><td><strong style="color:var(--blue);">Weak entity</strong></td><td><strong>2</strong></td><td>Strong PK in weak table</td></tr>
+      </table>
+    </div>
+    <div class="gotcha"><strong>Remember:</strong> Multivalued attrs add extra tables on top! E.g., entity with 2 multivalued attrs in M:N = 3 + 2 = 5 tables.</div>
+  </div>
+</section>
+
+<!-- ═══════════ PART C — INTERACTIVE TRANSFORMS ═══════════ -->
+
+<section id="transform">
+  <div class="fi">
+    <div class="part-label">Part C — Interactive Transforms</div>
+    <div class="sec-label">Step-by-Step</div>
+    <h2>Transform Animator</h2>
+    <p style="margin:.4rem 0;">Click through each step to see the ER element highlighted and the corresponding table appear.</p>
+  </div>
+
+  <div class="fi">
+    <div class="tf-selector" id="tf-selector"></div>
+
+    <!-- Transform 0: Strong Entity + Simple -->
+    <div class="tf-panel active" id="tf0">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 400 180">
+            <g id="tf0-ent"><rect class="ent" x="140" y="70" width="120" height="40" rx="4"/><text x="200" y="95" text-anchor="middle" font-weight="700" fill="#e74c3c">Employee</text></g>
+            <g id="tf0-ssn"><ellipse class="att" cx="80" cy="30" rx="38" ry="16"/><text x="80" y="35" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-weight="700" font-size="11">ssn</text><line class="conn" x1="108" y1="40" x2="155" y2="70"/></g>
+            <g id="tf0-name"><ellipse class="att" cx="200" cy="25" rx="38" ry="16"/><text x="200" y="30" text-anchor="middle" fill="#2980b9" font-size="11">name</text><line class="conn" x1="200" y1="41" x2="200" y2="70"/></g>
+            <g id="tf0-dob"><ellipse class="att" cx="320" cy="30" rx="38" ry="16"/><text x="320" y="35" text-anchor="middle" fill="#2980b9" font-size="11">dob</text><line class="conn" x1="292" y1="40" x2="245" y2="70"/></g>
+            <g id="tf0-age"><ellipse class="att-d" cx="320" cy="140" rx="30" ry="16"/><text x="320" y="145" text-anchor="middle" fill="#2980b9" font-size="11" font-style="italic">age</text><line class="conn" x1="300" y1="130" x2="250" y2="110"/></g>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Employee</span>(<span class="pk">ssn</span>, <span class="attr">name</span>, <span class="attr">dob</span>)</div>
+          <p class="schema" data-step="2" style="background:none;border:none;color:#f5b7b1;font-size:.75rem;padding:.3rem 0;">age is derived → REMOVED</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 1: Composite + Multivalued -->
+    <div class="tf-panel" id="tf1">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 440 220">
+            <g id="tf1-ent"><rect class="ent" x="160" y="80" width="120" height="40" rx="4"/><text x="220" y="105" text-anchor="middle" font-weight="700" fill="#e74c3c">Student</text></g>
+            <g id="tf1-sid"><ellipse class="att" cx="80" cy="40" rx="30" ry="16"/><text x="80" y="45" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-weight="700" font-size="11">sid</text><line class="conn" x1="100" y1="50" x2="170" y2="80"/></g>
+            <g id="tf1-gpa"><ellipse class="att" cx="220" cy="30" rx="30" ry="16"/><text x="220" y="35" text-anchor="middle" fill="#2980b9" font-size="11">gpa</text><line class="conn" x1="220" y1="46" x2="220" y2="80"/></g>
+            <g id="tf1-name"><ellipse class="att" cx="340" cy="40" rx="35" ry="16"/><text x="340" y="45" text-anchor="middle" fill="#2980b9" font-size="11">Name</text><line class="conn" x1="315" y1="50" x2="270" y2="80"/></g>
+            <g id="tf1-first"><ellipse class="att" cx="310" cy="10" rx="30" ry="12"/><text x="310" y="14" text-anchor="middle" fill="#2980b9" font-size="9">First</text><line class="conn" x1="320" y1="22" x2="330" y2="28"/></g>
+            <g id="tf1-last"><ellipse class="att" cx="390" cy="10" rx="28" ry="12"/><text x="390" y="14" text-anchor="middle" fill="#2980b9" font-size="9">Last</text><line class="conn" x1="375" y1="22" x2="355" y2="28"/></g>
+            <g id="tf1-phone"><ellipse class="att-m" cx="350" cy="150" rx="40" ry="16"/><ellipse cx="350" cy="150" rx="34" ry="12" style="fill:none;stroke:#2980b9;stroke-width:1.5"/><text x="350" y="155" text-anchor="middle" fill="#2980b9" font-size="11">phone</text><line class="conn" x1="318" y1="140" x2="265" y2="120"/></g>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">first_name</span>, <span class="attr">last_name</span>, <span class="attr">gpa</span>)</div>
+          <div class="schema" data-step="2"><span class="tn">Student_Phone</span>(<span class="pk fk">sid</span>, <span class="pk">phone</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 2: Weak Entity -->
+    <div class="tf-panel" id="tf2">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 480 140">
+            <g id="tf2-loan"><rect class="ent" x="20" y="45" width="110" height="38" rx="4"/><text x="75" y="68" text-anchor="middle" font-weight="700" fill="#e74c3c">Loan</text></g>
+            <g id="tf2-lno"><ellipse class="att" cx="40" cy="15" rx="38" ry="14"/><text x="40" y="19" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-size="10" font-weight="700">loan_no</text><line class="conn" x1="55" y1="29" x2="65" y2="45"/></g>
+            <g id="tf2-lamt"><ellipse class="att" cx="120" cy="15" rx="35" ry="14"/><text x="120" y="19" text-anchor="middle" fill="#2980b9" font-size="10">amount</text><line class="conn" x1="110" y1="29" x2="90" y2="45"/></g>
+            <g id="tf2-rel"><line class="conn-t" x1="130" y1="64" x2="175" y2="64"/><polygon class="rel-ident" points="215,44 245,64 215,84 185,64"/><text x="215" y="68" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">L_P</text><line class="conn-t" x1="245" y1="64" x2="290" y2="64"/></g>
+            <g id="tf2-pay"><rect class="ent-weak" x="290" y="45" width="120" height="38" rx="4"/><rect x="294" y="49" width="112" height="30" rx="3" style="fill:none;stroke:#e74c3c;stroke-width:2"/><text x="350" y="68" text-anchor="middle" font-weight="700" fill="#e74c3c">Payment</text></g>
+            <g id="tf2-pno"><ellipse class="att-d" cx="430" cy="20" rx="38" ry="14" style="stroke-dasharray:0"/><text x="430" y="24" text-anchor="middle" fill="#2980b9" font-size="10" style="text-decoration:underline dashed">pay_no</text><line class="conn" x1="420" y1="34" x2="380" y2="48"/></g>
+            <g id="tf2-pdt"><ellipse class="att" cx="440" cy="100" rx="30" ry="14"/><text x="440" y="104" text-anchor="middle" fill="#2980b9" font-size="10">date</text><line class="conn" x1="418" y1="92" x2="385" y2="80"/></g>
+            <g id="tf2-pamt"><ellipse class="att" cx="350" cy="115" rx="35" ry="14"/><text x="350" y="119" text-anchor="middle" fill="#2980b9" font-size="10">amount</text><line class="conn" x1="350" y1="101" x2="350" y2="83"/></g>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Loan</span>(<span class="pk">loan_no</span>, <span class="attr">amount</span>)</div>
+          <div class="schema" data-step="2"><span class="tn">Payment</span>(<span class="pk fk">loan_no</span>, <span class="pk">pay_no</span>, <span class="attr">date</span>, <span class="attr">amount</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 3: M:N -->
+    <div class="tf-panel" id="tf3">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 520 150">
+            <g id="tf3-stu"><rect class="ent" x="10" y="50" width="110" height="38" rx="4"/><text x="65" y="73" text-anchor="middle" font-weight="700" fill="#e74c3c">Student</text></g>
+            <g id="tf3-sid"><ellipse class="att" cx="30" cy="15" rx="28" ry="13"/><text x="30" y="19" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-size="10" font-weight="700">sid</text><line class="conn" x1="40" y1="28" x2="50" y2="50"/></g>
+            <g id="tf3-sn"><ellipse class="att" cx="95" cy="15" rx="28" ry="13"/><text x="95" y="19" text-anchor="middle" fill="#2980b9" font-size="10">name</text><line class="conn" x1="85" y1="28" x2="75" y2="50"/></g>
+            <g id="tf3-sgpa"><ellipse class="att" cx="30" cy="120" rx="25" ry="13"/><text x="30" y="124" text-anchor="middle" fill="#2980b9" font-size="10">gpa</text><line class="conn" x1="45" y1="112" x2="55" y2="88"/></g>
+            <g id="tf3-rel"><line class="conn" x1="120" y1="69" x2="195" y2="69"/><polygon class="rel" points="235,49 265,69 235,89 205,69"/><text x="235" y="73" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">enrolls</text><line class="conn" x1="265" y1="69" x2="340" y2="69"/></g>
+            <g id="tf3-edt"><ellipse class="att" cx="235" cy="120" rx="32" ry="13"/><text x="235" y="124" text-anchor="middle" fill="#e67e22" font-size="9">enroll_date</text><line class="conn" x1="235" y1="107" x2="235" y2="89"/></g>
+            <g id="tf3-crs"><rect class="ent" x="340" y="50" width="110" height="38" rx="4"/><text x="395" y="73" text-anchor="middle" font-weight="700" fill="#e74c3c">Course</text></g>
+            <g id="tf3-cid"><ellipse class="att" cx="370" cy="15" rx="25" ry="13"/><text x="370" y="19" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-size="10" font-weight="700">cid</text><line class="conn" x1="370" y1="28" x2="375" y2="50"/></g>
+            <g id="tf3-cn"><ellipse class="att" cx="440" cy="15" rx="30" ry="13"/><text x="440" y="19" text-anchor="middle" fill="#2980b9" font-size="10">name</text><line class="conn" x1="425" y1="28" x2="415" y2="50"/></g>
+            <g id="tf3-ccr"><ellipse class="att" cx="470" cy="120" rx="30" ry="13"/><text x="470" y="124" text-anchor="middle" fill="#2980b9" font-size="10">credit</text><line class="conn" x1="450" y1="112" x2="425" y2="88"/></g>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Student</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">gpa</span>)</div>
+          <div class="schema" data-step="2"><span class="tn">Course</span>(<span class="pk">cid</span>, <span class="attr">name</span>, <span class="attr">credit</span>)</div>
+          <div class="schema" data-step="3"><span class="tn">Enrolls</span>(<span class="pk fk">sid</span>, <span class="pk fk">cid</span>, <span class="attr">enroll_date</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 4: 1:M -->
+    <div class="tf-panel" id="tf4">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 500 130">
+            <g id="tf4-tch"><rect class="ent" x="10" y="40" width="110" height="38" rx="4"/><text x="65" y="63" text-anchor="middle" font-weight="700" fill="#e74c3c">Teacher</text></g>
+            <g id="tf4-tid"><ellipse class="att" cx="30" cy="10" rx="25" ry="13"/><text x="30" y="14" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-size="10" font-weight="700">tid</text><line class="conn" x1="42" y1="23" x2="50" y2="40"/></g>
+            <g id="tf4-tn"><ellipse class="att" cx="95" cy="10" rx="28" ry="13"/><text x="95" y="14" text-anchor="middle" fill="#2980b9" font-size="10">name</text><line class="conn" x1="85" y1="23" x2="78" y2="40"/></g>
+            <g id="tf4-tsal"><ellipse class="att" cx="40" cy="110" rx="30" ry="13"/><text x="40" y="114" text-anchor="middle" fill="#2980b9" font-size="10">salary</text><line class="conn" x1="58" y1="100" x2="60" y2="78"/></g>
+            <g id="tf4-rel"><line class="conn" x1="120" y1="59" x2="185" y2="59"/><polygon points="178,55 188,59 178,63" fill="rgba(255,255,255,.4)"/><polygon class="rel" points="225,39 255,59 225,79 195,59"/><text x="225" y="63" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">teaches</text><line class="conn" x1="255" y1="59" x2="330" y2="59"/></g>
+            <g id="tf4-sub"><rect class="ent" x="330" y="40" width="110" height="38" rx="4"/><text x="385" y="63" text-anchor="middle" font-weight="700" fill="#e74c3c">Subject</text></g>
+            <g id="tf4-ssid"><ellipse class="att" cx="360" cy="10" rx="25" ry="13"/><text x="360" y="14" text-anchor="middle" text-decoration="underline" fill="#2980b9" font-size="10" font-weight="700">sid</text><line class="conn" x1="360" y1="23" x2="368" y2="40"/></g>
+            <g id="tf4-sn"><ellipse class="att" cx="420" cy="10" rx="28" ry="13"/><text x="420" y="14" text-anchor="middle" fill="#2980b9" font-size="10">name</text><line class="conn" x1="410" y1="23" x2="405" y2="40"/></g>
+            <g id="tf4-scr"><ellipse class="att" cx="430" cy="110" rx="30" ry="13"/><text x="430" y="114" text-anchor="middle" fill="#2980b9" font-size="10">credit</text><line class="conn" x1="415" y1="100" x2="405" y2="78"/></g>
+            <text class="lbl" x="185" y="85" font-size="9" fill="#999">1</text>
+            <text class="lbl" x="270" y="85" font-size="9" fill="#999">M</text>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Teacher</span>(<span class="pk">tid</span>, <span class="attr">name</span>, <span class="attr">salary</span>)</div>
+          <div class="schema" data-step="2"><span class="tn">Subject</span>(<span class="pk">sid</span>, <span class="attr">name</span>, <span class="attr">credit</span>, <span class="fk">teacherId</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 5: 1:1 Three Cases -->
+    <div class="tf-panel" id="tf5">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 420 130">
+            <g id="tf5-a"><rect class="ent" x="10" y="45" width="100" height="36" rx="4"/><text x="60" y="67" text-anchor="middle" font-weight="700" fill="#e74c3c">Entity A</text></g>
+            <g id="tf5-rel"><line class="conn" x1="110" y1="63" x2="155" y2="63"/><polygon points="148,59 158,63 148,67" fill="rgba(255,255,255,.4)"/><polygon class="rel" points="195,43 225,63 195,83 165,63"/><text x="195" y="67" text-anchor="middle" font-size="9" font-weight="700" fill="#27ae60">R</text><line class="conn" x1="225" y1="63" x2="270" y2="63"/><polygon points="263,59 273,63 263,67" fill="rgba(255,255,255,.4)"/></g>
+            <g id="tf5-b"><rect class="ent" x="270" y="45" width="100" height="36" rx="4"/><text x="320" y="67" text-anchor="middle" font-weight="700" fill="#e74c3c">Entity B</text></g>
+            <text class="lbl" x="195" y="105" text-anchor="middle">1:1 — arrows on both sides</text>
+            <text class="lbl" x="195" y="120" text-anchor="middle">Result depends on participation constraints</text>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Three Cases</h3>
+          <div class="schema" data-step="1"><span style="color:#f9e04b;font-size:.7rem;">CASE 1: Partial + Partial → 2 tables</span>
+<span class="tn">A</span>(<span class="pk">a1</span>, <span class="attr">a2</span>, <span class="fk">b1</span> <span style="color:#e74c3c;">UNIQUE</span>)
+<span class="tn">B</span>(<span class="pk">b1</span>, <span class="attr">b2</span>)</div>
+          <div class="schema" data-step="2"><span style="color:#f9e04b;font-size:.7rem;">CASE 2: One Total → 2 tables (merge into total side)</span>
+<span class="tn">A</span>(<span class="pk">a1</span>, <span class="attr">a2</span>, <span class="fk">b1</span> <span style="color:#e74c3c;">UNIQUE</span>)
+<span class="tn">B</span>(<span class="pk">b1</span>, <span class="attr">b2</span>)</div>
+          <div class="schema" data-step="3"><span style="color:#f9e04b;font-size:.7rem;">CASE 3: Both Total → 1 table!</span>
+<span class="tn">ARB</span>(<span class="pk">a1</span>, <span class="attr">a2</span>, <span class="attr">b1</span> <span style="color:#e74c3c;">UNIQUE NOT NULL</span>, <span class="attr">b2</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform 6: Banking ER -->
+    <div class="tf-panel" id="tf6">
+      <div class="tf-split">
+        <div class="tf-left">
+          <svg class="er-svg" viewBox="0 0 500 260">
+            <g id="tf6-acct"><rect class="ent" x="10" y="20" width="100" height="34" rx="4"/><text x="60" y="42" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Account</text></g>
+            <g id="tf6-ab"><line class="conn" x1="110" y1="37" x2="145" y2="37"/><polygon class="rel" points="175,22 200,37 175,52 150,37"/><text x="175" y="40" text-anchor="middle" font-size="7" font-weight="700" fill="#27ae60">Acc_Br</text><line class="conn" x1="200" y1="37" x2="235" y2="37"/><polygon points="228,33 238,37 228,41" fill="rgba(255,255,255,.3)"/></g>
+            <g id="tf6-br"><rect class="ent" x="235" y="20" width="90" height="34" rx="4"/><text x="280" y="42" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Branch</text></g>
+            <g id="tf6-lb"><line class="conn" x1="325" y1="37" x2="355" y2="37"/><polygon class="rel" points="385,22 410,37 385,52 360,37"/><text x="385" y="40" text-anchor="middle" font-size="7" font-weight="700" fill="#27ae60">Ln_Br</text><line class="conn" x1="385" y1="52" x2="385" y2="90"/></g>
+            <g id="tf6-loan"><rect class="ent" x="335" y="90" width="100" height="34" rx="4"/><text x="385" y="112" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Loan</text></g>
+            <g id="tf6-cust"><rect class="ent" x="150" y="160" width="110" height="34" rx="4"/><text x="205" y="182" text-anchor="middle" font-weight="700" fill="#e74c3c" font-size="11">Customer</text></g>
+            <g id="tf6-dep"><line class="conn" x1="80" y1="54" x2="80" y2="120"/><polygon class="rel" points="80,120 110,140 80,160 50,140"/><text x="80" y="144" text-anchor="middle" font-size="7" font-weight="700" fill="#27ae60">Depos</text><line class="conn" x1="110" y1="140" x2="170" y2="165"/></g>
+            <g id="tf6-bor"><line class="conn" x1="260" y1="177" x2="310" y2="140"/><polygon class="rel" points="350,120 380,140 350,160 320,140"/><text x="350" y="144" text-anchor="middle" font-size="7" font-weight="700" fill="#27ae60">Borr</text><line class="conn" x1="370" y1="124" x2="385" y2="124"/></g>
+            <text class="lbl" x="145" y="80" font-size="8">M:1</text>
+            <text class="lbl" x="395" y="80" font-size="8">M:1</text>
+            <text class="lbl" x="70" y="115" font-size="8">M:N</text>
+            <text class="lbl" x="310" y="130" font-size="8">M:N</text>
+          </svg>
+        </div>
+        <div class="tf-right">
+          <h3 style="font-size:.8rem;color:var(--muted);">Resulting Tables</h3>
+          <div class="schema" data-step="1"><span class="tn">Account</span>(<span class="pk">Ac_no</span>, <span class="attr">Balance</span>, <span class="fk">b_name</span>)</div>
+          <div class="schema" data-step="2"><span class="tn">Branch</span>(<span class="pk">b_name</span>, <span class="attr">b_city</span>, <span class="attr">Assets</span>)</div>
+          <div class="schema" data-step="3"><span class="tn">Loan</span>(<span class="pk">L_no</span>, <span class="attr">Amt</span>, <span class="fk">b_name</span>)</div>
+          <div class="schema" data-step="4"><span class="tn">Customer</span>(<span class="pk">C_name</span>, <span class="attr">C_street</span>, <span class="attr">C_city</span>)</div>
+          <div class="schema" data-step="5"><span class="tn">Depositor</span>(<span class="pk fk">C_name</span>, <span class="pk fk">Ac_no</span>)</div>
+          <div class="schema" data-step="6"><span class="tn">Borrower</span>(<span class="pk fk">C_name</span>, <span class="pk fk">L_no</span>)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transform controls -->
+    <div id="tf-desc" class="tf-desc">Select a transform and click Next to begin.</div>
+    <div class="tf-nav">
+      <button class="btn btn-o" id="tf-prev" onclick="tfStep(-1)" disabled>← Previous</button>
+      <span class="tf-step-info" id="tf-step-info">Step 0/0</span>
+      <button class="btn" id="tf-next" onclick="tfStep(1)">Next →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ PART D — PRACTICE & REVIEW ═══════════ -->
+
+<section id="practice">
+  <div class="fi">
+    <div class="part-label">Part D — Practice &amp; Review</div>
+    <div class="sec-label">Worked Problems</div>
+    <h2>Practice Problems</h2>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Employee(<u>ssn</u>, name, dob, <em>age</em>[derived], phone[multi-valued]). How many tables?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> age is derived → removed. phone is multivalued → separate table.<br><strong>Employee(</strong><u>ssn</u>, name, dob<strong>)</strong><br><strong>Emp_Phone(</strong><u>ssn[FK]</u>, <u>phone</u><strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Student(<u>sid</u>, name, gpa) —M:N— enrolls(enrollment_date) —M:N— Course(<u>cid</u>, name, credit). How many tables?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>3 tables.</strong> M:N always produces 3.<br><strong>Student(</strong><u>sid</u>, name, gpa<strong>)</strong><br><strong>Enrolls(</strong><u>sid[FK]</u>, <u>cid[FK]</u>, enrollment_date<strong>)</strong> — composite PK (sid, cid)<br><strong>Course(</strong><u>cid</u>, name, credit<strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Teacher(<u>tid</u>, name, salary) —1:M— teaches — Subject(<u>sid</u>, name, credit). Where does the FK go?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>2 tables.</strong> "Many side consumes the relationship." Subject is the many side.<br><strong>Teacher(</strong><u>tid</u>, name, salary<strong>)</strong><br><strong>Subject(</strong><u>sid</u>, name, credit, <em>teacherId[FK]</em><strong>)</strong></div>
+    </div>
+  </div>
+
+  <div class="fi">
+    <div class="pto">
+      <div class="pto-badge">Convert the ER</div>
+      <div class="pto-q">Student(<u>sid</u>, name, gpa, phone[multi], email[multi]) —M:N enrolls(grade)— Course(<u>cid</u>, name, credit) —1:M taught_by— Instructor(<u>iid</u>, name, salary). Total tables?</div>
+      <button class="pto-btn" onclick="reveal(this)">Reveal Answer</button>
+      <div class="pto-reveal"><strong>6 tables.</strong><br>Student(sid, name, gpa) + Student_Phone(sid, phone) + Student_Email(sid, email) = 3<br>Enrolls(sid, cid, grade) = 1<br>Course(cid, name, credit, iid[FK]) = 1<br>Instructor(iid, name, salary) = 1<br><strong>Total = 6.</strong></div>
+    </div>
+  </div>
+</section>
+
+<!-- FLASHCARDS -->
+<section id="cards">
+  <div class="fi">
+    <div class="sec-label">Review</div>
+    <h2>Flashcards <span style="font-size:.7rem;color:var(--muted);font-weight:400;">(Click to flip)</span></h2>
+  </div>
+  <div class="fc-grid fi">
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">ER Concept</div><div class="fc-q">Entity</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">A distinguishable real-world object. Represented by a <strong>rectangle</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">ER Concept</div><div class="fc-q">Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">A property describing an entity. Represented by an <strong>oval</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">ER Concept</div><div class="fc-q">Relationship</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">An association between entities. Represented by a <strong>diamond</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attr Type</div><div class="fc-q">Multi-Valued Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Can hold multiple values. Phone_No, Email. Shown as a <strong>double oval</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attr Type</div><div class="fc-q">Derived Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Calculated from stored attr. Age from DOB. Shown as a <strong>dashed oval</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attr Type</div><div class="fc-q">Key Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Uniquely identifies each entity. Shown with <strong>underlined text</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Attr Type</div><div class="fc-q">Composite Attribute</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Can be subdivided. Name → First + Last. Sub-parts shown as ovals hanging off the parent oval.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Participation</div><div class="fc-q">Total Participation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Every entity MUST participate. <strong>Double line (═══)</strong>. Min ≥ 1.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Participation</div><div class="fc-q">Partial Participation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Some entities may NOT participate. Single line. Min = 0.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Special</div><div class="fc-q">Weak Entity Set</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">No sufficient PK. <strong>Double rectangle</strong>. PK = strong PK + discriminator. Connected via <strong>double diamond</strong>.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Hierarchy</div><div class="fc-q">Generalization</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Bottom-up</strong> — combine entities sharing common attrs into a superclass. ISA triangle.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Advanced</div><div class="fc-q">Aggregation</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">Treat a relationship as a higher-level abstract entity. <strong>Dashed rectangle</strong> around the relationship.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Mapping</div><div class="fc-q">Why convert ER to tables?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">No DBMS supports ER models directly. Must convert to relational tables for implementation.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Simple attrs → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 table.</strong> PK = key attribute. Derived attrs removed.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Composite attrs → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>Flatten</strong> to sub-parts. Name → First_name, Last_name. Still 1 table.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Multivalued → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 + N tables.</strong> Separate table per multivalued attr with entity PK as FK.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">Weak entity → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> PK of weak = strong PK + discriminator. Identifying rel absorbed.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">M:N → ? tables</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>3 tables.</strong> Entity A + Entity B + Relationship R with composite PK.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">1:M → where does FK go?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">FK goes on the <strong>many side</strong>. "Many side consumes the relationship."</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">1:1 partial + partial → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> FK must be <strong>UNIQUE</strong>. Can go in either table.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">1:1 total both → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>1 table!</strong> Merge everything. UNIQUE + NOT NULL on merged key.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Rule</div><div class="fc-q">1:1 one total → ?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a"><strong>2 tables.</strong> Merge R into entity with total participation. FK UNIQUE.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Constraint</div><div class="fc-q">NOT NULL on FK → when?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">When there is <strong>total participation</strong> on the FK side. Every entity must participate.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Constraint</div><div class="fc-q">UNIQUE on FK → when?</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">In <strong>1:1 relationships</strong>. Ensures each value appears at most once.</div></div></div></div>
+    <div class="fc" onclick="this.classList.toggle('flipped')"><div class="fc-in"><div class="fc-fr"><div class="fc-tag">Mnemonic</div><div class="fc-q">"Many side consumes the relationship"</div><div class="fc-hint">click to flip</div></div><div class="fc-bk"><div class="fc-a">In 1:M, the many-side table absorbs the FK + relationship attributes. No separate table.</div></div></div></div>
+  </div>
+</section>
+
+<!-- QUIZ -->
+<section id="quiz">
+  <div class="fi">
+    <div class="sec-label">Test Yourself</div>
+    <h2>Quiz — 20 MCQs</h2>
+    <p style="margin:.4rem 0;">Select the best answer. Immediate feedback after each question.</p>
+  </div>
+  <div class="quiz-wrap fi">
+    <div id="q-prog"></div>
+    <div id="q-card" class="q-card">
+      <div id="q-num" class="q-num"></div>
+      <div id="q-text" class="q-text"></div>
+      <div id="q-opts" class="q-opts"></div>
+      <div id="q-exp" class="q-exp"></div>
+      <div class="q-nav"><button id="q-next" class="btn" style="display:none;">Next →</button></div>
+    </div>
+    <div id="q-score">
+      <div class="sc-n" id="sc-val"></div>
+      <div class="sc-l">out of 20</div>
+      <p id="sc-msg" style="font-size:1.1rem;font-weight:600;margin:.5rem 0;"></p>
+      <button class="btn" onclick="initQ()" style="margin-top:1rem;">Retake Quiz</button>
+    </div>
+  </div>
+</section>
+
+<footer>Built by <strong style="color:var(--primary)">ARUN AK</strong> — UCS310 DBMS Study Guide · ER Visual Guide (Ch10 + Ch11)</footer>
+
+<script>
+// PROGRESS BAR
+window.addEventListener('scroll',function(){
+  var h=document.documentElement.scrollHeight-window.innerHeight;
+  document.getElementById('pb').style.width=(window.scrollY/h*100)+'%';
+});
+
+// FADE IN
+var obs=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting)e.target.classList.add('v')})},{threshold:.15});
+document.querySelectorAll('.fi').forEach(function(el){obs.observe(el)});
+
+// TABS
+function tabSwitch(btn,group){
+  var tabs=btn.parentElement.querySelectorAll('.a-tab');
+  tabs.forEach(function(t){t.classList.remove('on')});
+  btn.classList.add('on');
+  var panels=document.querySelectorAll('.a-panel[data-group="'+group+'"]');
+  var idx=Array.from(tabs).indexOf(btn);
+  panels.forEach(function(p,i){p.classList.toggle('on',i===idx)});
+}
+
+// REVEAL
+function reveal(btn){
+  if(btn.classList.contains('revealed'))return;
+  btn.nextElementSibling.classList.add('show');
+  btn.textContent='Answer Revealed';
+  btn.classList.add('revealed');
+}
+
+// ═══════════ TRANSFORM ANIMATOR ═══════════
+var TFS=[
+  {title:"1. Strong Entity + Simple",steps:[
+    {d:"Identify the strong entity: Employee. It becomes one table.",hl:["#tf0-ent"],st:[]},
+    {d:"ssn is the key attribute (underlined) — it becomes the Primary Key of the table.",hl:["#tf0-ssn"],st:[1]},
+    {d:"Simple attributes name and dob become regular columns in the table.",hl:["#tf0-name","#tf0-dob"],st:[1]},
+    {d:"age is a DERIVED attribute (dashed oval) — it is REMOVED from the table. It can be computed from dob.",hl:["#tf0-age"],st:[1,2]},
+    {d:"Final result: 1 table. Employee(ssn, name, dob). Derived attribute age is not stored.",hl:["#tf0-ent","#tf0-ssn","#tf0-name","#tf0-dob"],st:[1]}
+  ]},
+  {title:"2. Composite + Multivalued",steps:[
+    {d:"Student entity has mixed attribute types: key, composite, multivalued, and simple.",hl:["#tf1-ent"],st:[]},
+    {d:"sid is the key → PK. gpa is simple → column.",hl:["#tf1-sid","#tf1-gpa"],st:[1]},
+    {d:"Name is COMPOSITE — flatten it! Only leaf sub-parts (First, Last) become columns. 'Name' itself is NOT a column.",hl:["#tf1-name","#tf1-first","#tf1-last"],st:[1]},
+    {d:"phone is MULTIVALUED (double oval) — it needs its own separate table with sid as FK.",hl:["#tf1-phone"],st:[1,2]},
+    {d:"Final: 2 tables. Student(sid, first_name, last_name, gpa) + Student_Phone(sid, phone).",hl:["#tf1-ent"],st:[1,2]}
+  ]},
+  {title:"3. Weak Entity (Loan-Payment)",steps:[
+    {d:"Loan is the STRONG entity. It maps to its own table with loan_no as PK.",hl:["#tf2-loan","#tf2-lno","#tf2-lamt"],st:[1]},
+    {d:"Payment is a WEAK entity (double rectangle). It cannot exist without Loan.",hl:["#tf2-pay"],st:[1]},
+    {d:"pay_no is the DISCRIMINATOR (partial key). PK of Payment = loan_no + pay_no.",hl:["#tf2-pno"],st:[1,2]},
+    {d:"The identifying relationship L_P is ABSORBED into the weak entity table — no separate table for it.",hl:["#tf2-rel"],st:[1,2]},
+    {d:"Final: 2 tables. Loan(loan_no, amount) + Payment(loan_no[FK], pay_no, date, amount).",hl:["#tf2-loan","#tf2-pay"],st:[1,2]}
+  ]},
+  {title:"4. M:N (Student-enrolls-Course)",steps:[
+    {d:"Map Student entity → Student table with sid as PK.",hl:["#tf3-stu","#tf3-sid","#tf3-sn","#tf3-sgpa"],st:[1]},
+    {d:"Map Course entity → Course table with cid as PK.",hl:["#tf3-crs","#tf3-cid","#tf3-cn","#tf3-ccr"],st:[1,2]},
+    {d:"enrolls is M:N — it needs its OWN table. Composite PK = (sid, cid). enroll_date is a relationship attribute.",hl:["#tf3-rel","#tf3-edt"],st:[1,2,3]},
+    {d:"Final: 3 tables. M:N always produces 3 tables — one per entity + one for the relationship.",hl:["#tf3-stu","#tf3-crs","#tf3-rel"],st:[1,2,3]}
+  ]},
+  {title:"5. 1:M (Teacher-teaches-Subject)",steps:[
+    {d:"Teacher is the ONE side. Map it to its own table.",hl:["#tf4-tch","#tf4-tid","#tf4-tn","#tf4-tsal"],st:[1]},
+    {d:"Subject is the MANY side. Map it to its own table.",hl:["#tf4-sub","#tf4-ssid","#tf4-sn","#tf4-scr"],st:[1,2]},
+    {d:"'Many side consumes the relationship.' Teacher's PK (tid) becomes a FK in Subject as teacherId.",hl:["#tf4-rel"],st:[1,2]},
+    {d:"Final: 2 tables. Teacher(tid, name, salary) + Subject(sid, name, credit, teacherId[FK]).",hl:["#tf4-tch","#tf4-sub"],st:[1,2]}
+  ]},
+  {title:"6. 1:1 — Three Cases",steps:[
+    {d:"1:1 relationships have THREE different outcomes depending on participation constraints.",hl:["#tf5-a","#tf5-rel","#tf5-b"],st:[]},
+    {d:"CASE 1: Both partial → 2 tables. Combine R with either entity. FK must be UNIQUE.",hl:["#tf5-a","#tf5-b"],st:[1]},
+    {d:"CASE 2: One total → 2 tables. Merge R into the entity with TOTAL participation. FK UNIQUE.",hl:["#tf5-a","#tf5-b"],st:[1,2]},
+    {d:"CASE 3: Both total → only 1 table! Merge everything. UNIQUE + NOT NULL on the merged key.",hl:["#tf5-a","#tf5-b"],st:[1,2,3]}
+  ]},
+  {title:"7. Banking ER → 6 Tables",steps:[
+    {d:"Start with 4 entities: Account, Branch, Customer, Loan. Each will have its own table.",hl:["#tf6-acct","#tf6-br","#tf6-cust","#tf6-loan"],st:[]},
+    {d:"Account_branch is M:1 — Account is many, Branch is one. Account gets b_name as FK.",hl:["#tf6-ab","#tf6-acct"],st:[1,2]},
+    {d:"Loan_branch is M:1 — Loan is many, Branch is one. Loan gets b_name as FK.",hl:["#tf6-lb","#tf6-loan"],st:[1,2,3]},
+    {d:"Customer is standalone with its own attributes.",hl:["#tf6-cust"],st:[1,2,3,4]},
+    {d:"Depositor is M:N (Customer-Account) → needs its own table with composite PK (C_name, Ac_no).",hl:["#tf6-dep"],st:[1,2,3,4,5]},
+    {d:"Borrower is M:N (Customer-Loan) → needs its own table with composite PK (C_name, L_no).",hl:["#tf6-bor"],st:[1,2,3,4,5,6]},
+    {d:"Final: 6 tables total. 2 M:1 relationships merged. 2 M:N relationships got their own tables.",hl:["#tf6-acct","#tf6-br","#tf6-loan","#tf6-cust","#tf6-dep","#tf6-bor"],st:[1,2,3,4,5,6]}
+  ]}
+];
+var tfIdx=0,stepIdx=0;
+
+// Build selector tabs
+(function(){
+  var sel=document.getElementById('tf-selector');
+  TFS.forEach(function(tf,i){
+    var b=document.createElement('button');
+    b.className='tf-tab'+(i===0?' on':'');
+    b.textContent=tf.title;
+    b.onclick=function(){
+      sel.querySelectorAll('.tf-tab').forEach(function(t){t.classList.remove('on')});
+      b.classList.add('on');
+      tfIdx=i;stepIdx=0;
+      showTf();
+    };
+    sel.appendChild(b);
+  });
+  showTf();
+})();
+
+function showTf(){
+  document.querySelectorAll('.tf-panel').forEach(function(p,i){
+    p.classList.toggle('active',i===tfIdx);
+  });
+  renderStep();
+}
+
+function renderStep(){
+  var tf=TFS[tfIdx];
+  var step=tf.steps[stepIdx];
+  document.getElementById('tf-desc').textContent=step.d;
+  document.getElementById('tf-step-info').textContent='Step '+(stepIdx+1)+'/'+tf.steps.length;
+  document.getElementById('tf-prev').disabled=(stepIdx===0);
+  document.getElementById('tf-next').disabled=(stepIdx===tf.steps.length-1);
+  // Clear all highlights
+  document.querySelectorAll('.er-svg .hl-active').forEach(function(e){e.classList.remove('hl-active')});
+  // Add highlights
+  var panel=document.getElementById('tf'+tfIdx);
+  step.hl.forEach(function(sel){
+    var el=panel.querySelector(sel.replace('#tf'+tfIdx,'#tf'+tfIdx));
+    if(!el)el=document.querySelector(sel);
+    if(el)el.classList.add('hl-active');
+  });
+  // Show/hide schemas
+  panel.querySelectorAll('.schema[data-step]').forEach(function(s){
+    var sn=parseInt(s.getAttribute('data-step'));
+    s.classList.toggle('vis',step.st.indexOf(sn)!==-1);
+  });
+}
+
+function tfStep(dir){
+  var tf=TFS[tfIdx];
+  stepIdx+=dir;
+  if(stepIdx<0)stepIdx=0;
+  if(stepIdx>=tf.steps.length)stepIdx=tf.steps.length-1;
+  renderStep();
+}
+
+// ═══════════ QUIZ ═══════════
+var QS=[
+  {q:"What shape represents an Entity in an ER diagram?",o:["Oval","Diamond","Rectangle","Triangle"],a:2,e:"An entity is represented by a rectangle. Ovals = attributes, diamonds = relationships, triangles = ISA."},
+  {q:"Which attribute type is represented by a dashed oval?",o:["Multi-valued","Composite","Derived","Key"],a:2,e:"A dashed oval = derived attribute (calculated from a stored attribute, e.g., Age from DOB)."},
+  {q:"A student can have multiple phone numbers. What type of attribute is Phone_No?",o:["Simple","Composite","Multi-valued","Derived"],a:2,e:"Multi-valued — can hold more than one value per entity. Shown as a double oval."},
+  {q:"What does a double line between an entity and a relationship indicate?",o:["1:1 cardinality","M:N cardinality","Total participation","Weak entity"],a:2,e:"A double line (═══) indicates total participation — every entity MUST participate."},
+  {q:"What uniquely identifies a weak entity?",o:["Its own PK","Discriminator alone","Strong PK + discriminator","Foreign key"],a:2,e:"Weak entity PK = strong entity PK + discriminator (partial key)."},
+  {q:"Generalization is a _____ approach.",o:["Top-down","Bottom-up","Left-right","Recursive"],a:1,e:"Generalization is bottom-up: combine entities sharing attrs into a superclass. Specialization is top-down."},
+  {q:"Which concept lets you express relationships among relationships?",o:["Generalization","Specialization","Aggregation","Cardinality"],a:2,e:"Aggregation treats a relationship as a higher-level abstract entity (dashed rectangle)."},
+  {q:"What is the degree of a relationship between Faculty, Student, and Project?",o:["1 (Unary)","2 (Binary)","3 (Ternary)","4 (Quaternary)"],a:2,e:"3 entity sets → ternary relationship (degree 3)."},
+  {q:"A strong entity with only simple attributes needs how many tables?",o:["0","1","2","3"],a:1,e:"1 table. Each simple attr → column. PK = key attribute. Derived attrs removed."},
+  {q:"A strong entity with 2 multivalued attributes needs how many tables?",o:["1","2","3","4"],a:2,e:"1 main + 1 per multivalued = 1 + 2 = 3 tables."},
+  {q:"An M:N binary relationship needs how many tables?",o:["1","2","3","4"],a:2,e:"3 tables: one per entity + one for the relationship. Composite PK from both entity PKs."},
+  {q:"In a 1:M relationship, where does the FK go?",o:["One side","Many side","Both sides","Separate table"],a:1,e:"FK goes on the MANY side. 'Many side consumes the relationship.'"},
+  {q:"A 1:1 relationship with total participation on BOTH sides needs how many tables?",o:["1","2","3","0"],a:0,e:"Just 1 table! Merge both entities and relationship. UNIQUE + NOT NULL constraints."},
+  {q:"Derived attributes during ER-to-table conversion become?",o:["Computed columns","Removed","Foreign keys","Regular columns"],a:1,e:"Derived attributes are removed — they can be calculated at query time."},
+  {q:"Composite attributes become?",o:["JSON column","Flattened sub-parts","Separate table","Removed"],a:1,e:"Flattened — only leaf-level sub-parts become columns. Name → First_name, Last_name."},
+  {q:"PK of a weak entity table = ?",o:["Discriminator only","Strong PK only","Strong PK + discriminator","Auto-generated key"],a:2,e:"Weak entity PK = strong entity PK (as FK) + discriminator. E.g., (account_number, check_number)."},
+  {q:"Student(sid,name,phone[multi]) — M:N enrolls — Course(cid,name). Total tables?",o:["3","4","5","6"],a:1,e:"Student + Student_Phone (multivalued) + Enrolls (M:N) + Course = 4 tables."},
+  {q:"1:M with total participation on many side — FK constraint?",o:["UNIQUE","NOT NULL","CHECK","DEFAULT"],a:1,e:"Total participation → FK gets NOT NULL. Every entity on that side MUST participate."},
+  {q:"A relationship with no cardinality specified is treated as:",o:["1:1","1:M","M:1","M:N"],a:3,e:"No cardinality specified → treated as M:N → 3 tables."},
+  {q:"In an M:N relationship table, the primary key is:",o:["PK of entity A only","PK of entity B only","Composite of both PKs","Surrogate key"],a:2,e:"Composite PK from both entity PKs. E.g., Enrolls(sid, cid)."}
+];
+
+var cur=0,score=0,answered=false;
+
+function initQ(){
+  cur=0;score=0;answered=false;
+  document.getElementById('q-score').style.display='none';
+  document.getElementById('q-card').style.display='block';
+  renderQ();
+}
+
+function renderQ(){
+  var q=QS[cur];
+  document.getElementById('q-num').textContent='Question '+(cur+1)+' of '+QS.length;
+  document.getElementById('q-text').textContent=q.q;
+  var opts=document.getElementById('q-opts');
+  opts.innerHTML='';
+  q.o.forEach(function(o,i){
+    var b=document.createElement('button');
+    b.className='q-opt';b.textContent=o;
+    b.onclick=function(){answer(i)};
+    opts.appendChild(b);
+  });
+  document.getElementById('q-exp').className='q-exp';
+  document.getElementById('q-exp').textContent='';
+  document.getElementById('q-next').style.display='none';
+  answered=false;
+  var prog=document.getElementById('q-prog');
+  prog.innerHTML='';
+  QS.forEach(function(_,i){
+    var d=document.createElement('div');
+    d.className='q-dot'+(i===cur?' cur':'');
+    prog.appendChild(d);
+  });
+}
+
+function answer(i){
+  if(answered)return;
+  answered=true;
+  var q=QS[cur];
+  var btns=document.querySelectorAll('.q-opt');
+  btns.forEach(function(b){b.disabled=true});
+  if(i===q.a){score++;btns[i].classList.add('ok');}
+  else{btns[i].classList.add('no');btns[q.a].classList.add('ok');}
+  var exp=document.getElementById('q-exp');
+  exp.textContent=q.e;
+  exp.className='q-exp show '+(i===q.a?'ok':'no');
+  document.getElementById('q-next').style.display='block';
+  var dots=document.querySelectorAll('.q-dot');
+  dots[cur].classList.add(i===q.a?'done':'bad');
+}
+
+document.getElementById('q-next').onclick=function(){
+  cur++;
+  if(cur>=QS.length){
+    document.getElementById('q-card').style.display='none';
+    var sc=document.getElementById('q-score');
+    sc.style.display='block';
+    document.getElementById('sc-val').textContent=score;
+    var p=score/QS.length;
+    var msgs=['Keep studying!','Getting there — review the rules.','Decent! Revisit weak entities.','Good work!','Great job! Solid understanding.','Excellent! Nearly perfect.','Perfect score! ER master!'];
+    document.getElementById('sc-msg').textContent=msgs[Math.min(Math.floor(p*6),6)];
+  } else {renderQ();}
+};
+
+initQ();
+</script>
+</body>
+</html>
